@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARA-1101 A&P Self-Study Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #0f2d4a;
+    --blue:    #1a5c8a;
+    --mid:     #2d88c0;
+    --light:   #e8f3fb;
+    --accent:  #d4a853;
+    --green:   #2a7a4b;
+    --green-bg:#edf7f1;
+    --row-alt: #f7fbff;
+    --border:  #b8d4ea;
+    --text:    #1a2535;
+    --muted:   #6b7f95;
+    --white:   #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0f5fa;
+    color: var(--text);
+  }
+
+  /* ── STICKY HEADER ── */
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--navy);
+    padding: 0;
+    box-shadow: 0 4px 20px rgba(15,45,74,0.35);
+    width: 100%;
+    left: 0;
+  }
+
+  .header-inner {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .header-title h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    color: var(--white);
+    letter-spacing: 0.02em;
+  }
+
+  .header-title p {
+    font-size: 0.78rem;
+    color: #8ab4d0;
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  .progress-block {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .counter-pill {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 40px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .counter-done {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+    transition: all 0.2s;
+  }
+
+  .counter-sep {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .counter-total {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+  }
+
+  .counter-label {
+    font-size: 0.72rem;
+    color: #8ab4d0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+
+  .progress-bar-wrap {
+    width: 180px;
+  }
+
+  .progress-bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mid), var(--accent));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-pct {
+    font-size: 0.75rem;
+    color: #8ab4d0;
+    margin-top: 5px;
+    text-align: right;
+    font-weight: 500;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .container {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  /* ── MODULE SECTION ── */
+  .module {
+    margin-bottom: 48px;
+  }
+
+  .module-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--navy);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--mid);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .module-heading span.mod-tag {
+    font-size: 0.7rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--mid);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* ── CHAPTER TABLE ── */
+  .chapter-block {
+    margin-bottom: 24px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(15,45,74,0.1);
+  }
+
+  .chapter-header {
+    display: grid;
+    grid-template-columns: 52px 1fr 160px 140px 80px;
+    background: var(--blue);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .chapter-header .col {
+    padding: 11px 14px;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .chapter-header .col:last-child { border-right: none; }
+  .chapter-header .col.center { text-align: center; }
+  .chapter-header .col.ch-name { font-family: 'DM Serif Display', serif; font-size: 0.95rem; text-transform: none; letter-spacing: 0; }
+
+  .obj-row {
+    display: grid;
+    grid-template-columns: 52px 1fr 160px 140px 80px;
+    border-top: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .obj-row:nth-child(even) { background: var(--row-alt); }
+  .obj-row:nth-child(odd)  { background: var(--white); }
+  .obj-row:hover           { background: #deeef9; }
+  .obj-row.completed       { background: var(--green-bg) !important; }
+  .obj-row.completed .obj-text { color: var(--muted); }
+
+  .obj-row .col {
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+
+  .obj-row .col:last-child { border-right: none; }
+
+  .col-num {
+    justify-content: center;
+    font-weight: 600;
+    color: var(--blue);
+    font-size: 0.82rem;
+    background: var(--light) !important;
+    flex-shrink: 0;
+  }
+
+  .obj-row.completed .col-num {
+    background: #c8ead8 !important;
+    color: var(--green);
+  }
+
+  .obj-text { line-height: 1.5; color: var(--text); }
+
+  .col-date input[type="date"],
+  .col-date input[type="text"] {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.82rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: white;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .col-date input:focus {
+    outline: none;
+    border-color: var(--mid);
+    box-shadow: 0 0 0 2px rgba(45,136,192,0.2);
+  }
+
+  .col-check {
+    justify-content: center;
+  }
+
+  /* Custom checkbox */
+  .check-wrap {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+  }
+
+  .check-wrap input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .check-box {
+    width: 26px;
+    height: 26px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    pointer-events: none;
+  }
+
+  .check-wrap input:checked ~ .check-box {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .check-wrap input:checked ~ .check-box::after {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 11px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+
+  .check-wrap:hover .check-box {
+    border-color: var(--mid);
+    box-shadow: 0 0 0 3px rgba(45,136,192,0.15);
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    .sticky-header { position: relative; }
+    .progress-bar-wrap { display: none; }
+    body { background: white; }
+    .container { padding: 20px; }
+    .check-box { border: 1px solid #999; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .progress-bar-wrap { width: 100%; }
+    .chapter-header,
+    .obj-row {
+      grid-template-columns: 40px 1fr 110px 60px;
+    }
+    .col-date { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sticky-header">
+  <div class="header-inner">
+    <div class="header-title">
+      <h1>PARA-1101 &mdash; Anatomy &amp; Physiology</h1>
+      <p>Self-Study Planner &nbsp;·&nbsp; Primary Care Paramedic Program</p>
+    </div>
+    <div class="progress-block">
+      <div>
+        <div class="counter-label">Objectives Complete</div>
+        <div class="counter-pill" style="margin-top:4px;">
+          <span class="counter-done" id="doneCount">0</span>
+          <span class="counter-sep">/</span>
+          <span class="counter-total" id="totalCount">0</span>
+        </div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="counter-label" style="margin-bottom:6px;">Overall Progress</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="mainContent"></div>
+
+<script>
+const modules = [
+  {
+    title: "Module 1 | Structure and Function of Cells and Tissues",
+    chapters: [
+      { name: "Chapter 2", objectives: [
+        "Define homeostasis.",
+        "Describe positive and negative feedback loop mechanisms and provide an example of each.",
+      ]},
+      { name: "Chapter 3", objectives: [
+        "Define the nature of chemical substances, including elements, compounds, and their component atoms and molecules.",
+        "Identify the structures and functions of biochemical compounds, including carbohydrates, lipids, proteins, and nucleic acids (such as DNA and RNA).",
+        "Understand what chemical reactions are, how energy is involved in chemical reactions, how enzymes assist in chemical reactions, and some types of biochemical reactions in living organisms.",
+        "Summarize the properties of water and the importance of water for most biochemical processes.",
+        "Define pH, acids, and bases, and why maintaining a proper pH in the body is important for biochemical reactions.",
+      ]},
+      { name: "Chapter 4", objectives: [
+        "Describe the importance of size and shape to the functions of cells.",
+        "Compare and contrast between eukaryotic cells (such as those in humans and other animals) and prokaryotic cells (such as bacteria).",
+        "Outline the structures and functions of cell parts, including the plasma membrane, cytoplasm, cytoskeleton, nucleus, ribosomes, Golgi apparatus, endoplasmic reticulum, mitochondria, vesicles, and vacuoles.",
+        "Explain the processes of passive and active transport to move substances into and out of cells, and how these processes help maintain homeostasis.",
+        "Understand how organisms obtain the energy needed for life, including how the sugar glucose is broken down to produce ATP through the processes of anaerobic and aerobic cellular respiration.",
+        "Identify the phases of the cell cycle, how cells divide through mitosis, and how cancer (neoplasms) can result from unregulated cell division.",
+      ]},
+      { name: "Chapter 5", objectives: [
+        "Compare and contrast the structure of DNA and RNA.",
+        "Describe how DNA replication occurs.",
+        "Define genes and alleles and how they are located on chromosomes.",
+        "Outline how many pairs of human chromosomes there are and differentiate between autosomal and sex chromosomes.",
+        "Define meiosis and how this contributes to gamete (eggs and sperm) production.",
+        "Understand Mendelian inheritance and pedigree.",
+        "Define and differentiate between autosomal traits and sex-linked traits.",
+        "Predict inheritance patterns using a Punnett square.",
+      ]},
+      { name: "Chapter 7", objectives: [
+        "Outline the organization of the body from atoms and molecules up through cells, tissues, organs, and organ systems.",
+        "Describe how organ systems work together to carry out the functions of life.",
+        "Understand the variety of different specialized cell types in humans, the four major types of human tissues, and some of their functions.",
+        "Identify the five vital organs and the 11 major organ systems of the human body.",
+        "Identify body cavities and the organs they hold and protect.",
+        "Identify the tissues and fluid that protect the brain and spinal cord.",
+        "Describe how organ systems communicate and interact in body processes, such as cellular respiration, digestion, the fight-or-flight response to stressors, and physical activities (such as sports).",
+        "Explain and integrate how homeostasis is maintained to keep the body in a relatively steady state, and the problems that can be caused by loss of homeostasis, such as diabetes.",
+      ]},
+      { name: "Lecture", objectives: [
+        "Describe the anatomical position.",
+        "Outline principal directional terms and body planes used in describing the body and how this relates to body parts.",
+      ]}
+    ]
+  },
+  {
+    title: "Module 2 | Anatomy and Physiology of the Integumentary System",
+    chapters: [{ name: "Chapter 10", objectives: [
+      "Describe the functions of the organs of the integumentary system (the skin, hair, and nails).",
+      "Define the two main layers of the skin.",
+      "Identify the cells and layers of the epidermis and their functions.",
+      "Outline the composition of epidermal cells and how the epidermis grows.",
+      "Identify the composition and layers of the dermis and their functions.",
+      "Outline the specialized structures in the dermis, which include sweat and sebaceous (oil) glands, hair follicles, and sensory receptors that detect touch, temperature, and pain.",
+      "Describe the structure and functions of nails, which includes protecting the fingers and toes, enhancing the detection of sensory stimuli, and acting as tools.",
+      "Describe how nails grow and how they can reflect and affect our health.",
+      "Describe causes and detection of skin cancer (neoplasms) and outline the 3 most common types of skin cancer.",
+    ]}]
+  },
+  {
+    title: "Module 3 | Anatomy and Physiology of the Musculoskeletal System",
+    chapters: [
+      { name: "Chapter 11", objectives: [
+        "Outline the components of the skeletal system, which includes bones, ligaments, and cartilage.",
+        "Identify and describe the functions of the skeletal system.",
+        "Explain the organization and functions of the two main divisions of the skeletal system: the axial skeletal system and the appendicular skeletal system.",
+        "Describe the tissues and cells that make up bones, along with their specific functions, which include making new bone, breaking down bone, producing blood cells, and regulating mineral homeostasis.",
+        "Identify and label the different types of bones in the skeletal system, based on shape and location.",
+        "Explain how bones grow, remodel, and repair themselves.",
+        "Outline the different types of joints between bones, where they are located, and the ways in which they allow different types of movement, depending on their structure.",
+        "Discuss the causes, risk factors, and treatments for the two most common disorders of the skeletal system — osteoporosis and osteoarthritis.",
+      ]},
+      { name: "Chapter 12", objectives: [
+        "Compare and contrast the different types of muscle tissue — skeletal, cardiac, and smooth muscle — and their different characteristics and functions.",
+        "Explain how muscle cells are specialized to contract and cause voluntary and involuntary movements.",
+        "Discuss the ways in which muscle contraction is initiated and controlled.",
+        "Describe the structure and organization of skeletal muscles, including the different types of muscle fibres, and how actin and myosin filaments move across each other — according to the sliding filament theory — to cause muscle contraction.",
+        "Outline the structure and function of cardiac muscle tissue.",
+        "Outline the structure and function of smooth muscle tissue.",
+        "Discuss disorders of the muscular system, including musculoskeletal disorders (such as strains and sprains) and neuromuscular disorders (such as muscular dystrophy and Parkinson's disease).",
+      ]}
+    ]
+  },
+  {
+    title: "Module 4 | Anatomy and Physiology of the Nervous System",
+    chapters: [{ name: "Chapter 8", objectives: [
+      "Outline the organization of the nervous system — including the central and peripheral nervous systems — and their organs and subdivisions.",
+      "Describe the cells of the nervous system — neurons and neuroglia — and their anatomical parts and functions.",
+      "Explain how messages are sent by neurons through the nervous system, and to and from the rest of the body.",
+      "Indicate how nerve impulses are transmitted by electrical changes within neurons, and through chemical molecules to other cells.",
+      "Identify the structure and functions of different parts of the central nervous system, which includes the brain and spinal cord, and outcomes when damaged.",
+      "Describe the normal function of cerebrospinal fluid and where it is found.",
+      "Outline the structure and functions of the peripheral nervous system, which includes the nerves that carry motor and sensory information to and from the body to control voluntary and involuntary activities.",
+      "Describe the human senses, as well as how visual information, sounds, smells, tastes, touch, and balance are detected by sensory receptor cells and then sent to the brain for interpretation.",
+      "Discuss the main psychoactive effects on the brain and main receptors involved.",
+    ]}]
+  },
+  {
+    title: "Module 5 | Anatomy and Physiology of the Respiratory System",
+    chapters: [{ name: "Chapter 13", objectives: [
+      "Describe the process of respiration, in which oxygen moves from the outside air into the body, and carbon dioxide and other waste gases move from inside the body into the outside air.",
+      "Outline the structures of the respiratory system and differentiate between the upper respiratory tract, lower respiratory tract, conducting zones, and respiratory zones.",
+      "Understand how the respiratory tract protects itself from pathogens and other potentially harmful substances in the air.",
+      "Define normal lung volumes and capacities.",
+      "Explain how the rate of breathing is regulated to maintain homeostasis of blood gases and pH.",
+      "Compare and contrast internal respiration and external respiration.",
+      "Differentiate between conscious and unconscious (neurologic) control of breathing and identify homeostatic regulation of breathing.",
+      "Understand disorders of the respiratory system, including asthma, pneumonia, chronic obstructive pulmonary disease (COPD), and lung cancer.",
+      "Discuss the negative health effects of smoking.",
+    ]}]
+  },
+  {
+    title: "Module 6 | Anatomy and Physiology of the Cardiovascular System",
+    chapters: [{ name: "Chapter 14", objectives: [
+      "Outline and label the major components of the cardiovascular system: the heart, blood vessels, and blood.",
+      "Differentiate between the pulmonary circulation and systemic circulation.",
+      "Describe the functions of the cardiovascular system, including transporting needed substances (such as oxygen and nutrients) to the cells of the body, and picking up waste products.",
+      "Explain the structure and function of the alveolar-capillary membrane and how gas exchange occurs through the pulmonary circulation.",
+      "Explain how blood circulates throughout the body through the systemic circulation.",
+      "Describe the components of blood — including plasma, red blood cells, white blood cells, and platelets — and describe their specific functions.",
+      "Classify blood typing using the ABO system and Rh factor and identify a universal donor versus a universal recipient.",
+      "Compare and contrast the structure and function of different types of blood vessels — including arteries, veins, and capillaries.",
+      "Outline and label the structures of the heart, electrical conduction system components, and nervous control of the heart.",
+      "Understand action potentials of the cardiac conduction system and associated electrolytes.",
+      "Describe what blood pressure is and how it is regulated.",
+      "Discuss blood disorders, including anemia, HIV, and leukemia.",
+      "Discuss cardiovascular diseases (including heart attack, stroke, and angina), and the risk factors and precursors — such as high blood pressure and atherosclerosis — that contribute to them.",
+    ]}]
+  },
+  {
+    title: "Module 7 | Anatomy and Physiology of the Lymphatic and Immune Systems",
+    chapters: [{ name: "Chapter 17", objectives: [
+      "Describe how the immune system identifies normal cells of the body as \"self\" and pathogens and damaged cells as \"non-self.\"",
+      "Explain the two major subsystems of the general immune system: the innate immune system and the adaptive immune system.",
+      "Outline components of the neuroimmune system.",
+      "Describe the organs, cells, and responses of the innate immune system.",
+      "Outline components of the lymphatic system as it relates to adaptive immunity — including lymphocytes, lymphatic vessels, lymph, and organs (such as the spleen, tonsils, and lymph nodes).",
+      "Outline the specific cells of the immune system and their functions, including Lymphocytes (B cells, T cells, plasma cells, and natural killer cells), myeloid cells (neutrophils, eosinophils, and basophils), monocytes and macrophages, and mast cells.",
+      "Describe how the adaptive immune system can generate specific and often long-lasting immunity against pathogens through the production of antibodies.",
+      "Discuss how vaccines work to generate immunity.",
+      "Discuss how cells in the immune system detect and kill cancerous cells.",
+      "Discuss strategies that pathogens employ to evade the immune system.",
+      "Discuss disorders of the immune system, including allergies, autoimmune diseases (such as diabetes and multiple sclerosis), and immunodeficiency resulting from conditions such as HIV infection.",
+    ]}]
+  },
+  {
+    title: "Module 8 | Anatomy and Physiology of the Endocrine System",
+    chapters: [{ name: "Chapter 9", objectives: [
+      "Summarize the glands that make up the endocrine system, and how hormones act as chemical messengers in the body.",
+      "Describe the general types of endocrine system disorders.",
+      "Name the types of endocrine hormones — including steroid hormones (such as sex hormones) and non-steroid hormones (such as insulin) — and how they affect the functions of their target cells by binding to different types of receptor proteins.",
+      "Explain how the levels of hormones are regulated mostly through negative, but sometimes through positive, feedback loops.",
+      "Describe the hormones involved in the stress response.",
+      "Identify the location and function of the \"master gland\" of the endocrine system, how it is regulated, and how it controls other parts of the endocrine system through the hormones that it secretes.",
+      "Outline the structure, function, regulation, and hormones associated with the thyroid and parathyroid glands and how metabolism and calcium homeostasis is maintained.",
+      "Discuss disorders of the thyroid and parathyroid glands (such as hyperthyroidism, hypothyroidism, hypercalcemia, and hypocalcemia).",
+      "Outline the structure, function, regulation, and hormones of the adrenal glands, and how processes such as metabolism, electrolyte balance, responses to stress, and basic reproductive functions are regulated.",
+      "Discuss disorders of the adrenal glands that can occur when there are problems in adrenal hormone regulation, such as Cushing's syndrome and Addison's disease.",
+      "Outline the structure, function, regulation, and hormones of the endocrine pancreas, how blood glucose levels are regulated through insulin and glucagon.",
+      "Explain disorders of the pancreas and its endocrine hormones, including diabetes.",
+    ]}]
+  },
+  {
+    title: "Module 9 | Anatomy and Physiology of the Genitourinary System",
+    chapters: [
+      { name: "Chapter 16", objectives: [
+        "Understand the organs of the excretory system — including the skin, liver, large intestine, lungs, and kidneys (renal) that eliminate waste and excess water from the body (with a focus on the kidneys), and discuss how wastes are eliminated through sweat, feces, urine, and exhaled gases.",
+        "Outline the anatomy of the renal system, which includes the kidneys, ureters, bladder, and urethra and explain the main function of the renal system.",
+        "Outline the structure and function of the glomerulus and nephron.",
+        "Explain the renin-angiotensin-aldosterone system (RAAS) and aldosterone, and how these feedback systems relate to homeostasis, renal blood flow, and urine output.",
+        "Identify renal blood flow to and within the kidneys, how the kidneys filter the blood, retain necessary substances, produce urine, and help maintain homeostasis (such as proper ion and water balance).",
+        "Describe how urine is stored, transported, and released from the body.",
+        "Discuss disorders of the renal system, including bladder infections, kidney stones, polycystic kidney disease, urinary incontinence, and kidney damage (acute kidney injury and chronic kidney injury).",
+      ]},
+      { name: "Lecture", objectives: [
+        "Define isotonic, hypotonic, and hypertonic states for fluid balance in the body and give an example of each.",
+        "Discuss osmotic, hydrostatic, and oncotic pressures as it relates to fluid balance in the body.",
+        "Identify major anions and cations found in the body, where they are found, and their roles in the body.",
+        "Discuss pH values as it relates to hydrogen ion concentration in the body.",
+        "Describe 3 buffering systems that help prevent deviations of pH in the body.",
+        "Explain how the lungs and the kidneys regulate acid-base balance and differentiate between respiratory and metabolic acid-base disorders and how the body compensates for deviations from normal.",
+      ]}
+    ]
+  },
+  {
+    title: "Module 10 | Anatomy and Physiology of the Gastro-Intestinal System",
+    chapters: [{ name: "Chapter 15", objectives: [
+      "Outline the structure and function of the organs of the gastrointestinal (GI) tract through which food directly passes. This includes the mouth, pharynx, esophagus, stomach, small intestine, and large intestine.",
+      "Explain mechanical and chemical digestion, absorption of nutrients, and the elimination of solid waste.",
+      "Outline the structure and function of the accessory organs of digestion — the liver, gallbladder, and pancreas — which secrete substances needed for digestion into the GI tract, in addition to performing other important functions.",
+      "Review circulation related to the gastro-intestinal system and structures.",
+      "Discuss specializations of the tissues of the digestive system that allow it to carry out its functions.",
+      "Outline how carbohydrates, proteins, and fats are digested and absorbed by the body.",
+      "Explain how the beneficial bacteria that live in the GI tract help us digest food, produce vitamins, and protect us from harmful pathogens and toxic substances.",
+      "Discuss major vitamins and how they contribute to homeostasis.",
+      "Discuss disorders of the digestive system, including inflammatory bowel diseases, ulcers, diverticulitis, and gastroenteritis.",
+    ]}]
+  },
+  {
+    title: "Module 11 | Anatomy and Physiology of the Reproductive System",
+    chapters: [{ name: "Chapter 18", objectives: [
+      "Outline the functions of the reproductive system, which includes the production and fertilization of gametes (eggs and sperm), the production of sex hormones by the gonads (testes and ovaries), and, in females, the carrying of a fetus.",
+      "Explain how the male and female reproductive systems differentiate in the embryo and fetus, and how they mature during puberty.",
+      "Label and describe the structures of the male reproductive system, including the testes, epididymis, vas deferens, ejaculatory ducts, seminal vesicles, prostate gland, bulbourethral glands, and the penis.",
+      "Discuss how sperm are produced, how they mature, how they are stored, and how they are deposited into the female.",
+      "Describe the fluids in semen that protect and nourish sperm, and where those fluids are produced.",
+      "Discuss disorders of the male reproductive system, including erectile dysfunction, epididymitis, prostate cancer, and testicular cancer.",
+      "Label and describe the structures of the female reproductive system, including the ovaries, fallopian tubes, uterus, cervix, vagina, and external structures of the vulva.",
+      "Explain how eggs are produced in the female fetus, and how they then mature after puberty through the process of ovulation.",
+      "Understand the menstrual cycle, its purpose, and the hormones that control it.",
+      "Outline how fertilization and implantation occur, the stages of pregnancy and childbirth, and how the mother's body produces milk to feed the baby.",
+      "Discuss disorders of the female reproductive system, including cervical cancer, endometriosis, and vaginitis (including yeast infections).",
+      "Discuss forms of contraception (birth control), including barrier methods (such as condoms), hormonal methods (such as the birth control pill), behavioural methods, intrauterine devices, and sterilization.",
+    ]}]
+  }
+];
+
+// ── BUILD DOM ──
+const container = document.getElementById('mainContent');
+let globalNum = 1;
+let totalCount = 0;
+modules.forEach(m => m.chapters.forEach(c => totalCount += c.objectives.length));
+document.getElementById('totalCount').textContent = totalCount;
+
+modules.forEach((mod, mi) => {
+  const modDiv = document.createElement('div');
+  modDiv.className = 'module';
+
+  const parts = mod.title.split(' | ');
+  const h2 = document.createElement('h2');
+  h2.className = 'module-heading';
+  h2.innerHTML = `<span class="mod-tag">${parts[0]}</span>${parts[1] || ''}`;
+  modDiv.appendChild(h2);
+
+  mod.chapters.forEach((ch, ci) => {
+    const block = document.createElement('div');
+    block.className = 'chapter-block';
+
+    // Header row
+    const header = document.createElement('div');
+    header.className = 'chapter-header';
+    header.innerHTML = `
+      <div class="col center">#</div>
+      <div class="col ch-name">${ch.name}</div>
+      <div class="col center">Target Date</div>
+      <div class="col center">Notes</div>
+      <div class="col center">Done</div>
+    `;
+    block.appendChild(header);
+
+    ch.objectives.forEach((obj, oi) => {
+      const num = globalNum++;
+      const row = document.createElement('div');
+      row.className = 'obj-row';
+      row.dataset.id = num;
+
+      row.innerHTML = `
+        <div class="col col-num">${num}</div>
+        <div class="col obj-text">${obj}</div>
+        <div class="col col-date"><input type="date" title="Target completion date" /></div>
+        <div class="col col-date"><input type="text" placeholder="Notes..." style="font-size:0.78rem;" /></div>
+        <div class="col col-check">
+          <label class="check-wrap">
+            <input type="checkbox" />
+            <div class="check-box"></div>
+          </label>
+        </div>
+      `;
+
+      const cb = row.querySelector('input[type="checkbox"]');
+      cb.addEventListener('change', () => {
+        row.classList.toggle('completed', cb.checked);
+        updateCounter();
+        saveState();
+      });
+
+      // Save date/notes on change
+      row.querySelectorAll('input[type="date"], input[type="text"]').forEach(inp => {
+        inp.addEventListener('change', saveState);
+      });
+
+      block.appendChild(row);
+    });
+
+    modDiv.appendChild(block);
+  });
+
+  container.appendChild(modDiv);
+});
+
+// ── COUNTER ──
+function updateCounter() {
+  const done = document.querySelectorAll('input[type="checkbox"]:checked').length;
+  document.getElementById('doneCount').textContent = done;
+  const pct = Math.round((done / totalCount) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// ── PERSIST TO localStorage ──
+function saveState() {
+  const state = {};
+  document.querySelectorAll('.obj-row').forEach(row => {
+    const id = row.dataset.id;
+    const cb = row.querySelector('input[type="checkbox"]');
+    const dateInp = row.querySelector('input[type="date"]');
+    const noteInp = row.querySelector('input[type="text"]');
+    state[id] = {
+      done: cb.checked,
+      date: dateInp ? dateInp.value : '',
+      note: noteInp ? noteInp.value : ''
+    };
+  });
+  try { localStorage.setItem('para1101_state', JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  let state;
+  try { state = JSON.parse(localStorage.getItem('para1101_state') || 'null'); } catch(e) {}
+  if (!state) return;
+  document.querySelectorAll('.obj-row').forEach(row => {
+    const id = row.dataset.id;
+    if (!state[id]) return;
+    const cb = row.querySelector('input[type="checkbox"]');
+    const dateInp = row.querySelector('input[type="date"]');
+    const noteInp = row.querySelector('input[type="text"]');
+    if (state[id].done) { cb.checked = true; row.classList.add('completed'); }
+    if (dateInp && state[id].date) dateInp.value = state[id].date;
+    if (noteInp && state[id].note) noteInp.value = state[id].note;
+  });
+  updateCounter();
+}
+
+loadState();
+</script>
+</body>
+</html>
