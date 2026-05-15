@@ -353,11 +353,12 @@
 
     /* Actual visible divider line between number and badge */
     .num-divider {
+      order: 2;
       display: block !important;
       width: 1px;
       height: 16px;
       background-color: #b8d4ea;
-      margin: 0 14px;
+      margin: 0 10px;
       flex-shrink: 0;
       align-self: center;
     }
@@ -372,7 +373,7 @@
 
     /* Row 1 — done checkbox pushed right */
     .done-cell {
-      order: 3;
+      order: 4;
       flex: 0 0 auto;
       margin-left: auto;
       align-self: center;
@@ -380,7 +381,7 @@
 
     /* Row 2 — objective text, full width */
     .obj-text-cell {
-      order: 4;
+      order: 5;
       flex: 0 0 100%;
       padding: 10px 0 10px !important;
       line-height: 1.55;
@@ -388,7 +389,7 @@
 
     /* Row 3 — Why button */
     .just-cell {
-      order: 5;
+      order: 6;
       flex: 0 0 auto;
       padding-bottom: 14px !important;
       padding-top: 2px !important;
@@ -398,7 +399,7 @@
 
     /* Row 3 — date input */
     .date-cell {
-      order: 6;
+      order: 7;
       flex: 1;
       padding-left: 10px !important;
       padding-bottom: 14px !important;
