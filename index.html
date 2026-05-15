@@ -383,16 +383,16 @@
     .obj-text-cell {
       order: 5;
       flex: 0 0 100%;
-      padding: 16px 0 16px !important;
+      padding: 18px 0 18px !important;
       line-height: 1.55;
     }
 
-    /* Row 3 — Why button */
+    /* Row 3 — Why + date wrapper behaviour: centered as a group */
     .just-cell {
       order: 6;
       flex: 0 0 auto;
-      padding-bottom: 14px !important;
-      padding-top: 2px !important;
+      padding-bottom: 16px !important;
+      padding-top: 0 !important;
       align-self: center;
     }
     .just-toggle { font-size: 0.85rem; padding: 7px 16px; width: auto; }
@@ -401,13 +401,31 @@
     .date-cell {
       order: 7;
       flex: 0 0 auto;
-      margin-left: 10px;
+      margin-left: 12px;
       padding-left: 0 !important;
-      padding-bottom: 14px !important;
-      padding-top: 2px !important;
+      padding-bottom: 16px !important;
+      padding-top: 0 !important;
       display: flex;
+      align-self: center;
     }
-    .date-cell input[type="date"] { font-size: 0.84rem; width: 140px; padding: 6px 8px; }
+    .date-cell input[type="date"] { font-size: 0.84rem; width: 160px; padding: 6px 8px; }
+
+    /* Push Why+date group to centre of the row */
+    .obj-row .just-cell,
+    .obj-row .date-cell {
+      margin-top: 0;
+    }
+    /* Use a pseudo flex trick: spacer before Why and after date to centre the pair */
+    .obj-row::before {
+      content: '';
+      order: 6;
+      flex: 1;
+    }
+    .obj-row::after {
+      content: '';
+      order: 8;
+      flex: 1;
+    }
 
     /* Justification panel: centered modal */
     .just-panel {
