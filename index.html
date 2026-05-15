@@ -172,7 +172,7 @@
   .obj-text-cell { line-height: 1.5; color: var(--text); }
 
   /* JUSTIFICATION */
-  .just-cell { flex-direction: column; position: relative; }
+  .just-cell { flex-direction: column; position: relative; justify-content: center; align-items: center; }
   .just-toggle {
     background: var(--light); border: 1px solid var(--border); border-radius: 5px;
     padding: 5px 12px; font-size: 0.84rem; font-weight: 600; color: var(--blue);
@@ -364,9 +364,9 @@
 
     /* Row 1 — verdict badge */
     .verdict-cell {
-      order: 2;
+      order: 3;
       flex: 0 0 auto;
-      padding-left: 14px !important;
+      padding-left: 0 !important;
       align-self: center;
     }
 
