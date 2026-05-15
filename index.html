@@ -341,17 +341,26 @@
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--muted);
-      padding-right: 12px !important;
+      padding-right: 0 !important;
       padding-left: 0 !important;
-      border-right: 2px solid var(--border) !important;
-      align-self: stretch !important;
+      border-right: none !important;
+      align-self: center;
       justify-content: center;
-      display: flex !important;
-      align-items: center !important;
       min-width: 0;
       width: auto;
     }
     .obj-row.completed .num-cell { background: transparent !important; color: var(--green); }
+
+    /* Actual visible divider line between number and badge */
+    .num-divider {
+      display: block !important;
+      width: 1px;
+      height: 16px;
+      background-color: #b8d4ea;
+      margin: 0 10px;
+      flex-shrink: 0;
+      align-self: center;
+    }
 
     /* Row 1 — verdict badge */
     .verdict-cell {
