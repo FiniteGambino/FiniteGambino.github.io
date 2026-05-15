@@ -146,6 +146,7 @@
     display: flex; align-items: center;
   }
   .obj-row > div:last-child { border-right: none; }
+  .num-divider { display: none; } /* desktop: hidden, not a grid cell */
 
   /* NUM cell */
   .num-cell {
@@ -600,8 +601,13 @@ data.forEach(row => {
   dateInp.addEventListener('change', saveState);
   dateCell.appendChild(dateInp);
 
+  // Divider span — visible on mobile between number and badge, hidden on desktop
+  const divider = document.createElement('span');
+  divider.className = 'num-divider';
+
   // Flat DOM — CSS order handles mobile card layout, grid handles desktop
   objDiv.appendChild(numCell);
+  objDiv.appendChild(divider);
   objDiv.appendChild(verdictCell);
   objDiv.appendChild(textCell);
   objDiv.appendChild(justCell);
