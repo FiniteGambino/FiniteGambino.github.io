@@ -190,6 +190,13 @@
     max-height: 70vh; overflow-y: auto;
   }
   .just-panel.open { display: block; }
+  .just-panel-num {
+    display: inline-block;
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
   .just-panel-close {
     float: right; background: none; border: none; font-size: 1.1rem;
     cursor: pointer; color: var(--muted); margin: -4px -4px 8px 8px; line-height: 1;
@@ -1145,6 +1152,11 @@ MODULES.forEach((mod, mIdx) => {
       closeBtn.className = 'just-panel-close';
       closeBtn.innerHTML = '&times;';
       closeBtn.onclick = (e) => { e.stopPropagation(); panel.classList.remove('open'); toggleBtn.textContent = 'Why →'; };
+      const numLabel = document.createElement('span');
+      numLabel.className = 'just-panel-num';
+      numLabel.textContent = '#' + globalNum;
+      panel.appendChild(numLabel);
+      panel.appendChild(document.createElement('br'));
       panel.appendChild(closeBtn);
       const content = document.createElement('div');
       const rawText = sec.justification;
