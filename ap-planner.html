@@ -117,7 +117,7 @@
   /* COLUMN HEADER ROW */
   .col-header-row {
     display: grid;
-    grid-template-columns: 52px 52px 1fr 130px 160px 90px;
+    grid-template-columns: 52px 52px 110px 1fr 130px 160px 90px;
     background: #1a4a6e;
     font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em;
     text-transform: uppercase; color: rgba(255,255,255,0.85);
@@ -129,7 +129,7 @@
   /* OBJ ROW */
   .obj-row {
     display: grid;
-    grid-template-columns: 52px 52px 1fr 130px 160px 90px;
+    grid-template-columns: 52px 52px 110px 1fr 130px 160px 90px;
     border-top: 1px solid var(--border);
     transition: background 0.12s;
   }
@@ -212,6 +212,19 @@
   }
   .date-cell input:focus { outline: none; border-color: var(--mid); box-shadow: 0 0 0 2px rgba(45,136,192,0.18); }
 
+
+  /* PAGES CELL */
+  .pages-cell {
+    justify-content: center; align-items: center; flex-direction: column;
+    font-size: 0.78rem; font-weight: 600; color: var(--blue);
+    text-align: center; line-height: 1.35;
+    background: var(--light) !important;
+  }
+  .obj-row.completed .pages-cell { background: #c8ead8 !important; color: var(--green); }
+  .pages-lbl {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 2px;
+  }
   /* DONE */
   .done-cell { justify-content: center; align-items: center; }
   .col-done { display: flex; align-items: center; justify-content: center; }
@@ -289,7 +302,7 @@
 
   /* ── TABLET ── */
   @media (max-width: 900px) {
-    .col-header-row, .obj-row { grid-template-columns: 44px 52px 1fr 110px 80px 76px; }
+    .col-header-row, .obj-row { grid-template-columns: 44px 44px 90px 1fr 110px 80px 76px; }
     .date-cell { display: none; }
     .just-panel { width: 92vw; }
   }
@@ -554,7 +567,7 @@ data.forEach(row => {
 
     const colHeader = document.createElement('div');
     colHeader.className = 'col-header-row';
-    colHeader.innerHTML = '<div class="col-center">#</div><div class="col-center">Flag</div><div>Learning Objective</div><div class="col-center">Justification</div><div class="col-center">Target Date</div><div class="col-center col-done">Done ✓</div>';
+    colHeader.innerHTML = '<div class="col-center">#</div><div class="col-center">Flag</div><div class="col-center">Pages</div><div>Learning Objective</div><div class="col-center">Justification</div><div class="col-center">Target Date</div><div class="col-center col-done">Done ✓</div>';
     currentChBlock.appendChild(colHeader);
     currentModDiv.appendChild(currentChBlock);
   }
@@ -685,6 +698,19 @@ data.forEach(row => {
   objDiv.appendChild(numCell);
   objDiv.appendChild(divider);
   objDiv.appendChild(verdictCell);
+
+  // Pages cell
+  const pagesCell = document.createElement('div');
+  pagesCell.className = 'pages-cell';
+  const pagesMap = {1: "pp. 44–70", 2: "pp. 44–70, 444–451", 3: "pp. 82–91", 4: "pp. 87–114", 5: "pp. 115–129", 6: "pp. 130–135", 7: "pp. 136–140", 8: "pp. 151–162", 9: "pp. 153–162", 10: "pp. 163–177", 11: "pp. 163–167, 178–188", 12: "pp. 189–208", 13: "pp. 209–221", 14: "pp. 238–247", 15: "pp. 243–247", 16: "pp. 234–237", 17: "pp. 234–237, 280–289", 18: "pp. 284–289", 19: "pp. 273–296", 20: "pp. 297–303", 21: "pp. 290–296", 22: "pp. 402–413", 23: "pp. 428–451", 24: "pp. 407–427", 25: "pp. 428–434", 26: "pp. 435–438", 27: "pp. 407–427, 479–488", 28: "pp. 439–451", 29: "pp. 444–451", 30: "Lecture notes", 31: "Lecture notes", 32: "pp. 567–575", 33: "pp. 570–591", 34: "pp. 576–584", 35: "pp. 576–584", 36: "pp. 585–591", 37: "pp. 585–591", 38: "pp. 600–605", 39: "pp. 600–605", 40: "pp. 606–610", 41: "pp. 619–627", 42: "pp. 621–627", 43: "pp. 628–635", 44: "pp. 636–642", 45: "pp. 628–635", 46: "pp. 643–648", 47: "pp. 649–653", 48: "pp. 654–663", 49: "pp. 676–689", 50: "pp. 681–695", 51: "pp. 690–695", 52: "pp. 681–695", 53: "pp. 681–689, 773–780", 54: "pp. 681–689", 55: "pp. 705–712", 56: "pp. 461–467", 57: "pp. 468–472", 58: "pp. 473–478", 59: "pp. 473–478", 60: "pp. 479–488", 61: "pp. 479–488", 62: "pp. 489–495", 63: "pp. 496–504", 64: "pp. 505–513", 65: "pp. 721–733", 66: "pp. 724–733", 67: "pp. 724–733", 68: "pp. 734–740", 69: "pp. 734–740", 70: "pp. 741–744", 71: "pp. 734–740, 479–488", 72: "pp. 745–757", 73: "pp. 751–757", 74: "pp. 765–772", 75: "pp. 767–780", 76: "pp. 767–772", 77: "pp. 741–744, 767–772", 78: "pp. 781–788", 79: "pp. 789–796", 80: "pp. 789–796", 81: "pp. 781–788", 82: "pp. 773–780", 83: "pp. 773–780", 84: "pp. 781–796", 85: "pp. 789–796", 86: "pp. 797–804", 87: "pp. 907–917", 88: "pp. 910–917", 89: "pp. 910–917, 525–529", 90: "pp. 925–933", 91: "pp. 918–924", 92: "pp. 925–941", 93: "pp. 934–941", 94: "pp. 934–941", 95: "pp. 934–941", 96: "pp. 910–917, 925–933", 97: "pp. 942–951", 98: "pp. 523–529", 99: "pp. 525–529, 541–556", 100: "pp. 530–535", 101: "pp. 525–529", 102: "pp. 525–529, 550–556", 103: "pp. 536–540", 104: "pp. 541–549", 105: "pp. 541–549", 106: "pp. 550–556", 107: "pp. 550–556", 108: "pp. 557–565", 109: "pp. 557–565", 110: "pp. 867–878", 111: "pp. 874–886", 112: "pp. 879–886", 113: "pp. 879–886", 114: "pp. 879–886", 115: "pp. 887–891", 116: "pp. 892–898", 117: "pp. 178–182, 879–886", 118: "pp. 781–788, 879–886", 119: "pp. 82–86, 473–478, 879–886", 120: "pp. 136–140, 879–886", 121: "pp. 136–140, 734–740, 879–886", 122: "pp. 734–740, 879–886", 123: "pp. 813–858", 124: "pp. 822–845", 125: "pp. 846–851", 126: "pp. 846–851, 781–788", 127: "pp. 816–831", 128: "pp. 822–831", 129: "pp. 816–821", 130: "pp. 822–831", 131: "pp. 852–858", 132: "pp. 961–968", 133: "pp. 964–968", 134: "pp. 969–977", 135: "pp. 978–983", 136: "pp. 978–983", 137: "pp. 984–992", 138: "pp. 993–1000", 139: "pp. 1001–1009", 140: "pp. 1010–1015", 141: "pp. 1001–1009", 142: "pp. 1016–1023", 143: "pp. 1032–1039"};
+  const pagesLbl = document.createElement('span');
+  pagesLbl.className = 'pages-lbl';
+  pagesLbl.textContent = 'textbook';
+  const pagesTxt = document.createElement('span');
+  pagesTxt.textContent = pagesMap[row.num] || '—';
+  pagesCell.appendChild(pagesLbl);
+  pagesCell.appendChild(pagesTxt);
+  objDiv.appendChild(pagesCell);
   objDiv.appendChild(textCell);
   objDiv.appendChild(justCell);
   objDiv.appendChild(dateCell);
