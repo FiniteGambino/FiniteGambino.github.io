@@ -2371,6 +2371,7 @@ async function handleCalendarSync() {
     }
 
     const data = await res.json();
+    console.log('CAL API', res.status, JSON.stringify(data).slice(0,500));
     const items = data.items || [];
 
     // Debug: show status + any error from Google
