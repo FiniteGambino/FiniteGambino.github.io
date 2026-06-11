@@ -2204,6 +2204,8 @@ async function confirmNewPeriod() {
   if (db && fsFns) {
     try { const { ref, set } = fsFns; await set(ref(db, `schedule/periods/${id}`), payload); }
     catch(e) { try { localStorage.setItem('gs_v9_'+id, JSON.stringify(payload)); } catch(_){} }
+    // Brief wait so onValue receives the written data, not null
+    await new Promise(r => setTimeout(r, 300));
   } else { try { localStorage.setItem('gs_v9_'+id, JSON.stringify(payload)); } catch(_){} }
   renderTabs();
   if (!db || !fsFns) {
@@ -2387,8 +2389,7 @@ async function handleCalendarSync() {
     openCalImport();
 
   } catch(e) {
-    console.error(e);
-    showToast('Failed to read calendar');
+    showToast('Error: ' + (e?.message || String(e)).slice(0, 60));
     btn.textContent = '📅 Import from Calendar';
     btn.style.pointerEvents = 'auto';
   }
