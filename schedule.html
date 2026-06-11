@@ -2315,10 +2315,6 @@ async function handleCalendarSync() {
 
     if (!minDate) { showToast('No dates in current period'); btn.style.pointerEvents='auto'; return; }
 
-    const fmtShort = d => d.toLocaleDateString('en-CA', { month:'short', day:'numeric', year:'numeric' });
-    showToast(`Searching ${fmtShort(minDate)} → ${fmtShort(maxDate)}`);
-    await new Promise(r => setTimeout(r, 2500));
-
     // Use noon local time to avoid UTC conversion shifting dates by a day
     const toNoon = d => { const n = new Date(d); n.setHours(12,0,0,0); return n; };
 
@@ -2337,21 +2333,18 @@ async function handleCalendarSync() {
       maxResults: '500'
     });
 
-    // Fetch wide range just for counting recurrences
     const countRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${countParams}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const countData = countRes.ok ? await countRes.json() : { items: [] };
     const allItems = countData.items || [];
 
-    // Count how many times each title appears in the wide range
     const titleCounts = {};
     allItems.forEach(ev => {
       const t = (ev.summary || '').trim();
       titleCounts[t] = (titleCounts[t] || 0) + 1;
     });
 
-    // Now fetch just the period range for the actual events to import
     const params = new URLSearchParams({
       timeMin: toNoon(minDate).toISOString(),
       timeMax: toNoon(rangeEnd).toISOString(),
@@ -2371,20 +2364,12 @@ async function handleCalendarSync() {
     }
 
     const data = await res.json();
-    const items = data.items || [];
-    const errMsg = data.error ? `${data.error.code}: ${data.error.message}` : null;
-    showToast(errMsg ? `API error — ${errMsg}` : `HTTP ${res.status} · ${items.length} events · token:${token?token.slice(0,8)+'…':'NULL'}`);
-    await new Promise(r => setTimeout(r, 5000));
-
-    // Debug: show status + any error from Google
-    const fmtRange = `${toNoon(minDate).toISOString().slice(0,10)} → ${toNoon(maxDate).toISOString().slice(0,10)}`;
     if (data.error) {
-      showToast(`Google API error ${data.error.code}: ${data.error.message}`);
+      showToast(`Calendar error: ${data.error.message}`);
       btn.textContent = '📅 Import from Calendar'; btn.style.pointerEvents = 'auto';
       return;
     }
-    showToast(`HTTP ${res.status} · Found ${items.length} raw events (${fmtRange})`);
-    await new Promise(r => setTimeout(r, 3000)); // let toast show
+    const items = data.items || [];
 
     // Also count existing schedule tasks to avoid duplicating
     const existingTasks = new Set();
