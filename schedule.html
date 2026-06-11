@@ -2307,19 +2307,21 @@ async function handleCalendarSync() {
       });
     });
 
-    if (!minDate) { showToast('No dates in current period'); btn.textContent='📅 Import from Calendar'; btn.style.pointerEvents='auto'; return; }
+    if (!minDate) { showToast('No dates in current period'); btn.textContent='⬛ Sync'; btn.style.pointerEvents='auto'; return; }
+
+    // Use noon local time to avoid UTC conversion shifting dates by a day
+    const toNoon = d => { const n = new Date(d); n.setHours(12,0,0,0); return n; };
 
     // Extend maxDate by 1 day for the API range
     const rangeEnd = new Date(maxDate); rangeEnd.setDate(rangeEnd.getDate() + 1);
 
     // Fetch a wider window (3 months) to properly count recurring events
-    // so things like weekly shifts get filtered out correctly
     const wideStart = new Date(minDate); wideStart.setMonth(wideStart.getMonth() - 1);
     const wideEnd   = new Date(maxDate); wideEnd.setMonth(wideEnd.getMonth() + 2);
 
     const countParams = new URLSearchParams({
-      timeMin: wideStart.toISOString(),
-      timeMax: wideEnd.toISOString(),
+      timeMin: toNoon(wideStart).toISOString(),
+      timeMax: toNoon(wideEnd).toISOString(),
       singleEvents: 'true',
       orderBy: 'startTime',
       maxResults: '500'
@@ -2341,8 +2343,8 @@ async function handleCalendarSync() {
 
     // Now fetch just the period range for the actual events to import
     const params = new URLSearchParams({
-      timeMin: minDate.toISOString(),
-      timeMax: rangeEnd.toISOString(),
+      timeMin: toNoon(minDate).toISOString(),
+      timeMax: toNoon(rangeEnd).toISOString(),
       singleEvents: 'true',
       orderBy: 'startTime',
       maxResults: '250'
@@ -2360,6 +2362,10 @@ async function handleCalendarSync() {
 
     const data = await res.json();
     const items = data.items || [];
+
+    // Debug: show what was found
+    showToast(`Found ${items.length} raw events in period`);
+    await new Promise(r => setTimeout(r, 2000)); // let toast show
 
     // Also count existing schedule tasks to avoid duplicating
     const existingTasks = new Set();
