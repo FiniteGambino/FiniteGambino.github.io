@@ -494,7 +494,13 @@
     <input type="text" id="pmLabel" placeholder="Jul 6 – Aug 2" />
     <label style="margin-top:14px;">Start Date <span style="font-weight:400;color:#9098a8;font-size:.65rem;">(first day of Week 1)</span></label>
     <input type="date" id="pmStartDate" />
-    <p style="font-size:.7rem;color:#9098a8;margin-top:5px;">Auto-fills all day dates. Adjustable later in tab options.</p>
+    <p style="font-size:.7rem;color:#9098a8;margin-top:5px;">Auto-fills all day dates across every week.</p>
+    <label style="margin-top:14px;">Weeks</label>
+    <div class="week-count-row">
+      <button class="week-count-btn" onclick="document.getElementById('pmWeekCount').textContent=Math.max(1,parseInt(document.getElementById('pmWeekCount').textContent)-1)">−</button>
+      <span class="week-count-val" id="pmWeekCount">3</span>
+      <button class="week-count-btn" onclick="document.getElementById('pmWeekCount').textContent=Math.min(12,parseInt(document.getElementById('pmWeekCount').textContent)+1)">＋</button>
+    </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closePeriodModal()">Cancel</button>
       <button class="btn-confirm" onclick="confirmNewPeriod()">Create</button>
@@ -907,7 +913,7 @@ document.addEventListener('click', () => closeTabCtxMenu());
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeTabCtxMenu(); });
 
 function ctxDelete() {
-  const id = ctxPeriodId;
+  const id = ctxPeriodId; // capture BEFORE closeTabCtxMenu nulls it
   closeTabCtxMenu();
   if (!id) return;
   if (periods.length <= 1) { showToast("Can't delete the only tab"); return; }
@@ -933,7 +939,7 @@ function ctxDelete() {
 }
 
 async function ctxOptions() {
-  const id = ctxPeriodId;
+  const id = ctxPeriodId; // capture BEFORE closeTabCtxMenu nulls it
   closeTabCtxMenu();
   if (!id) return;
   const p = periods.find(p => p.id === id);
@@ -2199,9 +2205,14 @@ async function confirmNewPeriod() {
   closePeriodModal();
   const id = label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
   const order = periods.length;
-  const newWeeks = startInput
-    ? [buildWeek(1, parseLocalDate(startInput))]
-    : [{ week:'Week 1', days:[{name:'Sunday',date:'—',tasks:[]},{name:'Monday',date:'—',tasks:[]},{name:'Tuesday',date:'—',tasks:[]},{name:'Wednesday',date:'—',tasks:[]},{name:'Thursday',date:'—',tasks:[]},{name:'Friday',date:'—',tasks:[]},{name:'Saturday',date:'—',tasks:[]}]}];
+  const weekCount = parseInt(document.getElementById('pmWeekCount')?.textContent || '3');
+  const newWeeks = [];
+  if (startInput) {
+    const start = parseLocalDate(startInput);
+    for (let i = 0; i < weekCount; i++) newWeeks.push(buildWeek(i+1, addDays(start, i*7)));
+  } else {
+    for (let i = 0; i < weekCount; i++) newWeeks.push({ week:`Week ${i+1}`, days:[{name:'Sunday',date:'—',tasks:[]},{name:'Monday',date:'—',tasks:[]},{name:'Tuesday',date:'—',tasks:[]},{name:'Wednesday',date:'—',tasks:[]},{name:'Thursday',date:'—',tasks:[]},{name:'Friday',date:'—',tasks:[]},{name:'Saturday',date:'—',tasks:[]}]});
+  }
   const payload = { label, order, weeks: newWeeks, ...(startInput ? { startDate: startInput } : {}) };
   periods.push({ id, label, order });
   if (db && fsFns) {
