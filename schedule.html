@@ -326,6 +326,7 @@
       try {
         const provider = new GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+        provider.addScope('https://www.googleapis.com/auth/tasks.readonly');
         // Force consent screen so Google always grants the calendar scope
         provider.setCustomParameters({ prompt: 'consent', access_type: 'online' });
         const result = await signInWithPopup(auth, provider);
@@ -633,6 +634,19 @@
   </div>
 </div>
 
+<!-- Delete task modal (toolbar only) -->
+<div class="modal-overlay hidden" id="deleteTaskOverlay">
+  <div class="modal">
+    <h3 id="deleteTaskTitle">Delete task?</h3>
+    <p id="deleteTaskMsg" style="font-size:.82rem;color:#6b7280;margin-top:6px;line-height:1.5;"></p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:20px;">
+      <button id="deleteOneBtn" style="padding:11px;border-radius:9px;font-size:.82rem;font-weight:600;border:none;cursor:pointer;background:#c03050;color:#fff;" onclick="resolveDeleteTask('one')">Delete this one</button>
+      <button id="deleteAllBtn" style="padding:11px;border-radius:9px;font-size:.82rem;font-weight:600;border:none;cursor:pointer;background:#7c1030;color:#fff;" onclick="resolveDeleteTask('all')">Delete all in this week</button>
+      <button style="padding:11px;border-radius:9px;font-size:.82rem;font-weight:600;border:1px solid #dde1e9;cursor:pointer;background:#f5f6f8;color:#6b7280;" onclick="resolveDeleteTask(null)">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Default data for the first period ──────────────────────────────────────
 const DEFAULT_WEEKS = [
@@ -670,7 +684,8 @@ let db, fsFns;
 let periods     = [];   // [{ id, label, order }]
 let activePeriodId = null;
 let schedule    = [];
-let unsubPeriod = null; // active period id for listener detachment
+let unsubPeriod = null;
+let _switchGen = 0; // increments on every switchPeriod call to cancel stale ones
 
 let active      = null;
 let swapFirst   = null, swapMode = false;
@@ -785,10 +800,12 @@ async function loadPeriods() {
 }
 
 async function switchPeriod(id) {
-  // Detach old listener
+  // Cancel any in-flight switchPeriod by bumping the generation counter
+  const myGen = ++_switchGen;
+
+  // Detach old listener using the actual unsubscribe function
   if (unsubPeriod) {
-    const { ref, off } = fsFns;
-    off(ref(db, `schedule/periods/${unsubPeriod}`));
+    unsubPeriod();
     unsubPeriod = null;
   }
 
@@ -800,8 +817,9 @@ async function switchPeriod(id) {
   document.getElementById('schedule').innerHTML = '<div class="loading-screen"><div class="spinner"></div>Loading…</div>';
   const _rtb = document.getElementById('rareTaskBar'); if (_rtb) _rtb.style.display = 'none';
 
-  // Safety timeout — if onValue hasn't fired within 5s, render empty
+  // Safety timeout
   const loadingTimeout = setTimeout(() => {
+    if (_switchGen !== myGen) return;
     if (document.getElementById('schedule').querySelector('.loading-screen')) {
       schedule = [];
       setSyncState('ok', 'Offline / no data');
@@ -810,14 +828,15 @@ async function switchPeriod(id) {
     }
   }, 3000);
 
-  // Live listener
+  // Live listener — capture the expected id so stale callbacks are ignored
+  const expectedId = id;
   const { ref, onValue } = fsFns;
   const periodRef = ref(db, `schedule/periods/${id}`);
-  onValue(periodRef, snap => {
+  const unsub = onValue(periodRef, snap => {
+    if (_switchGen !== myGen) return; // stale — a newer switchPeriod has started
     clearTimeout(loadingTimeout);
     const data = snap.val();
     const rawWeeks = data ? (data.weeks || []) : [];
-    // Ensure every day has a tasks array (guards against malformed Firebase data)
     rawWeeks.forEach(w => (w.days||[]).forEach(d => { if (!Array.isArray(d.tasks)) d.tasks = []; }));
     schedule = JSON.parse(JSON.stringify(rawWeeks));
     undoStack.length = 0;
@@ -825,12 +844,13 @@ async function switchPeriod(id) {
     render();
     updateUndoBtn();
   }, err => {
+    if (_switchGen !== myGen) return;
     clearTimeout(loadingTimeout);
     setSyncState('err', 'Sync error');
     schedule = [];
     render();
   });
-  unsubPeriod = id; // store id so we can detach later
+  unsubPeriod = unsub; // store actual unsubscribe function
 }
 
 async function savePeriod() {
@@ -1317,11 +1337,21 @@ function handleDeleteBtn(){
   if(!active) return;
   const {wIdx,dIdx,tIdx}=active;
   const t=schedule[wIdx].days[dIdx].tasks[tIdx];
-  appConfirm(`"${t.emoji} ${t.text}" will be removed.`, 'Delete task?', 'Delete', true).then(ok => {
-    if(!ok) return;
+  deleteTaskConfirm(`${t.emoji} ${t.text}`).then(choice => {
+    if(!choice) return;
     pushUndo();
-    schedule[wIdx].days[dIdx].tasks.splice(tIdx,1);
-    hideToolbar(); save(); render(); showToast('Deleted');
+    if (choice === 'all') {
+      // Delete all tasks with same text in the same week
+      const text = t.text;
+      schedule[wIdx].days.forEach(day => {
+        day.tasks = day.tasks.filter(task => task.text !== text);
+      });
+      showToast('All instances deleted');
+    } else {
+      schedule[wIdx].days[dIdx].tasks.splice(tIdx,1);
+      showToast('Deleted');
+    }
+    hideToolbar(); save(); render();
   });
 }
 
@@ -1447,6 +1477,23 @@ function showToast(msg){
 
 // ── In-app confirm (replaces browser confirm() which is blocked on some hosts) ──
 let _confirmResolveInternal = null;
+let _deleteTaskResolve = null;
+function deleteTaskConfirm(taskLabel) {
+  return new Promise(resolve => {
+    _deleteTaskResolve = resolve;
+    document.getElementById('deleteTaskTitle').textContent = 'Delete task?';
+    document.getElementById('deleteTaskMsg').textContent = `"${taskLabel}" — delete just this one or all instances in this week?`;
+    document.getElementById('deleteTaskOverlay').classList.remove('hidden');
+  });
+}
+function resolveDeleteTask(val) {
+  document.getElementById('deleteTaskOverlay').classList.add('hidden');
+  if (_deleteTaskResolve) { _deleteTaskResolve(val); _deleteTaskResolve = null; }
+}
+document.getElementById('deleteTaskOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('deleteTaskOverlay')) resolveDeleteTask(null);
+});
+
 function appConfirm(msg, title='Are you sure?', okLabel='OK', danger=false) {
   return new Promise(resolve => {
     _confirmResolveInternal = resolve;
@@ -2143,7 +2190,7 @@ function renderRareTaskBar() {
   const taskMeta = {}; // text → { emoji, cat }
   schedule.forEach(week => {
     week.days.forEach(day => {
-      day.tasks.forEach(t => {
+      (day.tasks||[]).forEach(t => {
         if (t.cat === 'gym') return; // gym tasks excluded from rare detection
         counts[t.text] = (counts[t.text] || 0) + 1;
         if (!taskMeta[t.text]) taskMeta[t.text] = { emoji: t.emoji, cat: t.cat };
@@ -2368,34 +2415,83 @@ async function handleCalendarSync() {
     }
     const items = data.items || [];
 
+    // Also fetch Google Tasks (shown as orange in Google Calendar)
+    let taskItems = [];
+    try {
+      const taskRes = await fetch(
+        `https://tasks.googleapis.com/tasks/v1/lists/@default/tasks?showCompleted=false&maxResults=100`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      if (taskRes.ok) {
+        const taskData = await taskRes.json();
+        taskItems = (taskData.items || []).filter(t => t.due); // only tasks with a due date
+      }
+    } catch(_) {}
+
     // Also count existing schedule tasks to avoid duplicating
     const existingTasks = new Set();
-    schedule.forEach(week => week.days.forEach(day => day.tasks.forEach(t => existingTasks.add(t.text.toLowerCase()))));
+    schedule.forEach(week => week.days.forEach(day => (day.tasks||[]).forEach(t => existingTasks.add(t.text.toLowerCase()))));
 
-    // Filter: keep only events appearing ≤3 times, not already in schedule
+    // Helper: expand a date range into individual YYYY-MM-DD strings
+    const expandDates = (startStr, endStr) => {
+      const dates = [];
+      const start = new Date(startStr + 'T12:00:00');
+      // Google all-day end dates are exclusive (end = day after last day)
+      const end = endStr ? new Date(endStr + 'T12:00:00') : new Date(start);
+      if (endStr) end.setDate(end.getDate() - 1); // make inclusive
+      const cur = new Date(start);
+      while (cur <= end && dates.length < 30) {
+        dates.push(cur.toISOString().slice(0, 10));
+        cur.setDate(cur.getDate() + 1);
+      }
+      return dates.length ? dates : [startStr];
+    };
+
+    // Filter: keep only events appearing ≤3 times
     const filtered = items.filter(ev => {
       const title = (ev.summary || '').trim();
       if (!title) return false;
       if (titleCounts[title] > 3) return false;
-      // Must fall within our schedule date range
       const startDate = ev.start?.date || ev.start?.dateTime?.split('T')[0];
       if (!startDate) return false;
       return true;
     });
 
-    // Build import list
-    calImportEvents = filtered.map(ev => {
+    // Build import list — expand multi-day events into one entry per day
+    calImportEvents = [];
+    filtered.forEach(ev => {
       const title = (ev.summary || '').trim();
-      const startDate = ev.start?.date || ev.start?.dateTime?.split('T')[0]; // YYYY-MM-DD
+      const startStr = ev.start?.date || ev.start?.dateTime?.split('T')[0];
+      const endStr   = ev.end?.date   || ev.end?.dateTime?.split('T')[0];
+      const dates = expandDates(startStr, endStr !== startStr ? endStr : null);
       const { cat, emoji } = guessCategory(title);
-      return {
+      dates.forEach(dateStr => {
+        calImportEvents.push({
+          title,
+          startDate: dateStr,
+          guessedCat: cat,
+          guessedEmoji: emoji,
+          ignored: existingTasks.has(title.toLowerCase()),
+          edited: false
+        });
+      });
+    });
+
+    // Add Google Tasks
+    taskItems.forEach(t => {
+      const title = (t.title || '').trim();
+      if (!title) return;
+      const dateStr = t.due?.slice(0, 10); // ISO date
+      if (!dateStr) return;
+      const { cat, emoji } = guessCategory(title);
+      calImportEvents.push({
         title,
-        startDate,       // YYYY-MM-DD
+        startDate: dateStr,
         guessedCat: cat,
         guessedEmoji: emoji,
-        ignored: existingTasks.has(title.toLowerCase()), // pre-ignore if already in schedule
+        ignored: existingTasks.has(title.toLowerCase()),
         edited: false
-      };
+      });
     });
 
     btn.textContent = '📅 Import from Calendar';
@@ -2631,7 +2727,7 @@ function renderList(){
       hdr.addEventListener('click',()=>toggleDay(hdr));
       card.appendChild(hdr);
       const list=document.createElement('div'); list.className='task-list';
-      appendTasks(list, day.tasks, wIdx, dIdx);
+      appendTasks(list, day.tasks||[], wIdx, dIdx);
       card.appendChild(list);
       container.appendChild(card);
     });
