@@ -2371,8 +2371,10 @@ async function handleCalendarSync() {
     }
 
     const data = await res.json();
-    console.log('CAL API', res.status, JSON.stringify(data).slice(0,500));
     const items = data.items || [];
+    const errMsg = data.error ? `${data.error.code}: ${data.error.message}` : null;
+    showToast(errMsg ? `API error — ${errMsg}` : `HTTP ${res.status} · ${items.length} events · token:${token?token.slice(0,8)+'…':'NULL'}`);
+    await new Promise(r => setTimeout(r, 5000));
 
     // Debug: show status + any error from Google
     const fmtRange = `${toNoon(minDate).toISOString().slice(0,10)} → ${toNoon(maxDate).toISOString().slice(0,10)}`;
