@@ -322,11 +322,13 @@
       try {
         const provider = new GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+        // Force consent screen so Google always grants the calendar scope
+        provider.setCustomParameters({ prompt: 'consent', access_type: 'online' });
         const result = await signInWithPopup(auth, provider);
-        // Grab the Google OAuth access token (needed for Calendar API)
         const credential = GoogleAuthProvider.credentialFromResult(result);
         window._googleAccessToken = credential.accessToken;
         localStorage.setItem('gs_google_token', credential.accessToken);
+        showToast('Signed in — calendar access granted');
       } catch(e) {
         if (e.code !== 'auth/popup-closed-by-user') showToast('Sign-in failed: ' + e.message);
       }
@@ -2307,7 +2309,10 @@ async function handleCalendarSync() {
       });
     });
 
-    if (!minDate) { showToast('No dates in current period'); btn.textContent='⬛ Sync'; btn.style.pointerEvents='auto'; return; }
+    if (!minDate) { showToast('No dates in current period'); btn.style.pointerEvents='auto'; return; }
+
+    showToast(`Searching ${minDate.toDateString()} → ${maxDate.toDateString()}`);
+    await new Promise(r => setTimeout(r, 2500));
 
     // Use noon local time to avoid UTC conversion shifting dates by a day
     const toNoon = d => { const n = new Date(d); n.setHours(12,0,0,0); return n; };
