@@ -2232,28 +2232,19 @@ function updateAuthUI(user) {
 }
 
 async function handleCalendarSyncOrSignIn() {
-  if (window._currentUser && window._googleAccessToken) {
-    // Signed in and token available — go straight to import
+  // Always get a fresh Google OAuth token — the cached one may be expired
+  // (Firebase persists the user but NOT the Google access token across reloads)
+  if (!window._signIn) {
+    showToast('Auth not ready yet — try again in a moment');
+    return;
+  }
+  window._googleAccessToken = null; // force fresh token
+  localStorage.removeItem('gs_google_token');
+  await window._signIn();
+  if (window._googleAccessToken) {
     handleCalendarSync();
-  } else if (window._currentUser && !window._googleAccessToken) {
-    // Signed in via Firebase but Google OAuth token missing/expired — re-auth silently
-    showToast('Re-authorizing calendar access…');
-    if (window._signIn) {
-      await window._signIn();
-      if (window._googleAccessToken) handleCalendarSync();
-      else showToast('Calendar access denied — please try signing in again');
-    }
   } else {
-    // Not signed in at all
-    if (window._signIn) {
-      window._signIn().then(() => {
-        setTimeout(() => {
-          if (window._currentUser) handleCalendarSync();
-        }, 1000);
-      });
-    } else {
-      showToast('Auth not ready yet — try again in a moment');
-    }
+    showToast('Calendar sign-in cancelled or failed');
   }
 }
 
@@ -2310,7 +2301,7 @@ async function handleCalendarSync() {
   btn.style.pointerEvents = 'none';
 
   try {
-    // Get date range from all weeks in current period
+    // Get date range from current tab only
     let minDate = null, maxDate = null;
     schedule.forEach(week => {
       week.days.forEach(day => {
@@ -2382,10 +2373,15 @@ async function handleCalendarSync() {
     const data = await res.json();
     const items = data.items || [];
 
-    // Debug: show what was found
+    // Debug: show status + any error from Google
     const fmtRange = `${toNoon(minDate).toISOString().slice(0,10)} → ${toNoon(maxDate).toISOString().slice(0,10)}`;
-    showToast(`Found ${items.length} raw events in period (${fmtRange})`);
-    await new Promise(r => setTimeout(r, 2000)); // let toast show
+    if (data.error) {
+      showToast(`Google API error ${data.error.code}: ${data.error.message}`);
+      btn.textContent = '📅 Import from Calendar'; btn.style.pointerEvents = 'auto';
+      return;
+    }
+    showToast(`HTTP ${res.status} · Found ${items.length} raw events (${fmtRange})`);
+    await new Promise(r => setTimeout(r, 3000)); // let toast show
 
     // Also count existing schedule tasks to avoid duplicating
     const existingTasks = new Set();
