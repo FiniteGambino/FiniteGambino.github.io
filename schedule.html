@@ -798,11 +798,11 @@ async function switchPeriod(id) {
   const loadingTimeout = setTimeout(() => {
     if (document.getElementById('schedule').querySelector('.loading-screen')) {
       schedule = [];
-      setSyncState('ok', 'Synced');
+      setSyncState('ok', 'Offline / no data');
       render();
       updateUndoBtn();
     }
-  }, 5000);
+  }, 3000);
 
   // Live listener
   const { ref, onValue } = fsFns;
@@ -810,7 +810,10 @@ async function switchPeriod(id) {
   onValue(periodRef, snap => {
     clearTimeout(loadingTimeout);
     const data = snap.val();
-    schedule = data ? JSON.parse(JSON.stringify(data.weeks || [])) : [];
+    const rawWeeks = data ? (data.weeks || []) : [];
+    // Ensure every day has a tasks array (guards against malformed Firebase data)
+    rawWeeks.forEach(w => (w.days||[]).forEach(d => { if (!Array.isArray(d.tasks)) d.tasks = []; }));
+    schedule = JSON.parse(JSON.stringify(rawWeeks));
     undoStack.length = 0;
     setSyncState('ok', 'Synced');
     render();
