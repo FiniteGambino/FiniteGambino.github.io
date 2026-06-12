@@ -754,17 +754,24 @@ window.addEventListener('firebase-ready', async () => {
   db    = window._db    || null;
   fsFns = window._dbFns || null;
   if (!db || !fsFns) {
-    // Firebase didn't load — use local storage
     setSyncState('err', 'Offline — using local storage');
     fallbackLoad();
     return;
   }
   setSyncState('syncing', 'Loading…');
+  // Wait for Firebase Auth to resolve before reading data
+  // (onAuthStateChanged fires async — if we read before it resolves, we get permission denied)
+  await new Promise(resolve => {
+    const unsub = window._auth.onAuthStateChanged(user => {
+      unsub();
+      resolve(user);
+    });
+  });
   try {
     await loadPeriods();
   } catch(e) {
     console.error('Firebase error:', e);
-    setSyncState('err', 'Offline — saved locally');
+    setSyncState('err', 'Sync error — ' + (e?.message || e));
     fallbackLoad();
   }
 });
