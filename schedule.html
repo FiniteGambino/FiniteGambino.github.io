@@ -760,13 +760,19 @@ window.addEventListener('firebase-ready', async () => {
   }
   setSyncState('syncing', 'Loading…');
   // Wait for Firebase Auth to resolve before reading data
-  // (onAuthStateChanged fires async — if we read before it resolves, we get permission denied)
-  await new Promise(resolve => {
-    const unsub = window._auth.onAuthStateChanged(user => {
-      unsub();
-      resolve(user);
-    });
+  const authUser = await new Promise(resolve => {
+    const unsub = window._auth.onAuthStateChanged(user => { unsub(); resolve(user); });
   });
+  // If not signed in, prompt sign-in first
+  if (!authUser) {
+    setSyncState('err', 'Sign in to load your schedule');
+    // Auto-trigger sign-in
+    if (window._signIn) {
+      try {
+        await window._signIn();
+      } catch(_) {}
+    }
+  }
   try {
     await loadPeriods();
   } catch(e) {
