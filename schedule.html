@@ -180,6 +180,9 @@
   .modal { background:#ffffff; border:1px solid #dde1e9; border-radius:14px; padding:20px; width:100%; max-width:360px; }
   .modal h3 { font-size:.85rem; font-weight:700; color:#1a1c24; margin-bottom:14px; }
   .modal label { font-size:.68rem; color:#9098a8; display:block; margin-bottom:4px; margin-top:10px; text-transform:uppercase; letter-spacing:.04em; }
+  .color-swatch { width:28px; height:28px; border-radius:7px; cursor:pointer; border:2px solid #dde1e9; transition:transform .1s,box-shadow .1s; flex-shrink:0; }
+  .color-swatch:hover { transform:scale(1.15); }
+  .color-swatch.selected { box-shadow:0 0 0 3px #3d5afe; transform:scale(1.15); }
   .modal input,.modal select { width:100%; background:#f5f6f8; border:1px solid #dde1e9; border-radius:7px; color:#2c2f3a; font-size:.8rem; padding:8px 10px; outline:none; transition:border-color .2s; }
   .modal input:focus,.modal select:focus { border-color:#3d5afe; }
   .modal select option { background:#ffffff; }
@@ -446,12 +449,14 @@
     <label>Emoji</label><input type="text" id="mEmoji" maxlength="4" />
     <label>Category</label>
     <select id="mCat">
-      <option value="gym">🏋️ Gym</option><option value="study">📖 Study</option>
-      <option value="piano">🎹 Piano</option><option value="food">🍗 Meal Prep</option>
-      <option value="health">💉 Health</option><option value="chore">🧺 Chores</option>
-      <option value="burrito">🌯 Batch Cook</option><option value="event">🎉 Event</option>
-      <option value="rest">😴 Rest</option>
+      <option value="gym">&#x1F3CB;&#xFE0F; Gym</option><option value="study">&#x1F4D6; Study</option>
+      <option value="piano">&#x1F3B9; Piano</option><option value="food">&#x1F357; Meal Prep</option>
+      <option value="health">&#x1F489; Health</option><option value="chore">&#x1F9BA; Chores</option>
+      <option value="burrito">&#x1F32F; Batch Cook</option><option value="event">&#x1F389; Event</option>
+      <option value="rest">&#x1F634; Rest</option>
     </select>
+    <label style="margin-top:12px;">Colour <span style="font-size:.65rem;color:#9098a8;font-weight:400;">(overrides category colour)</span></label>
+    <div id="mColorRow" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;align-items:center;"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-confirm" id="mConfirm" onclick="confirmModal()">Save</button>
@@ -1427,6 +1432,7 @@ function openModal(mode,wIdx,dIdx,tIdx){
     document.getElementById('mText').value=t.text;
     document.getElementById('mEmoji').value=t.emoji;
     document.getElementById('mCat').value=t.cat;
+    buildColorSwatches(t.color||'');
     document.getElementById('mConfirm').textContent='Save';
     document.getElementById('mSavePaletteWrap').style.display='none';
   } else {
@@ -1434,6 +1440,7 @@ function openModal(mode,wIdx,dIdx,tIdx){
     document.getElementById('mText').value='';
     document.getElementById('mEmoji').value='';
     document.getElementById('mCat').value='gym';
+    buildColorSwatches('');
     document.getElementById('mConfirm').textContent='Add';
     document.getElementById('mSavePaletteWrap').style.display='block';
   }
@@ -1467,12 +1474,38 @@ function confirmModal(){
   }
 
   const {wIdx,dIdx,tIdx}=modalTarget;
+  const color = getSelectedColor();
   pushUndo();
   if(modalMode==='edit'){
-    schedule[wIdx].days[dIdx].tasks[tIdx]={text,emoji,cat};
+    const oldTask = schedule[wIdx].days[dIdx].tasks[tIdx];
+    const oldColor = oldTask.color||'';
+    const newTask = {text,emoji,cat};
+    if(color) newTask.color = color;
+    schedule[wIdx].days[dIdx].tasks[tIdx] = newTask;
+    // If colour changed, offer to apply to all tasks with same name
+    if(color !== oldColor && text) {
+      const matchCount = schedule.reduce((n,w)=>n+w.days.reduce((m,d)=>m+(d.tasks||[]).filter(t=>t!==newTask&&t.text===text).length,0),0);
+      if(matchCount > 0) {
+        closeModal(); hideToolbar(); save(); render();
+        appConfirm(
+          `Apply this colour to all ${matchCount} other task${matchCount>1?'s':''} named "${text}"?`,
+          'Apply colour everywhere?', 'Apply to all', false
+        ).then(ok => {
+          if(ok) {
+            pushUndo();
+            schedule.forEach(w=>w.days.forEach(d=>(d.tasks||[]).forEach(t=>{ if(t.text===text){ if(color) t.color=color; else delete t.color; } })));
+            save(); render();
+            showToast(`Colour applied to all "${text}" tasks`);
+          }
+        });
+        return;
+      }
+    }
     showToast('Updated');
   } else {
-    schedule[wIdx].days[dIdx].tasks.splice(tIdx+1,0,{text,emoji,cat});
+    const newTask = {text,emoji,cat};
+    if(color) newTask.color = color;
+    schedule[wIdx].days[dIdx].tasks.splice(tIdx+1,0,newTask);
     pendingPasteKey=`${wIdx}-${dIdx}-${tIdx+1}`;
     const savePalette = document.getElementById('mSavePalette').checked;
     if (savePalette && !PALETTE_ITEMS.find(i => i.text === text)) {
@@ -1486,6 +1519,42 @@ function confirmModal(){
   closeModal(); hideToolbar(); save(); render();
 }
 function emojiFor(cat){ return{gym:'🏋️',study:'📖',piano:'🎹',food:'🍗',health:'💉',chore:'🧺',burrito:'🌯',event:'🎉',rest:'😴'}[cat]||'📌'; }
+
+// ── Task custom colours ──────────────────────────────────────────────────────
+const COLOR_MAP = {
+  '':       { bg:'#f0f2f5', border:'#9098a8', text:'#6b7280' },  // default
+  green:    { bg:'#eaf6ef', border:'#b8dfc9', text:'#1e7a46' },
+  blue:     { bg:'#eef4fb', border:'#b8d4ef', text:'#2060a0' },
+  purple:   { bg:'#f3eefb', border:'#d0b8ef', text:'#6030a0' },
+  yellow:   { bg:'#faf5e4', border:'#e8d0a0', text:'#8a6010' },
+  red:      { bg:'#fdeef1', border:'#f0c0c8', text:'#a02040' },
+  teal:     { bg:'#eaf2f7', border:'#b8d4e4', text:'#2a5870' },
+  orange:   { bg:'#fdf0e8', border:'#f0cca8', text:'#8a4810' },
+  pink:     { bg:'#f8eefb', border:'#dfb8ef', text:'#7020a0' },
+  slate:    { bg:'#f5f6f8', border:'#dde1e9', text:'#8090a0' },
+};
+
+function buildColorSwatches(selectedColor) {
+  const row = document.getElementById('mColorRow');
+  row.innerHTML = '';
+  Object.entries(COLOR_MAP).forEach(([key, c]) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (key === (selectedColor||'') ? ' selected' : '');
+    sw.style.cssText = `background:${c.bg};border-color:${c.border};`;
+    sw.title = key || 'Default';
+    sw.dataset.color = key;
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+    });
+    row.appendChild(sw);
+  });
+}
+
+function getSelectedColor() {
+  const sel = document.querySelector('.color-swatch.selected');
+  return sel ? sel.dataset.color : '';
+}
 
 function updateClip(){
   document.getElementById('clipBar').textContent=clipboard?`📋 ${clipboard.emoji} ${clipboard.text} — tap a task then Paste`:'';
@@ -2066,6 +2135,7 @@ function openCustomChipModal() {
   document.getElementById('mText').value = '';
   document.getElementById('mEmoji').value = '';
   document.getElementById('mCat').value = 'gym';
+  buildColorSwatches('');
   document.getElementById('mConfirm').textContent = 'Add (session only)';
   document.getElementById('mSavePaletteWrap').style.display = 'block';
   document.getElementById('mSavePalette').checked = false;
@@ -2902,6 +2972,12 @@ function appendTasks(container, tasks, wIdx, dIdx){
     const el=document.createElement('div');
     el.className=`task ${task.cat}`;
     el.dataset.key=key;
+    if(task.color && COLOR_MAP[task.color]) {
+      const c = COLOR_MAP[task.color];
+      el.style.background = c.bg;
+      el.style.borderColor = c.border;
+      el.style.color = c.text;
+    }
     if(active&&active.wIdx===wIdx&&active.dIdx===dIdx&&active.tIdx===tIdx) el.classList.add('selected-1');
     if(swapFirst&&swapFirst._second&&swapFirst._second.wIdx===wIdx&&swapFirst._second.dIdx===dIdx&&swapFirst._second.tIdx===tIdx) el.classList.add('selected-2');
     if(clipboardKey===key) el.classList.add('in-clipboard');
