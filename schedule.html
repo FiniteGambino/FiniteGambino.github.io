@@ -421,6 +421,7 @@
     <button class="tb-btn tb-add" onclick="handleAddBtn()"><span class="tb-icon">＋</span>Add</button>
     <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="openAtwFromToolbar()"><span class="tb-icon">📅</span>Add to<br>Week</button>
     <button class="tb-btn tb-delete" onclick="handleDeleteBtn()"><span class="tb-icon">✕</span>Delete</button>
+    <button class="tb-btn" id="tbGoNext" style="color:#1a56db;border-color:#c3d4f8;background:#eef2ff;" onclick="handleGoNext()"><span class="tb-icon">↓</span>Go to<br>next</button>
     <button class="tb-btn tb-close" onclick="closeToolbar()"><span class="tb-icon">↓</span>Close</button>
   </div>
 </div>
@@ -1656,7 +1657,7 @@ document.addEventListener('touchend',()=>{ if(drag) onDragEnd(); });
 document.addEventListener('touchcancel',()=>{ if(drag) onDragEnd(); });
 
 document.addEventListener('click',e=>{
-  if(e.target.closest('.task')||e.target.closest('.toolbar')||e.target.closest('.swap-confirm')||e.target.closest('.modal')||e.target.closest('.ctrl-btn')||e.target.closest('.tab-bar-wrap')) return;
+  if(e.target.closest('.task')||e.target.closest('.toolbar')||e.target.closest('.swap-confirm')||e.target.closest('.modal')||e.target.closest('.ctrl-btn')||e.target.closest('.tab-bar-wrap')||e.target.closest('#rareTaskBar')) return;
   if(active&&!swapMode) hideToolbar();
 });
 document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modalOverlay')) closeModal(); });
@@ -2208,6 +2209,7 @@ function renderRareTaskBar() {
   if (!rare.length) { bar.style.display='none'; return; }
 
   bar.style.display = 'block';
+  bar._rareList = rare; // store for click handler
   bar.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
       <span style="font-size:.85rem;">⚠️</span>
@@ -2215,13 +2217,52 @@ function renderRareTaskBar() {
       <span style="font-size:.62rem;color:#c09830;background:#fef3c0;border-radius:10px;padding:1px 7px;">${rare.length}</span>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      ${rare.map(([text, count]) => {
+      ${rare.map(([text, count], i) => {
         const m = taskMeta[text] || { emoji: '📌' };
-        return `<span onclick="selectRareTask(${JSON.stringify(text)})" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:500;background:#fff;border:1px solid #f0d880;color:#6b5010;cursor:pointer;">
+        return `<span data-rare-idx="${i}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:500;background:#fff;border:1px solid #f0d880;color:#6b5010;cursor:pointer;">
           <span>${m.emoji}</span><span>${text}</span><span style="font-size:.65rem;color:#a07820;background:#fef3c0;border-radius:8px;padding:1px 6px;">×${count}</span>
         </span>`;
       }).join('')}
     </div>`;
+  // Wire up clicks via delegation
+  bar.querySelectorAll('[data-rare-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.getAttribute('data-rare-idx'));
+      const text = bar._rareList[idx]?.[0];
+      if (text) selectRareTask(text);
+    });
+  });
+}
+
+function handleGoNext() {
+  if (!active) return;
+  const { wIdx, dIdx, tIdx } = active;
+  const text = schedule[wIdx].days[dIdx].tasks[tIdx]?.text;
+  if (!text) return;
+  // Find next occurrence after current position
+  for (let wi = wIdx; wi < schedule.length; wi++) {
+    const days = schedule[wi].days;
+    const startDi = (wi === wIdx) ? dIdx : 0;
+    for (let di = startDi; di < days.length; di++) {
+      const tasks = days[di].tasks || [];
+      const startTi = (wi === wIdx && di === dIdx) ? tIdx + 1 : 0;
+      for (let ti = startTi; ti < tasks.length; ti++) {
+        if (tasks[ti].text === text) {
+          const prev = taskEl(active);
+          if (prev) prev.classList.remove('selected-1');
+          active = { wIdx: wi, dIdx: di, tIdx: ti };
+          showToolbar(wi, di, ti);
+          const el = taskEl(active);
+          if (el) {
+            el.classList.add('selected-1');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
+      }
+    }
+  }
+  showToast('No more occurrences');
 }
 
 function selectRareTask(text) {
@@ -2238,11 +2279,10 @@ function selectRareTask(text) {
         }
         active = { wIdx, dIdx, tIdx };
         showToolbar(wIdx, dIdx, tIdx);
-        // Scroll to and highlight the task element
         const el = taskEl(active);
         if (el) {
           el.classList.add('selected-1');
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
         }
         return;
       }
