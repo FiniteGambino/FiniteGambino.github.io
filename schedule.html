@@ -771,22 +771,32 @@ window.addEventListener('firebase-ready', async () => {
   const authUser = await new Promise(resolve => {
     const unsub = window._auth.onAuthStateChanged(user => { unsub(); resolve(user); });
   });
-  // If not signed in, prompt sign-in first
-  if (!authUser) {
-    setSyncState('err', 'Sign in to load your schedule');
-    // Auto-trigger sign-in
-    if (window._signIn) {
-      try {
-        await window._signIn();
-      } catch(_) {}
+
+  if (authUser) {
+    // Already signed in — load immediately
+    try {
+      await loadPeriods();
+    } catch(e) {
+      console.error('Firebase error:', e);
+      setSyncState('err', 'Sync error — ' + (e?.message || e));
+      fallbackLoad();
     }
-  }
-  try {
-    await loadPeriods();
-  } catch(e) {
-    console.error('Firebase error:', e);
-    setSyncState('err', 'Sync error — ' + (e?.message || e));
-    fallbackLoad();
+  } else {
+    // Not signed in — show lock screen and wait; onAuthStateChanged will trigger load once signed in
+    setSyncState('err', 'Sign in to load your schedule');
+    // Register a one-time listener so that after the lock-screen sign-in completes,
+    // we automatically load periods without requiring a page change.
+    const unsub2 = window._auth.onAuthStateChanged(async user => {
+      if (!user) return;
+      unsub2();
+      try {
+        await loadPeriods();
+      } catch(e) {
+        console.error('Firebase error:', e);
+        setSyncState('err', 'Sync error — ' + (e?.message || e));
+        fallbackLoad();
+      }
+    });
   }
 });
 
@@ -2360,16 +2370,18 @@ async function confirmNewPeriod() {
 function updateAuthUI(user) {
   const lock = document.getElementById('lockScreen');
   if (lock) lock.style.display = user ? 'none' : 'flex';
-  const btn = document.getElementById('calSyncBtn');
+  const btn = document.getElementById('calImportBtn');
   if (!btn) return;
   if (user) {
-    btn.title = `Signed in as ${user.displayName || user.email}`;
+    btn.title = `Import from Google Calendar (signed in as ${user.displayName || user.email})`;
     btn.style.borderColor = '#b8dfc9';
     btn.style.color = '#1e7a46';
+    btn.style.background = '#eaf6ef';
   } else {
-    btn.title = 'Sign in with Google';
+    btn.title = 'Import events from Google Calendar';
     btn.style.borderColor = '';
     btn.style.color = '';
+    btn.style.background = '';
   }
 }
 
@@ -2438,15 +2450,14 @@ let calImportEvents = []; // { title, date, dateStr, guessedCat, guessedEmoji, i
 let calEditIdx = null;
 
 async function handleCalendarSync() {
-  const btn = document.getElementById('calSyncBtn');
+  const btn = document.getElementById('calImportBtn');
   const token = window._googleAccessToken;
   if (!token) {
     showToast('No calendar token — tap Import again');
     localStorage.removeItem('gs_google_token');
     return;
   }
-  btn.textContent = '⏳ Reading…';
-  btn.style.pointerEvents = 'none';
+  if (btn) { btn.textContent = '⏳ Reading…'; btn.style.pointerEvents = 'none'; }
 
 
   try {
@@ -2508,14 +2519,14 @@ async function handleCalendarSync() {
 
     if (res.status === 401) {
       showToast('Session expired — sign in again');
-      btn.textContent='📅 Import from Calendar'; btn.style.pointerEvents='auto';
+      if (btn) { btn.textContent='📅 Import'; btn.style.pointerEvents='auto'; }
       return;
     }
 
     const data = await res.json();
     if (data.error) {
       showToast(`Calendar error: ${data.error.message}`);
-      btn.textContent = '📅 Import from Calendar'; btn.style.pointerEvents = 'auto';
+      if (btn) { btn.textContent = '📅 Import'; btn.style.pointerEvents = 'auto'; }
       return;
     }
     const items = data.items || [];
@@ -2599,14 +2610,12 @@ async function handleCalendarSync() {
       });
     });
 
-    btn.textContent = '📅 Import from Calendar';
-    btn.style.pointerEvents = 'auto';
+    if (btn) { btn.textContent = '📅 Import'; btn.style.pointerEvents = 'auto'; }
     openCalImport();
 
   } catch(e) {
     showToast('Error: ' + (e?.message || String(e)).slice(0, 60));
-    btn.textContent = '📅 Import from Calendar';
-    btn.style.pointerEvents = 'auto';
+    if (btn) { btn.textContent = '📅 Import'; btn.style.pointerEvents = 'auto'; }
   }
 }
 
