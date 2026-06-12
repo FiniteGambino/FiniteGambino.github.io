@@ -502,13 +502,13 @@
     <label>Label (e.g. "Jul 6 – Aug 2")</label>
     <input type="text" id="pmLabel" placeholder="Jul 6 – Aug 2" />
     <label style="margin-top:14px;">Start Date <span style="font-weight:400;color:#9098a8;font-size:.65rem;">(first day of Week 1)</span></label>
-    <input type="date" id="pmStartDate" />
+    <input type="date" id="pmStartDate" onchange="pmUpdateLabel()" />
     <p style="font-size:.7rem;color:#9098a8;margin-top:5px;" id="pmWeekHint">Auto-fills all day dates across 3 weeks.</p>
     <label style="margin-top:14px;">Weeks</label>
     <div class="week-count-row">
-      <button class="week-count-btn" onclick="(function(){const el=document.getElementById('pmWeekCount');const n=Math.max(1,parseInt(el.textContent)-1);el.textContent=n;document.getElementById('pmWeekHint').textContent='Auto-fills all day dates across '+n+' week'+(n===1?'.':'s.');})()">−</button>
+      <button class="week-count-btn" onclick="(function(){const el=document.getElementById('pmWeekCount');const n=Math.max(1,parseInt(el.textContent)-1);el.textContent=n;document.getElementById('pmWeekHint').textContent='Auto-fills all day dates across '+n+' week'+(n===1?'.':'s.');pmUpdateLabel();})()">−</button>
       <span class="week-count-val" id="pmWeekCount">3</span>
-      <button class="week-count-btn" onclick="(function(){const el=document.getElementById('pmWeekCount');const n=Math.min(12,parseInt(el.textContent)+1);el.textContent=n;document.getElementById('pmWeekHint').textContent='Auto-fills all day dates across '+n+' week'+(n===1?'.':'s.');})()">＋</button>
+      <button class="week-count-btn" onclick="(function(){const el=document.getElementById('pmWeekCount');const n=Math.min(12,parseInt(el.textContent)+1);el.textContent=n;document.getElementById('pmWeekHint').textContent='Auto-fills all day dates across '+n+' week'+(n===1?'.':'s.');pmUpdateLabel();})()">＋</button>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closePeriodModal()">Cancel</button>
@@ -2309,8 +2309,16 @@ function selectRareTask(text) {
 }
 
 // ── openPeriodModal with autofill ──────────────────────────────────────────
+function pmUpdateLabel() {
+  const startVal = document.getElementById('pmStartDate').value;
+  const weeks = parseInt(document.getElementById('pmWeekCount').textContent || '3');
+  if (!startVal) return;
+  const ns = new Date(startVal + 'T12:00:00');
+  document.getElementById('pmLabel').value = `${fmtDate(ns)} – ${fmtDate(addDays(ns, weeks * 7 - 1))}`;
+}
+
 function openPeriodModal() {
-  let suggested = '', suggestedStart = '';
+  let suggestedStart = '';
   try {
     let lastDate = null;
     for (const week of schedule) for (const day of (week.days||[])) {
@@ -2321,16 +2329,15 @@ function openPeriodModal() {
     }
     if (lastDate) {
       const ns = addDays(lastDate, 1);
-      suggested = `${fmtDate(ns)} – ${fmtDate(addDays(ns, 27))}`;
       suggestedStart = toInputDate(ns);
     }
   } catch(_) {}
-  const inp = document.getElementById('pmLabel');
-  inp.value = suggested;
-  document.getElementById('pmStartDate').value = suggestedStart;
   document.getElementById('pmWeekCount').textContent = '3';
   document.getElementById('pmWeekHint').textContent = 'Auto-fills all day dates across 3 weeks.';
+  document.getElementById('pmStartDate').value = suggestedStart;
+  pmUpdateLabel();
   document.getElementById('periodModalOverlay').classList.remove('hidden');
+  const inp = document.getElementById('pmLabel');
   setTimeout(() => { inp.focus(); inp.select(); }, 80);
 }
 function closePeriodModal() { document.getElementById('periodModalOverlay').classList.add('hidden'); }
