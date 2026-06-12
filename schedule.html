@@ -828,12 +828,28 @@ async function switchPeriod(id) {
     }
   }, 3000);
 
-  // Live listener — capture the expected id so stale callbacks are ignored
-  const expectedId = id;
+  // localStorage fallback (when Firebase is unavailable)
+  if (!db || !fsFns) {
+    clearTimeout(loadingTimeout);
+    try {
+      const saved = localStorage.getItem('gs_v9_' + id);
+      const data = saved ? JSON.parse(saved) : null;
+      const rawWeeks = data ? (data.weeks || data || []) : [];
+      rawWeeks.forEach(w => (w.days||[]).forEach(d => { if (!Array.isArray(d.tasks)) d.tasks = []; }));
+      schedule = JSON.parse(JSON.stringify(rawWeeks));
+    } catch(_) { schedule = []; }
+    undoStack.length = 0;
+    setSyncState('ok', 'Offline — using local storage');
+    render();
+    updateUndoBtn();
+    return;
+  }
+
+  // Firebase live listener
   const { ref, onValue } = fsFns;
   const periodRef = ref(db, `schedule/periods/${id}`);
   const unsub = onValue(periodRef, snap => {
-    if (_switchGen !== myGen) return; // stale — a newer switchPeriod has started
+    if (_switchGen !== myGen) return;
     clearTimeout(loadingTimeout);
     const data = snap.val();
     const rawWeeks = data ? (data.weeks || []) : [];
@@ -850,7 +866,7 @@ async function switchPeriod(id) {
     schedule = [];
     render();
   });
-  unsubPeriod = unsub; // store actual unsubscribe function
+  unsubPeriod = unsub;
 }
 
 async function savePeriod() {
@@ -1141,60 +1157,7 @@ async function saveTabOptions() {
   showToast('Saved');
 }
 
-function openPeriodModal() {
-  document.getElementById('pmLabel').value = '';
-  document.getElementById('periodModalOverlay').classList.remove('hidden');
-  setTimeout(() => document.getElementById('pmLabel').focus(), 80);
-}
-function closePeriodModal() {
-  document.getElementById('periodModalOverlay').classList.add('hidden');
-}
-async function confirmNewPeriod() {
-  const label = document.getElementById('pmLabel').value.trim();
-  if (!label) { document.getElementById('pmLabel').focus(); return; }
-  closePeriodModal();
 
-  const id = label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now().toString(36);
-  const order = periods.length;
-  const newWeeks = [{ week:"Week 1", days:[
-    { name:"Sunday",    date:"—", tasks:[] },
-    { name:"Monday",    date:"—", tasks:[] },
-    { name:"Tuesday",   date:"—", tasks:[] },
-    { name:"Wednesday", date:"—", tasks:[] },
-    { name:"Thursday",  date:"—", tasks:[] },
-    { name:"Friday",    date:"—", tasks:[] },
-    { name:"Saturday",  date:"—", tasks:[] },
-  ]}];
-
-  periods.push({ id, label, order });
-
-  if (db && fsFns) {
-    try {
-      const { ref, set } = fsFns;
-      await set(ref(db, `schedule/periods/${id}`), { label, order, weeks: newWeeks });
-    } catch(e) {
-      // save locally if Firebase fails
-      try { localStorage.setItem('gs_v9_'+id, JSON.stringify(newWeeks)); } catch(_){}
-    }
-  } else {
-    try { localStorage.setItem('gs_v9_'+id, JSON.stringify(newWeeks)); } catch(_){}
-  }
-
-  renderTabs();
-  // For local fallback: set schedule directly since no live listener
-  if (!db || !fsFns) {
-    activePeriodId = id;
-    schedule = JSON.parse(JSON.stringify(newWeeks));
-    undoStack.length = 0;
-    hideToolbar(); hideSwapConfirm(); updateClip();
-    renderTabs();
-    render(); updateUndoBtn();
-    showToast(`Created: ${label}`);
-    return;
-  }
-  await switchPeriod(id);
-  showToast(`Created: ${label}`);
-}
 
 document.getElementById('periodModalOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('periodModalOverlay')) closePeriodModal();
