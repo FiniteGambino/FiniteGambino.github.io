@@ -503,12 +503,12 @@
     <input type="text" id="pmLabel" placeholder="Jul 6 – Aug 2" />
     <label style="margin-top:14px;">Start Date <span style="font-weight:400;color:#9098a8;font-size:.65rem;">(first day of Week 1)</span></label>
     <input type="date" id="pmStartDate" />
-    <p style="font-size:.7rem;color:#9098a8;margin-top:5px;">Auto-fills all day dates across every week.</p>
+    <p style="font-size:.7rem;color:#9098a8;margin-top:5px;" id="pmWeekHint">Auto-fills all day dates across 3 weeks.</p>
     <label style="margin-top:14px;">Weeks</label>
     <div class="week-count-row">
-      <button class="week-count-btn" onclick="document.getElementById('pmWeekCount').textContent=Math.max(1,parseInt(document.getElementById('pmWeekCount').textContent)-1)">−</button>
+      <button class="week-count-btn" onclick="(function(){const el=document.getElementById('pmWeekCount');const n=Math.max(1,parseInt(el.textContent)-1);el.textContent=n;document.getElementById('pmWeekHint').textContent='Auto-fills all day dates across '+n+' week'+(n===1?'.':'s.');})()">−</button>
       <span class="week-count-val" id="pmWeekCount">3</span>
-      <button class="week-count-btn" onclick="document.getElementById('pmWeekCount').textContent=Math.min(12,parseInt(document.getElementById('pmWeekCount').textContent)+1)">＋</button>
+      <button class="week-count-btn" onclick="(function(){const el=document.getElementById('pmWeekCount');const n=Math.min(12,parseInt(el.textContent)+1);el.textContent=n;document.getElementById('pmWeekHint').textContent='Auto-fills all day dates across '+n+' week'+(n===1?'.':'s.');})()">＋</button>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closePeriodModal()">Cancel</button>
@@ -2328,6 +2328,8 @@ function openPeriodModal() {
   const inp = document.getElementById('pmLabel');
   inp.value = suggested;
   document.getElementById('pmStartDate').value = suggestedStart;
+  document.getElementById('pmWeekCount').textContent = '3';
+  document.getElementById('pmWeekHint').textContent = 'Auto-fills all day dates across 3 weeks.';
   document.getElementById('periodModalOverlay').classList.remove('hidden');
   setTimeout(() => { inp.focus(); inp.select(); }, 80);
 }
