@@ -6,89 +6,87 @@
 <title>EMR Quiz — BCEHS</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0f1117; --surface: #181c27; --surface2: #1e2332; --border: #252a38;
-    --accent: #e85d2f; --accent2: #f0a500; --green: #3ddc84; --red: #e85d2f;
-    --text: #e8eaf0; --muted: #6b7280; --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#0f1117;--surface:#181c27;--surface2:#1e2332;--border:#252a38;
+    --accent:#e85d2f;--accent2:#f0a500;--green:#3ddc84;--red:#e85d2f;
+    --blue:#4da6ff;--text:#e8eaf0;--muted:#6b7280;
+    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
   }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px 16px 48px; }
-  header { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-  .logo { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
-  .logo span { color: var(--muted); font-weight: 400; }
-  .stats { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; gap: 14px; align-items: center; }
-  .stat-val { color: var(--text); font-weight: 600; }
-
-  /* Tab bar */
-  .tabs { width: 100%; max-width: 680px; display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
-  .tab { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 10px 18px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.15s; background: transparent; border-top: none; border-left: none; border-right: none; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* Category bar */
-  .category-bar { width: 100%; max-width: 680px; display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
-  .cat-btn { font-family: var(--mono); font-size: 11px; padding: 5px 10px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; border-radius: 4px; transition: all 0.15s; letter-spacing: 0.05em; text-transform: uppercase; }
-  .cat-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .cat-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
-
-  /* Progress */
-  .progress { width: 100%; max-width: 680px; height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 18px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
-
-  /* Quiz card */
-  .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px 22px; }
-  .card-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .tag { padding: 2px 8px; border-radius: 3px; font-size: 10px; border: 1px solid var(--border); }
-  .question { font-size: 16px; font-weight: 500; line-height: 1.6; margin-bottom: 20px; }
-  .options { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
-  .opt { display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.15s; background: transparent; text-align: left; font-family: var(--sans); font-size: 14px; color: var(--text); line-height: 1.45; width: 100%; }
-  .opt:hover:not(:disabled) { border-color: #4a5168; background: var(--surface2); }
-  .opt .letter { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--muted); min-width: 18px; margin-top: 1px; flex-shrink: 0; }
-  .opt.correct { border-color: var(--green); background: rgba(61,220,132,0.07); }
-  .opt.correct .letter { color: var(--green); }
-  .opt.wrong { border-color: var(--red); background: rgba(232,93,47,0.07); }
-  .opt.wrong .letter { color: var(--red); }
-  .opt:disabled { cursor: default; }
-  .explanation { font-size: 13px; line-height: 1.65; color: #a8b0c4; background: rgba(19,23,32,0.6); border-left: 3px solid var(--accent2); padding: 12px 14px; border-radius: 0 4px 4px 0; margin-top: 6px; display: none; }
-  .explanation.show { display: block; }
-  .source-tag { font-family: var(--mono); font-size: 10px; color: var(--accent2); margin-bottom: 6px; display: block; }
-  .actions { margin-top: 18px; display: flex; justify-content: space-between; align-items: center; }
-  .qcount { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .btn { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 9px 18px; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.15s; }
-  .btn:hover { opacity: 0.85; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-ghost { background: var(--border); color: var(--text); }
-
-  /* Settings panel */
-  #settingsPanel { display: none; width: 100%; max-width: 680px; }
-  #settingsPanel.show { display: block; }
-  .settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; margin-bottom: 14px; }
-  .settings-title { font-family: var(--mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
-  .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .setting-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .setting-label { font-size: 14px; color: var(--text); }
-  .setting-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .toggle { font-family: var(--mono); font-size: 11px; padding: 5px 10px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; border-radius: 3px; transition: all 0.15s; letter-spacing: 0.04em; }
-  .toggle:hover { border-color: var(--accent); color: var(--text); }
-  .toggle.on { border-color: var(--accent); background: rgba(232,93,47,0.15); color: var(--accent); }
-  .diff-badge { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-family: var(--mono); }
-  .diff-foundational { color: var(--muted); border: 1px solid var(--muted); }
-  .diff-intermediate { color: var(--accent2); border: 1px solid var(--accent2); }
-  .diff-advanced { color: var(--accent); border: 1px solid var(--accent); }
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 4px; }
-  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; }
-  .stat-box .n { font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--text); }
-  .stat-box .l { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .streak { color: var(--accent2); }
-  #quizArea { width: 100%; max-width: 680px; }
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 48px;}
+  header{width:100%;max-width:680px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .logo{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;}
+  .logo span{color:var(--muted);font-weight:400;}
+  .stats{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:14px;align-items:center;}
+  .stat-val{color:var(--text);font-weight:600;}
+  .tabs{width:100%;max-width:680px;display:flex;margin-bottom:20px;border-bottom:1px solid var(--border);}
+  .tab{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:10px 18px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s;background:transparent;border-top:none;border-left:none;border-right:none;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .category-bar{width:100%;max-width:680px;display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;}
+  .cat-btn{font-family:var(--mono);font-size:11px;padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;border-radius:4px;transition:all .15s;letter-spacing:.05em;text-transform:uppercase;}
+  .cat-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .cat-btn.active{border-color:var(--accent);background:var(--accent);color:#fff;}
+  .progress{width:100%;max-width:680px;height:3px;background:var(--border);border-radius:2px;margin-bottom:18px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+  .card{width:100%;max-width:680px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px 22px;}
+  .card-meta{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+  .meta-left{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .tag{padding:2px 8px;border-radius:3px;font-size:10px;border:1px solid;font-family:var(--mono);}
+  .scope-emr{color:#4da6ff;border-color:#4da6ff;}
+  .scope-pcp{color:#a78bfa;border-color:#a78bfa;}
+  .question{font-size:16px;font-weight:500;line-height:1.6;margin-bottom:20px;}
+  .options{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+  .opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;background:transparent;text-align:left;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.45;width:100%;}
+  .opt:hover:not(:disabled){border-color:#4a5168;background:var(--surface2);}
+  .opt .letter{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);min-width:18px;margin-top:1px;flex-shrink:0;}
+  .opt.correct{border-color:var(--green);background:rgba(61,220,132,.07);}
+  .opt.correct .letter{color:var(--green);}
+  .opt.wrong{border-color:var(--red);background:rgba(232,93,47,.07);}
+  .opt.wrong .letter{color:var(--red);}
+  .opt:disabled{cursor:default;}
+  .explanation{font-size:13px;line-height:1.65;color:#a8b0c4;background:rgba(19,23,32,.6);border-left:3px solid var(--accent2);padding:12px 14px;border-radius:0 4px 4px 0;margin-top:6px;display:none;}
+  .explanation.show{display:block;}
+  .source-tag{font-family:var(--mono);font-size:10px;color:var(--accent2);margin-bottom:6px;display:block;}
+  .actions{margin-top:18px;display:flex;justify-content:space-between;align-items:center;}
+  .qcount{font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .btn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:9px 18px;border:none;border-radius:4px;cursor:pointer;transition:opacity .15s;}
+  .btn:hover{opacity:.85;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-ghost{background:var(--border);color:var(--text);}
+  /* Settings */
+  #settingsPanel{display:none;width:100%;max-width:680px;}
+  #settingsPanel.show{display:block;}
+  .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:14px;}
+  .settings-title{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+  .setting-row:last-child{border-bottom:none;padding-bottom:0;}
+  .setting-label{font-size:14px;color:var(--text);}
+  .setting-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .toggle-group{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+  .toggle{font-family:var(--mono);font-size:11px;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;border-radius:3px;transition:all .15s;letter-spacing:.04em;}
+  .toggle:hover{color:var(--text);}
+  .toggle.on-diff{border-color:var(--accent);background:rgba(232,93,47,.12);color:var(--accent);}
+  .toggle.on-emr{border-color:#4da6ff;background:rgba(77,166,255,.1);color:#4da6ff;}
+  .toggle.on-pcp{border-color:#a78bfa;background:rgba(167,139,250,.1);color:#a78bfa;}
+  /* scope pill in settings */
+  .scope-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-family:var(--mono);font-size:11px;border:1px solid;}
+  .pill-emr{color:#4da6ff;border-color:#4da6ff;background:rgba(77,166,255,.08);}
+  .pill-pcp{color:#a78bfa;border-color:#a78bfa;background:rgba(167,139,250,.08);}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:4px;}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;}
+  .stat-box .n{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);}
+  .stat-box .l{font-size:11px;color:var(--muted);margin-top:2px;}
+  .streak{color:var(--accent2);}
+  #quizArea{width:100%;max-width:680px;}
+  .no-qs{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+  .no-qs strong{display:block;color:var(--text);font-size:16px;margin-bottom:8px;}
 </style>
 </head>
 <body>
+
 <header>
-  <div>
-    <div class="logo">EMR Quiz <span>/ BCEHS CPG</span></div>
-  </div>
+  <div class="logo">EMR Quiz <span>/ BCEHS CPG</span></div>
   <div class="stats">
     <span>Score: <span class="stat-val" id="scoreDisp">0</span></span>
     <span>Q: <span class="stat-val" id="qNumDisp">0</span></span>
@@ -97,42 +95,60 @@
 </header>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('quiz')">Quiz</button>
-  <button class="tab" onclick="showTab('settings')">⚙ Settings</button>
+  <button class="tab active" id="tab-quiz" onclick="showTab('quiz',this)">Quiz</button>
+  <button class="tab" id="tab-settings" onclick="showTab('settings',this)">⚙ Settings</button>
 </div>
 
-<!-- Settings panel -->
+<!-- Settings -->
 <div id="settingsPanel">
+
   <div class="settings-section">
-    <div class="settings-title">Difficulty Filter</div>
+    <div class="settings-title">License Level</div>
     <div class="setting-row">
       <div>
-        <div class="setting-label">Foundational <span class="diff-badge diff-foundational">F</span></div>
-        <div class="setting-sub">Core concepts, definitions, basic skills</div>
+        <div class="setting-label"><span class="scope-pill pill-emr">EMR</span></div>
+        <div class="setting-sub">Questions within EMR scope — assessment, airway basics, legal, BVM, OPA/NPA, hemorrhage control, AED, consent</div>
       </div>
       <div class="toggle-group">
-        <button class="toggle on" id="tog-foundational" onclick="toggleDiff('foundational')">On</button>
+        <button class="toggle on-emr" id="tog-emr" onclick="toggleScope('emr')">On</button>
       </div>
     </div>
     <div class="setting-row">
       <div>
-        <div class="setting-label">Intermediate <span class="diff-badge diff-intermediate">I</span></div>
-        <div class="setting-sub">Scenario-based, multi-step reasoning</div>
+        <div class="setting-label"><span class="scope-pill pill-pcp">PCP</span></div>
+        <div class="setting-sub">Questions covering PCP-level knowledge — IV access, SGA, PEEP, vasopressors, 12-lead ECG, advanced pharmacology, post-ROSC targets</div>
       </div>
       <div class="toggle-group">
-        <button class="toggle on" id="tog-intermediate" onclick="toggleDiff('intermediate')">On</button>
-      </div>
-    </div>
-    <div class="setting-row">
-      <div>
-        <div class="setting-label">Advanced <span class="diff-badge diff-advanced">A</span></div>
-        <div class="setting-sub">PCP-level challenge, nuanced differentials</div>
-      </div>
-      <div class="toggle-group">
-        <button class="toggle on" id="tog-advanced" onclick="toggleDiff('advanced')">On</button>
+        <button class="toggle on-pcp" id="tog-pcp" onclick="toggleScope('pcp')">On</button>
       </div>
     </div>
   </div>
+
+  <div class="settings-section">
+    <div class="settings-title">Difficulty</div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Foundational</div>
+        <div class="setting-sub">Core definitions, basic skills, protocol recall</div>
+      </div>
+      <button class="toggle on-diff" id="tog-foundational" onclick="toggleDiff('foundational')">On</button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Intermediate</div>
+        <div class="setting-sub">Scenario-based, multi-step clinical reasoning</div>
+      </div>
+      <button class="toggle on-diff" id="tog-intermediate" onclick="toggleDiff('intermediate')">On</button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Advanced</div>
+        <div class="setting-sub">Nuanced differentials, protocol edge cases, PCP-challenge</div>
+      </div>
+      <button class="toggle on-diff" id="tog-advanced" onclick="toggleDiff('advanced')">On</button>
+    </div>
+  </div>
+
   <div class="settings-section">
     <div class="settings-title">Session Stats</div>
     <div class="stats-grid">
@@ -144,13 +160,14 @@
       <button class="btn btn-ghost" style="width:100%;" onclick="resetSession()">Reset Session</button>
     </div>
   </div>
+
   <div class="settings-section">
     <div class="settings-title">About</div>
-    <p style="font-size:13px;color:var(--muted);line-height:1.7;">Questions are based on the <strong style="color:var(--text)">BCEHS Clinical Practice Guidelines Handbook</strong> (handbook.bcehs.ca), covering CPGs A01–A07, B01, C01, D02, E-series, F-series, H-series, N-series, and R-series, aligned with EMR and PCP scope of practice in BC.</p>
+    <p style="font-size:13px;color:var(--muted);line-height:1.7;">Questions are grounded in the <strong style="color:var(--text)">BCEHS Clinical Practice Guidelines Handbook</strong> (handbook.bcehs.ca). Each question cites the relevant CPG. EMR-scope questions test knowledge within your current certification; PCP-scope questions prepare you for the JIBC PCP licensing exam.</p>
   </div>
 </div>
 
-<!-- Quiz area -->
+<!-- Quiz -->
 <div id="quizArea">
   <div class="category-bar" id="catBar">
     <button class="cat-btn active" data-cat="all">All</button>
@@ -165,9 +182,10 @@
   <div class="progress"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   <div class="card" id="quizCard">
     <div class="card-meta">
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div class="meta-left">
         <span id="catLabel">—</span>
         <span id="diffLabel" class="tag">—</span>
+        <span id="scopeLabel" class="tag">—</span>
       </div>
       <span id="srcLabel" style="font-size:10px;color:var(--muted);"></span>
     </div>
@@ -185,124 +203,127 @@
 </div>
 
 <script>
-// ─── QUESTION BANK ───────────────────────────────────────────────────────────
-const ALL_QUESTIONS = [
+// scope: "emr" = EMR scope of practice; "pcp" = requires PCP knowledge/interventions
+const Q = [
 
-// ── AIRWAY ──────────────────────────────────────────────────────────────────
-{cat:"airway",diff:"foundational",src:"B01",q:"According to the BCEHS CPG B01, what is the EMR-level SpO2 target when administering supplemental oxygen?",opts:["A. >88%","B. >90%","C. >93%","D. >98%"],ans:2,exp:"BCEHS B01 states EMRs should use supplemental oxygen to maintain SpO2 >93% where appropriate. This differs from the post-ROSC target (92–98%) — context matters. The goal is adequate oxygenation without unnecessary hyperoxia."},
-{cat:"airway",diff:"foundational",src:"B01",q:"Per BCEHS B01, which manual airway maneuver does the handbook identify as most effective when airway muscle tone is lost?",opts:["A. Head-tilt chin-lift","B. Jaw thrust","C. Triple airway maneuver","D. Neck extension"],ans:1,exp:"BCEHS B01 explicitly states that jaw thrust is the most effective manual maneuver to open an airway when airway muscle tone is lost, as it moves the tongue and epiglottis away from the posterior oropharynx. The handbook notes jaw thrust and head-tilt chin-lift are not mutually exclusive and can be used together."},
-{cat:"airway",diff:"intermediate",src:"B01",q:"A patient has gurgling respirations and declining LOC. Per BCEHS B01 guidance on airway sounds, which descriptor best characterizes a dangerous airway?",opts:["A. Wheezing","B. Stridor, snoring, stertorous, or wet sounds","C. Inspiratory crackles","D. Prolonged expiration"],ans:1,exp:"BCEHS B01 specifically lists 'stridor, snoring, stertorous, or wet characteristics' as ominous airway sounds that signal an urgent need for intervention. Wheezing and crackles are lower airway findings. These upper airway sounds should trigger immediate assessment and intervention."},
-{cat:"airway",diff:"intermediate",src:"B01",q:"Per BCEHS B01, which of the following is the preferred technique for BVM ventilation?",opts:["A. Single provider, dominant hand squeezing the bag","B. Two-provider technique with definite but slight chest rise","C. Single provider, C-clamp grip, maximal tidal volume","D. Two-provider technique targeting maximal chest rise"],ans:1,exp:"BCEHS B01 states that optimal BVM ventilation is performed by two providers, and that only a slight (but definite) amount of chest rise is necessary for safe ventilation. Over-ventilation causes gastric distension and reduces venous return — more chest rise is not better."},
-{cat:"airway",diff:"advanced",src:"B01",q:"According to BCEHS B01, the application of a nasal cannula at 10–15 L/min under a BVM is referred to as what technique, and what is its purpose?",opts:["A. CPAP — to provide positive pressure ventilation","B. NO DESAT (high-flow nasal cannula) — to increase FiO2 in critically hypoxic patients","C. Apneic oxygenation — to replace BVM ventilation","D. PEEP — to recruit collapsed alveoli"],ans:1,exp:"BCEHS B01 describes applying a nasal cannula at 10–15 L/min from a second oxygen source underneath a BVM as 'high-flow nasal cannula, or NO DESAT.' Its purpose is to increase available FiO2 in critically ill hypoxic patients. It supplements, not replaces, BVM ventilation."},
-{cat:"airway",diff:"intermediate",src:"B01",q:"Per BCEHS B01, CPAP is contraindicated in which patients?",opts:["A. Patients with SpO2 below 90%","B. Patients with dyspnea from any cause","C. Patients with questionable airway integrity or inability to spontaneously trigger ventilation","D. COPD patients with chronic CO2 retention"],ans:2,exp:"BCEHS B01 states CPAP should not be used in patients who have questionable airway integrity or lack the ability to spontaneously trigger ventilation. CPAP is not capable of providing forced ventilation — it relies on the patient's own respiratory effort. Hypoxic patients with intact drive may benefit."},
-{cat:"airway",diff:"foundational",src:"B01",q:"Per BCEHS B01, airway interventions are described as progressing in what direction?",opts:["A. From maximally to minimally invasive","B. From most to least effective","C. From minimally to maximally invasive","D. Based on patient preference"],ans:2,exp:"BCEHS B01 explicitly states 'airway interventions progress from minimally to maximally invasive.' The simplest form — spontaneous patient ventilation — is preferred. Each tier of escalation carries more risk. This principle guides decision-making: only escalate when less invasive means are insufficient."},
-{cat:"airway",diff:"advanced",src:"B01",q:"An EMR inserts an OPA and the patient immediately gags. According to the BCEHS approach to airway adjuncts, what does the NPA offer in this situation?",opts:["A. Nothing — NPA is less effective than OPA","B. The ability to bypass the gag reflex, making it more appropriate when gag is present","C. Higher FiO2 delivery than an OPA","D. Deeper airway protection than an OPA"],ans:1,exp:"BCEHS B01 states that 'the ability of the NPA to bypass the gag reflex may be more appropriate depending on circumstances.' OPA is faster to insert, but NPA is preferred when the gag reflex is present. Both are listed as equally effective at creating an air passage and should be used with manual maneuvers."},
-{cat:"airway",diff:"intermediate",src:"B01",q:"A PEEP valve is initiated at what starting level per BCEHS B01, and in which patient group is it particularly cautioned?",opts:["A. 10 cmH2O; caution in pediatrics","B. 5 cmH2O; caution in shock physiology and dynamic hyperinflation","C. 3 cmH2O; caution in head injuries","D. 8 cmH2O; caution in COPD"],ans:1,exp:"BCEHS B01 states PEEP is generally safe starting at 5 cmH2O but can be harmful at any level, particularly in patients experiencing shock physiology and those experiencing dynamic hyperinflation (e.g., severe asthma). EMRs are not in scope for PEEP — it is a PCP intervention per B01."},
-{cat:"airway",diff:"foundational",src:"B01",q:"According to BCEHS B01, which provider level can insert a nasopharyngeal airway (NPA)?",opts:["A. First Responder (FR) only","B. EMR and all higher license levels","C. PCP and above only","D. ACP and above only"],ans:1,exp:"BCEHS B01 lists NPA insertion under 'Emergency Medical Responder (EMR) & All License Levels Interventions' — meaning EMRs can perform it, as can all higher tiers. FRs can use OPA and BVM but not NPA. This is an important scope distinction for EMRs working alongside PCPs."},
+// ── AIRWAY ───────────────────────────────────────────────────────────────────
+{cat:"airway",diff:"foundational",scope:"emr",src:"B01",q:"Per BCEHS B01, what SpO2 target should EMRs maintain when administering supplemental oxygen?",opts:["A. >88%","B. >90%","C. >93%","D. >98%"],ans:2,exp:"BCEHS B01 states EMRs should use supplemental oxygen to maintain SpO2 >93% where appropriate. This is distinct from post-ROSC targets (92–98%). Adequate oxygenation without hyperoxia is the goal."},
+{cat:"airway",diff:"foundational",scope:"emr",src:"B01",q:"Per BCEHS B01, which manual airway maneuver is identified as most effective when airway muscle tone is lost?",opts:["A. Head-tilt chin-lift","B. Jaw thrust","C. Triple airway maneuver","D. Neck extension"],ans:1,exp:"BCEHS B01 explicitly states jaw thrust is the most effective manual maneuver when airway muscle tone is lost — it moves the tongue and epiglottis away from the posterior oropharynx. Jaw thrust and head-tilt chin-lift are not mutually exclusive; they can be used together."},
+{cat:"airway",diff:"intermediate",scope:"emr",src:"B01",q:"BCEHS B01 lists which airway sounds as 'ominous' requiring immediate intervention?",opts:["A. Wheezing and prolonged expiration","B. Stridor, snoring, stertorous, or wet sounds","C. Inspiratory crackles","D. High-pitched expiratory squeaks"],ans:1,exp:"BCEHS B01 specifically lists 'stridor, snoring, stertorous, or wet characteristics' as ominous airway sounds. These are upper airway obstruction signs requiring immediate assessment and escalating intervention."},
+{cat:"airway",diff:"intermediate",scope:"emr",src:"B01",q:"Per BCEHS B01, what is the preferred technique for BVM ventilation?",opts:["A. Single-provider C-clamp grip with maximal tidal volume","B. Two-provider technique with slight but definite chest rise","C. Single-provider with visible maximal chest expansion","D. Two-provider with 15 breaths per minute targeting full chest rise"],ans:1,exp:"BCEHS B01 states optimal BVM ventilation is performed by two providers, targeting only a slight (but definite) chest rise. Over-ventilation causes gastric distension and reduces venous return — more chest rise is not better."},
+{cat:"airway",diff:"foundational",scope:"emr",src:"B01",q:"Per BCEHS B01, which provider levels can insert an NPA?",opts:["A. First Responder only","B. EMR and all higher license levels","C. PCP and above only","D. ACP and above only"],ans:1,exp:"BCEHS B01 lists NPA under 'EMR & All License Levels Interventions.' FRs can use OPA and BVM but not NPA. EMRs can insert NPAs — an important scope distinction."},
+{cat:"airway",diff:"advanced",scope:"emr",src:"B01",q:"A patient has an intact gag reflex. Per BCEHS B01, why is NPA preferred over OPA in this situation?",opts:["A. NPA delivers more oxygen","B. NPA can bypass the gag reflex","C. NPA is faster to insert","D. NPA protects against aspiration"],ans:1,exp:"BCEHS B01 states 'the ability of the NPA to bypass the gag reflex may be more appropriate depending on circumstances.' OPA has the advantage of speed, but NPA is the adjunct of choice when the gag reflex is present. Both are equally effective at creating an air passage."},
+{cat:"airway",diff:"advanced",scope:"emr",src:"B01",q:"Per BCEHS B01, applying a nasal cannula at 10–15 L/min under a BVM is referred to as what technique?",opts:["A. CPAP — to provide positive pressure","B. NO DESAT — high-flow nasal cannula to increase FiO2","C. PEEP supplementation","D. Apneic oxygenation replacing BVM"],ans:1,exp:"BCEHS B01 describes this as 'high-flow nasal cannula, or NO DESAT.' It increases available FiO2 in critically ill hypoxic patients. It supplements BVM ventilation — it does not replace it."},
+{cat:"airway",diff:"intermediate",scope:"emr",src:"B01",q:"Per BCEHS B01, in the absence of cervical spinal injury, jaw thrust and head-tilt chin-lift should be used in what relationship?",opts:["A. Always alternate between them","B. Jaw thrust replaces head-tilt chin-lift","C. In tandem — they are not mutually exclusive","D. Head-tilt chin-lift first, jaw thrust only if it fails"],ans:2,exp:"BCEHS B01 states: 'Jaw thrust and head-tilt chin-lift are not mutually exclusive maneuvers. In the absence of cervical spinal injury, the two maneuvers should occur in tandem to maximize airway patency.'"},
+{cat:"airway",diff:"intermediate",scope:"emr",src:"B01",q:"BCEHS B01 states airway interventions should progress in which direction?",opts:["A. Maximally to minimally invasive","B. Based on patient preference","C. Minimally to maximally invasive","D. Most effective to least effective regardless of invasiveness"],ans:2,exp:"BCEHS B01 explicitly states 'airway interventions progress from minimally to maximally invasive.' Spontaneous patient ventilation is the least invasive and most preferred. Each escalation carries increasing risk — escalate only when less invasive means are insufficient."},
+{cat:"airway",diff:"advanced",scope:"emr",src:"B01",q:"An apneic patient with suspected spinal injury cannot be adequately ventilated with jaw thrust alone. Per BCEHS B01 philosophy, what should the EMR do?",opts:["A. Abandon ventilation to protect the spine","B. Use head-tilt chin-lift — airway always supersedes spinal precautions in a living patient","C. Only use NPA and avoid all manual maneuvers","D. Wait for ALS with RSI capability"],ans:1,exp:"BCEHS B01 philosophy reinforces that airway management is the priority — a dead patient does not benefit from spinal protection. If jaw thrust fails to open the airway adequately, head-tilt chin-lift is appropriate. Spinal injury risk does not justify abandoning a patent airway."},
+{cat:"airway",diff:"intermediate",scope:"pcp",src:"B01",q:"Per BCEHS B01, PEEP is appropriate at what starting level, and in which patients is it particularly cautioned?",opts:["A. 10 cmH2O; caution in pediatrics","B. 5 cmH2O; caution in shock physiology and dynamic hyperinflation (severe asthma)","C. 3 cmH2O; caution in head injuries","D. 8 cmH2O; caution in COPD"],ans:1,exp:"BCEHS B01 states PEEP is generally safe starting at 5 cmH2O but can be harmful at any level, particularly in shock physiology and dynamic hyperinflation. PEEP is a PCP (not EMR) intervention per B01 — EMRs should know the concept and contraindications for the PCP exam."},
+{cat:"airway",diff:"intermediate",scope:"pcp",src:"B01",q:"Per BCEHS B01, CPAP should NOT be used in which patients?",opts:["A. Patients with SpO2 below 90%","B. COPD patients with hypoxic drive","C. Patients who cannot spontaneously trigger ventilation or have questionable airway integrity","D. Patients under 18 years"],ans:2,exp:"BCEHS B01 states CPAP should not be used for patients who have questionable airway integrity or lack the ability to spontaneously trigger ventilation. CPAP relies entirely on the patient's own respiratory drive — it cannot force ventilation. CPAP is a PCP-level intervention in BCEHS."},
 
-// ── CARDIAC ─────────────────────────────────────────────────────────────────
-{cat:"cardiac",diff:"foundational",src:"N03",q:"Per BCEHS CPG N03, what is the SpO2 target for post-ROSC patients?",opts:["A. 88–92%","B. 92–98%","C. >99%","D. >95%"],ans:1,exp:"BCEHS N03 specifies targeting SpO2 of 92–98% after ROSC. Over-oxygenation (hyperoxia) after cardiac arrest can worsen neurological outcomes through free-radical injury. The upper limit of 98% is as important as the lower limit — titrate oxygen down once the patient is above 98%."},
-{cat:"cardiac",diff:"intermediate",src:"N03",q:"According to BCEHS N03, what is the minimum time that should pass after ROSC before acquiring a 12-lead ECG?",opts:["A. 2 minutes","B. 5 minutes","C. 10 minutes","D. 20 minutes"],ans:2,exp:"BCEHS N03 states to allow approximately 10 minutes of perfusion before attempting to acquire a 12-lead ECG. The initial post-arrest phase can produce bizarre and atypical rhythms. Waiting 10 minutes allows the cardiac rhythm to stabilize so ECG interpretation is more reliable."},
-{cat:"cardiac",diff:"intermediate",src:"N03",q:"After ROSC, BCEHS N03 instructs EMRs to position the patient in what orientation?",opts:["A. Supine flat","B. Left lateral recovery position","C. Head of cot elevated 30°","D. Trendelenburg (feet up)"],ans:2,exp:"BCEHS N03 specifies elevating the head of cot to 30° where possible. This promotes cerebral venous drainage, reduces the incidence of cerebral edema, and reduces aspiration risk. Trendelenburg is not recommended and is listed against in BCEHS D02 for most shock presentations."},
-{cat:"cardiac",diff:"advanced",src:"N03",q:"Per BCEHS N03, passive cooling is allowed after non-traumatic ROSC, but is specifically contraindicated in what circumstance?",opts:["A. Patients over 70 years","B. Patients with STEMI","C. Traumatic cardiac arrest","D. Patients with core temperature above 37°C"],ans:2,exp:"BCEHS N03 states 'do not allow passive cooling in cases of traumatic cardiac arrest.' The rationale from the handbook is that hypothermia below 35°C has a negative effect on the clotting cascade — a major concern in traumatic arrest where hemorrhage control is critical. Allow passive cooling for non-traumatic ROSC."},
-{cat:"cardiac",diff:"foundational",src:"N03",q:"After ROSC, per BCEHS N03, the target systolic blood pressure is:",opts:["A. >80 mmHg","B. >90 mmHg","C. >110 mmHg","D. >120 mmHg"],ans:1,exp:"BCEHS N03 specifies avoiding hypotension with a target SBP of >90 mmHg (or MAP >65 mmHg) post-ROSC. Hypotension in post-arrest patients worsens neurological outcomes due to inadequate cerebral perfusion. If hypotension occurs, the PCP-level intervention is normal saline bolus up to 20 mL/kg."},
-{cat:"cardiac",diff:"intermediate",src:"N04",q:"Per BCEHS CPG N04, in traumatic cardiac arrest, what should be prioritized OVER chest compressions?",opts:["A. Advanced airway placement","B. 12-lead ECG acquisition","C. Treatment of reversible causes (hemorrhage, tension pneumothorax, tamponade)","D. Establishing IV access"],ans:2,exp:"BCEHS N04 explicitly states: 'Prioritize treatment of reversible causes over chest compressions in order of clinical precedence.' The most common cause of traumatic arrest is hemorrhage, followed by tension pneumothorax and tamponade. Control bleeding first, then manage airway, then compress — the sequence differs from medical arrest."},
-{cat:"cardiac",diff:"advanced",src:"N04",q:"According to BCEHS N04, which initial rhythm in traumatic cardiac arrest is associated with generally poor outcomes?",opts:["A. Ventricular fibrillation","B. Pulseless ventricular tachycardia","C. Asystole or wide complex PEA <40 bpm","D. Fine VF"],ans:2,exp:"BCEHS N04 states that traumatic cardiac arrests with an initial rhythm of asystole or wide complex PEA of less than 40 beats per minute are generally associated with poor outcomes, and it is reasonable to consider early discontinuation of resuscitation if there is no response to treatment. VF and pVT are shockable and have better prognosis."},
-{cat:"cardiac",diff:"foundational",src:"N04",q:"According to BCEHS N04, what is the EMR ventilation ratio during traumatic cardiac arrest when using BVM (without an iGel)?",opts:["A. Continuous compressions with async ventilation","B. 15:2","C. 30:2","D. 5:1"],ans:2,exp:"BCEHS N04 states that EMRs/FRs who cannot insert an iGel should use 30:2 compression-to-ventilation ratio during traumatic cardiac arrest, using 2-person BVM technique with a viral filter. This matches the standard adult cardiac arrest ratio when no advanced airway is in place."},
-{cat:"cardiac",diff:"intermediate",src:"N02",q:"According to BCEHS N02, what should be considered for refractory shockable rhythms with three or more consecutive shock-advised analyses without successful defibrillation?",opts:["A. Discontinue resuscitation","B. Vector change or pad placement change","C. Switch to manual defibrillation only","D. Hyperventilate the patient"],ans:1,exp:"BCEHS N02 states to 'consider Vector Change/Pad Placement Change for refractory shockable rhythms of three or more consecutive shock-advised analyses without successful defibrillation.' Changing the vector changes the electrical pathway through the myocardium, potentially achieving defibrillation where the original vector failed."},
-{cat:"cardiac",diff:"advanced",src:"N03",q:"Per BCEHS N03, a post-ROSC patient who has suspected cardiac cause of arrest should be conveyed to:",opts:["A. Any hospital immediately","B. The closest PCI centre if STEMI or suspected cardiac cause","C. A stroke centre","D. The closest community ED only"],ans:1,exp:"BCEHS N03 states patients resuscitated from cardiac arrest with an identified STEMI on 12-lead ECG, or who have a suspected cardiac cause of arrest, should be conveyed to the closest PCI centre. This is the 'cardiac save' pathway in BC — STEMI identification drives destination and pre-notification."},
+// ── CARDIAC ──────────────────────────────────────────────────────────────────
+{cat:"cardiac",diff:"foundational",scope:"emr",src:"N03",q:"Per BCEHS N03, what is the post-ROSC SpO2 target for EMRs managing oxygenation?",opts:["A. 88–92%","B. 92–98%","C. >99%","D. >95% regardless of upper limit"],ans:1,exp:"BCEHS N03 specifies SpO2 target of 92–98% post-ROSC. Both the lower AND upper limits matter — hyperoxia (>98%) causes free-radical neurological injury. Titrate oxygen down once above 98%."},
+{cat:"cardiac",diff:"intermediate",scope:"emr",src:"N03",q:"After ROSC, per BCEHS N03, the patient should be positioned how?",opts:["A. Supine flat","B. Left lateral recovery position","C. Head of cot elevated 30°","D. Trendelenburg"],ans:2,exp:"BCEHS N03 specifies head of cot elevated 30° where possible. This promotes cerebral venous drainage, reduces cerebral edema risk, and reduces aspiration risk. Trendelenburg is listed Against in BCEHS D02 for most presentations."},
+{cat:"cardiac",diff:"intermediate",scope:"emr",src:"N03",q:"Per BCEHS N03, passive cooling post-ROSC is contraindicated in which specific situation?",opts:["A. Patients with core temp above 37°C","B. Patients with suspected STEMI","C. Traumatic cardiac arrest","D. Patients over 70 years"],ans:2,exp:"BCEHS N03 states: 'do not allow passive cooling in cases of traumatic cardiac arrest.' Hypothermia below 35°C negatively affects the clotting cascade — a critical concern in traumatic arrest where hemorrhage control is paramount."},
+{cat:"cardiac",diff:"foundational",scope:"emr",src:"N03",q:"Per BCEHS N03, what SBP should be maintained post-ROSC?",opts:["A. >80 mmHg","B. >90 mmHg","C. >110 mmHg","D. >120 mmHg"],ans:1,exp:"BCEHS N03 specifies SBP >90 mmHg (or MAP >65 mmHg) post-ROSC. Hypotension worsens neurological outcomes through inadequate cerebral perfusion. Maintaining this target is an EMR responsibility; fluid bolus for hypotension is a PCP intervention."},
+{cat:"cardiac",diff:"intermediate",scope:"emr",src:"N04",q:"Per BCEHS N04, in traumatic cardiac arrest, what should be prioritized over chest compressions?",opts:["A. Advanced airway placement","B. 12-lead ECG","C. Treatment of reversible causes — hemorrhage, tension pneumo, tamponade","D. IV access"],ans:2,exp:"BCEHS N04 explicitly states: 'Prioritize treatment of reversible causes over chest compressions in order of clinical precedence.' The most common cause of traumatic arrest is hemorrhage, followed by tension pneumothorax and cardiac tamponade. Control bleeding first."},
+{cat:"cardiac",diff:"foundational",scope:"emr",src:"N04",q:"Per BCEHS N04, what compression-to-ventilation ratio do EMRs use in traumatic cardiac arrest when an iGel is not available?",opts:["A. Continuous compressions with async ventilation","B. 15:2","C. 30:2","D. 5:1"],ans:2,exp:"BCEHS N04 states EMRs/FRs who cannot insert an iGel use 30:2 with a 2-person BVM technique and an inline viral filter. This is the standard adult ratio when no advanced airway is in place."},
+{cat:"cardiac",diff:"advanced",scope:"emr",src:"N04",q:"Per BCEHS N04, which initial rhythm in traumatic cardiac arrest is associated with poor outcomes and may prompt consideration of early resuscitation discontinuation?",opts:["A. VF","B. pVT","C. Asystole or wide complex PEA <40 bpm","D. Fine VF"],ans:2,exp:"BCEHS N04 states traumatic cardiac arrests with an initial rhythm of asystole or wide complex PEA <40 bpm are generally associated with poor outcomes. It is reasonable to consider early discontinuation of resuscitation if there is no response to treatment."},
+{cat:"cardiac",diff:"advanced",scope:"emr",src:"N03",q:"Per BCEHS N03, if pulse oximetry is unreliable due to poor peripheral perfusion post-ROSC, what oxygen concentration should be used?",opts:["A. Room air — avoid hyperoxia","B. 40% via simple face mask","C. Highest available oxygen concentration","D. 88% target using clinical signs only"],ans:2,exp:"BCEHS N03 states: 'If pulse oximetry is unreliable because of peripheral perfusion deficits, use the highest available oxygen concentration.' When you can't measure SpO2 reliably, err toward more oxygen. The 92–98% target only applies when oximetry is reliable."},
+{cat:"cardiac",diff:"intermediate",scope:"emr",src:"N02",q:"Per BCEHS N02, what should be considered for refractory shockable rhythms with 3+ consecutive shock-advised analyses without successful defibrillation?",opts:["A. Discontinue resuscitation","B. Vector change or pad placement change","C. Switch to manual defibrillation only","D. Hyperventilate to reduce CO2"],ans:1,exp:"BCEHS N02 states to 'consider Vector Change/Pad Placement Change for refractory shockable rhythms of three or more consecutive shock-advised analyses.' Changing the vector changes the electrical pathway through the myocardium, potentially achieving defibrillation where the original vector failed."},
+{cat:"cardiac",diff:"intermediate",scope:"pcp",src:"N03",q:"Per BCEHS N03, what is the minimum time post-ROSC before acquiring a 12-lead ECG, and why?",opts:["A. 2 minutes — rhythm normalizes quickly","B. 5 minutes — allow BVM ventilation to stabilize","C. 10 minutes — allow initial atypical rhythms to stabilize","D. 20 minutes — ensure hemodynamic stability first"],ans:2,exp:"BCEHS N03 states to allow approximately 10 minutes of perfusion before attempting a 12-lead ECG. The initial post-arrest phase can produce bizarre and atypical rhythms — waiting 10 minutes allows the rhythm to stabilize for accurate interpretation. 12-lead ECG is a PCP/ACP intervention."},
+{cat:"cardiac",diff:"advanced",scope:"pcp",src:"N03",q:"Per BCEHS N03, what vasopressor is preferred for post-arrest hypotension, and at what level is it an EMR intervention?",opts:["A. Norepinephrine — EMR level","B. Dopamine — PCP level","C. EPINEPHrine — ACP level only","D. Vasopressin — PCP level"],ans:2,exp:"BCEHS N03 states 'EPINEPHrine is the preferred vasopressor in post-arrest care.' The handbook uses the mixed-case 'EPINEPHrine' as a safety measure. Push-dose epinephrine for post-arrest hypotension is listed as an ACP intervention — not EMR or PCP scope in standard practice."},
+{cat:"cardiac",diff:"advanced",scope:"pcp",src:"N03",q:"Per BCEHS N03, patients with STEMI on post-arrest 12-lead ECG should be conveyed where?",opts:["A. Any hospital immediately","B. Closest PCI centre","C. Closest stroke centre","D. Closest community ED with cardiology on call"],ans:1,exp:"BCEHS N03 states patients resuscitated from cardiac arrest with STEMI on 12-lead, or suspected cardiac cause of arrest, should be conveyed to the closest PCI centre. This drives the 'cardiac save' pathway in BC — pre-arrival notification is critical."},
 
-// ── TRAUMA ──────────────────────────────────────────────────────────────────
-{cat:"trauma",diff:"foundational",src:"H09",q:"Per BCEHS CPG H09, where is a traction splint specifically indicated?",opts:["A. Any femur fracture","B. Open femur fractures only","C. Isolated, closed, mid-third femoral fractures","D. All long bone fractures with neurovascular compromise"],ans:2,exp:"BCEHS H09 explicitly states: 'The use of traction splints should be reserved for isolated, closed, mid-third femoral fractures.' In major trauma or with multiple injuries, use anatomical splinting (injured leg to opposite leg) and a clamshell. Traction splints are NOT used for open fractures or when other injuries are present."},
-{cat:"trauma",diff:"intermediate",src:"H09",q:"According to BCEHS H09, when a limb is pulseless and severely angulated, what should you do?",opts:["A. Splint in position of deformity and transport","B. Reposition the limb to allow restoration of pulses","C. Apply a tourniquet above the fracture","D. Do nothing — repositioning risks nerve injury"],ans:1,exp:"BCEHS H09 states: 'If a limb is pulseless and severely angulated, it should be repositioned to allow for the restoration of pulses.' This is an attempt to restore circulation before splinting. Unlike the old teaching of 'splint it as you find it,' BCEHS CPG specifically instructs repositioning for vascular compromise."},
-{cat:"trauma",diff:"intermediate",src:"H09",q:"Per BCEHS H09, how should an amputated limb be preserved during transport?",opts:["A. Immerse in cold water to preserve tissue","B. Wrap in dry gauze and place on dry ice","C. Rinse with cool saline, wrap in saline-moistened gauze in a plastic bag, keep cool but not on ice","D. Apply a tourniquet to the amputated portion and transport separately"],ans:2,exp:"BCEHS H09 specifies: rinse with cool sterile saline, wrap in loose saline-moistened sterile gauze, place inside a plastic bag, and keep in a cool protected place. Do NOT immerse in water, do NOT place directly on ice or use dry ice. The amputated part is conveyed with the patient."},
-{cat:"trauma",diff:"advanced",src:"H09",q:"According to BCEHS H09, what Ottawa rule finding should raise suspicion of a significant underlying arterial injury requiring careful management?",opts:["A. Ankle tenderness at the posterior malleolus","B. Possible knee dislocation (as distinct from patellar dislocation)","C. Inability to bear weight after ankle injury","D. Patellar tenderness"],ans:1,exp:"BCEHS H09 states: 'paramedics and EMRs/FRs should exercise a high degree of suspicion with possible knee dislocations (as distinct from patellar dislocations): assume that a significant underlying arterial injury exists requiring careful management.' The popliteal artery is at high risk of injury with knee dislocations."},
-{cat:"trauma",diff:"foundational",src:"A02",q:"According to BCEHS A02, what must be controlled BEFORE beginning a formal primary survey?",opts:["A. The patient's airway","B. Life-threatening hemorrhage","C. Scene bystanders","D. The patient's pain"],ans:1,exp:"BCEHS A02 explicitly states: 'Prior to beginning a formal primary survey, life-threatening hemorrhage must be controlled. This can be accomplished through the use of delegated direct pressure or placement of a tourniquet as needed.' Hemorrhage control precedes the ABCDE primary survey in BCEHS protocol."},
-{cat:"trauma",diff:"intermediate",src:"A04",q:"According to BCEHS A04, when OC (pepper spray) is used by law enforcement on a patient, how should decontamination be performed?",opts:["A. Dry the area with a towel and apply ice","B. Remove contaminated clothing and flush with large quantities of water for at least 20 minutes, then wash with soap/baby shampoo","C. Apply milk to neutralize the spray","D. Leave exposure until patient reaches hospital"],ans:1,exp:"BCEHS A04 specifies: wear adequate PPE, remove contaminated clothing, flush with large quantities of water or normal saline for at least 20 minutes, then wash with soap and water (baby shampoo is ideal). The handbook notes that OC effects cannot be completely neutralized but can be minimized."},
-{cat:"trauma",diff:"advanced",src:"A04",q:"A patient has been exposed to a conducted energy weapon (CEW/Taser) by police. Per BCEHS A04, for how long must they be monitored, and where should darts NOT be removed?",opts:["A. 5 minutes; darts should never be removed prehospital","B. 30 minutes; darts embedded anywhere in the body","C. 15 minutes; darts embedded in genitalia, neck, face, eyes, ears, oropharynx, scalp, or areas with significant superficial vasculature","D. 10 minutes; darts embedded in the torso"],ans:2,exp:"BCEHS A04 states patients exposed to CEWs must be monitored for a minimum of 15 minutes. Darts should be removed by cutting the wire and pulling perpendicularly — EXCEPT when embedded in the genitalia, neck, face, eyes, ears, oropharynx, scalp, or areas with significant superficial vasculature (e.g., antecubital fossa, femoral or popliteal areas)."},
-{cat:"trauma",diff:"foundational",src:"N04",q:"Per BCEHS N04, what is the most common cause of traumatic cardiac arrest?",opts:["A. Tension pneumothorax","B. Hemorrhage","C. Cardiac tamponade","D. Hypoxemia"],ans:1,exp:"BCEHS N04 states: 'The most common cause of traumatic cardiac arrest is hemorrhage.' Other causes include tension pneumothorax, cardiac tamponade, and hypoxemia. This hierarchy of reversible causes (the 'T's' in trauma) guides the priority of interventions — control hemorrhage first."},
-{cat:"trauma",diff:"intermediate",src:"H09",q:"Per BCEHS H09, what finding in a limb distal to a fracture or dislocation constitutes a limb-threatening, time-critical injury?",opts:["A. Swelling and bruising only","B. Deformity and crepitus","C. Altered sensation, loss of pulse, or cold/dusky skin distal to injury","D. Pain out of proportion to injury"],ans:2,exp:"BCEHS H09 states: 'Altered sensation, loss of a pulse, or cold and dusky skin in a limb distal to a fracture or dislocation is an indicator of neurological or vascular compromise. This is a limb threatening injury and is time critical.' These three findings — sensory, vascular, skin changes — are the classic triad of neurovascular compromise."},
+// ── TRAUMA ───────────────────────────────────────────────────────────────────
+{cat:"trauma",diff:"foundational",scope:"emr",src:"A02",q:"Per BCEHS A02, what must be controlled BEFORE beginning the formal primary survey?",opts:["A. Airway","B. Life-threatening hemorrhage","C. Scene bystanders","D. Patient's pain"],ans:1,exp:"BCEHS A02 explicitly states: 'Prior to beginning a formal primary survey, life-threatening hemorrhage must be controlled through direct pressure or tourniquet.' Hemorrhage control precedes the ABCDE primary survey in BCEHS protocol."},
+{cat:"trauma",diff:"foundational",scope:"emr",src:"H09",q:"Per BCEHS H09, traction splints should be reserved for which specific fracture type?",opts:["A. Any femur fracture","B. Open femur fractures only","C. Isolated, closed, mid-third femoral fractures","D. All long bone fractures with vascular compromise"],ans:2,exp:"BCEHS H09 explicitly states: 'The use of traction splints should be reserved for isolated, closed, mid-third femoral fractures.' In major trauma or with multiple injuries, use anatomical splinting and a clamshell. NOT for open fractures."},
+{cat:"trauma",diff:"intermediate",scope:"emr",src:"H09",q:"Per BCEHS H09, when a limb is pulseless and severely angulated, what should be done?",opts:["A. Splint in position of deformity and transport","B. Reposition the limb to restore pulses","C. Apply tourniquet above fracture","D. Do not manipulate — risk of nerve injury"],ans:1,exp:"BCEHS H09 states: 'If a limb is pulseless and severely angulated, it should be repositioned to allow for the restoration of pulses.' This is a BCEHS-specific instruction — reposition before splinting when there is vascular compromise."},
+{cat:"trauma",diff:"intermediate",scope:"emr",src:"H09",q:"Per BCEHS H09, what are the signs of neurovascular compromise distal to a fracture?",opts:["A. Pain and swelling only","B. Deformity and crepitus","C. Altered sensation, absent pulse, or cold/dusky skin distal to injury","D. Visible bone ends"],ans:2,exp:"BCEHS H09 states: 'Altered sensation, loss of a pulse, or cold and dusky skin in a limb distal to a fracture or dislocation is an indicator of neurological or vascular compromise. This is a limb-threatening injury and is time critical.'"},
+{cat:"trauma",diff:"intermediate",scope:"emr",src:"H09",q:"Per BCEHS H09, how should an amputated limb be preserved during transport?",opts:["A. Immerse in cold water","B. Wrap in dry gauze on dry ice","C. Rinse with cool saline, wrap in saline-moistened gauze in a plastic bag, keep cool but not on ice","D. Apply tourniquet to stump portion"],ans:2,exp:"BCEHS H09: rinse with cool sterile saline, wrap in saline-moistened sterile gauze, place in a plastic bag, and keep in a cool protected place. Do NOT immerse in water, do NOT place directly on ice or use dry ice."},
+{cat:"trauma",diff:"advanced",scope:"emr",src:"H09",q:"Per BCEHS H09, a possible knee dislocation (distinct from patellar dislocation) should raise suspicion of what?",opts:["A. Ligamentous injury only","B. Significant underlying arterial injury — assume it exists","C. Lateral meniscus tear","D. Proximal tibial fracture"],ans:1,exp:"BCEHS H09 states: 'Paramedics and EMRs/FRs should exercise a high degree of suspicion with possible knee dislocations (as distinct from patellar dislocations): assume that a significant underlying arterial injury exists requiring careful management.' The popliteal artery is at high risk."},
+{cat:"trauma",diff:"foundational",scope:"emr",src:"N04",q:"Per BCEHS N04, what is the most common cause of traumatic cardiac arrest?",opts:["A. Tension pneumothorax","B. Hemorrhage","C. Cardiac tamponade","D. Hypoxemia"],ans:1,exp:"BCEHS N04 states: 'The most common cause of traumatic cardiac arrest is hemorrhage.' Other causes include tension pneumothorax, cardiac tamponade, and hypoxemia. This hierarchy guides intervention priority — control hemorrhage first."},
+{cat:"trauma",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, OC (pepper spray) decontamination requires flushing for at least how long?",opts:["A. 5 minutes","B. 10 minutes","C. 20 minutes","D. 30 minutes"],ans:2,exp:"BCEHS A04 specifies: remove contaminated clothing, flush with large quantities of water or normal saline for at least 20 minutes, then wash with soap and water (baby shampoo is ideal). OC effects cannot be completely neutralized but can be minimized."},
+{cat:"trauma",diff:"advanced",scope:"emr",src:"A04",q:"Per BCEHS A04, CEW (Taser) dart wounds should NOT be removed from which locations?",opts:["A. Torso only","B. Extremities only","C. Genitalia, neck, face, eyes, ears, oropharynx, scalp, or areas with significant superficial vasculature","D. All darts must be left in place until hospital"],ans:2,exp:"BCEHS A04: darts should be removed (cut wire, pull perpendicularly) EXCEPT when embedded in the genitalia, neck, face, eyes, ears, oropharynx, scalp, or areas with significant superficial vasculature (e.g., antecubital fossa, femoral or popliteal areas)."},
+{cat:"trauma",diff:"advanced",scope:"pcp",src:"H09",q:"Per BCEHS H09, what is the correct sequence for reducing a pulseless, severely angulated fracture?",opts:["A. Splint first, then reduce if pulse absent","B. Analgesia → irrigate open wounds → traction/counter-traction → manipulate under traction → splint","C. Tourniquet → reduce → splint","D. Reduce only in-hospital — no prehospital manipulation"],ans:1,exp:"BCEHS H09: provide procedural analgesia (PCP intervention), irrigate open wounds with 500 mL–1 L saline, apply traction and gentle counter-traction in line of limb, further manipulation under traction if needed, then splint. EMRs note: procedural analgesia is PCP scope; EMRs may still attempt repositioning for vascular compromise."},
 
-// ── MEDICAL ─────────────────────────────────────────────────────────────────
-{cat:"medical",diff:"foundational",src:"A04",q:"According to BCEHS A04, what blood glucose values in a patient in custody should prompt the EMR to convey to hospital?",opts:["A. <3.0 or >15.0 mmol/L","B. <4.0 or >10.0 mmol/L","C. <5.0 or >12.0 mmol/L","D. <3.5 or >8.0 mmol/L"],ans:1,exp:"BCEHS A04 specifies that in patients in custody, a blood glucose <4.0 mmol/L or >10.0 mmol/L should prompt conveyance to hospital. This is one of the vital sign thresholds listed in the 'patients in custody' section — recognizing that intoxicated, restrained, or altered patients may have underlying medical emergencies."},
-{cat:"medical",diff:"intermediate",src:"A04",q:"A patient is refusing care and conveyance after a submersion injury. Per BCEHS A04, what must the EMR do before leaving the scene?",opts:["A. Document refusal and leave immediately","B. Consult CliniCall — submersion injury is a mandatory consult prior to leaving","C. Obtain written refusal only","D. Contact the patient's family physician"],ans:1,exp:"BCEHS A04 lists several conditions where CliniCall must be consulted when a patient refuses care. Submersion injury is explicitly listed as requiring mandatory CliniCall consultation. Other mandatory consults include: resolved FBAO, ALTE/BRUE, and patients with chest pain, SOB, abdominal pain, headache, fever, abnormal HR, or RR."},
-{cat:"medical",diff:"advanced",src:"A04",q:"Under BCEHS A04, a patient refuses care. The EMR believes the patient lacks capacity due to alcohol intoxication. Which of the following does NOT demonstrate lack of capacity?",opts:["A. Inability to answer orienting questions","B. Actions demonstrating danger to self","C. Expressed preference for home over hospital","D. Mental disorder affecting decision-making"],ans:2,exp:"BCEHS A04 states patients are presumed to lack capacity if their actions demonstrate they present a danger to themselves or others. Lack of capacity may relate to mental disorder, intoxication, disability from illness, or inability to answer orienting questions. Expressing a preference for home — even an unwise one — is not itself evidence of incapacity if the patient demonstrates understanding of risks."},
-{cat:"medical",diff:"foundational",src:"A02",q:"Per BCEHS A02, the BCEHS-advocated clinical scoring tool for identifying patients at risk of rapid deterioration is:",opts:["A. APACHE II","B. Glasgow Coma Scale","C. NEWS2 (National Early Warning Score 2)","D. SOFA score"],ans:2,exp:"BCEHS A02 states: 'BC Emergency Health Services advocates the use of the National Early Warning Score 2 (NEWS2) to identify patients at risk of rapid deterioration.' NEWS2 should be obtained on all patients. For pediatric patients, the BC Pediatric Warning Score (PEWS) is used. NEWS2 guides conveyance, destination, pre-arrival notification, and monitoring intensity."},
-{cat:"medical",diff:"intermediate",src:"A02",q:"Per BCEHS A02, how does the assessment differ for an unconscious patient versus a conscious patient in the primary survey?",opts:["A. Unconscious patients always get airway assessed first","B. Conscious patients get ABCDE; unconscious patients have circulation and breathing assessed simultaneously, with compressions if pulseless","C. There is no difference — same ABCDE sequence","D. Unconscious patients only need airway assessment until ALS arrives"],ans:1,exp:"BCEHS A02 specifies: conscious patients get sequential ABCDE assessment. Unconscious patients should have circulation and breathing assessed simultaneously with chest compressions initiated if pulses are absent — formal airway assessment is deferred until resuscitation is underway. This reflects the cardiac arrest-first approach for unresponsive patients."},
-{cat:"medical",diff:"advanced",src:"A04",q:"A patient in police custody is restrained in a prone position. Per BCEHS A04, what is the specific warning?",opts:["A. Prone restraint is acceptable if the patient is calm","B. Do not convey patients in prone position due to risk of positional asphyxia","C. Prone position is allowed for aggressive patients only","D. No specific guidance on restraint position exists in BCEHS CPGs"],ans:1,exp:"BCEHS A04 contains the explicit warning: 'Do not convey restrained positions in the prone position, due to the risk of positional asphyxia.' Prone restraint — sometimes called 'excited delirium' restraint — has caused in-custody deaths. BCEHS specifically prohibits conveyance in this position."},
-{cat:"medical",diff:"intermediate",src:"A04",q:"Under BCEHS A04, at what age is a person considered an adult for consent purposes in BC?",opts:["A. 16","B. 17","C. 18","D. 19"],ans:3,exp:"BCEHS A04 references the BC Age of Majority Act: 'the age of majority is 19 years of age.' This is important — BC's age of majority is 19, not 18 as in many other provinces. Consent must be obtained from parents or legal representatives for patients under 19, unless the patient qualifies as a mature minor."},
-{cat:"medical",diff:"advanced",src:"A04",q:"According to BCEHS A04, what criteria must ALL be met to transfer a patient from PCP to EMR care during a Newton's Cradle (meet and transfer)?",opts:["A. Patient consents to transfer and is conscious","B. Vital signs within normal limits, required care within EMR scope, and at least 15 minutes since a PCP intervention","C. Patient is stable and ALS agrees verbally","D. Transport time is less than 30 minutes"],ans:1,exp:"BCEHS A04 states patients in PCP care may be transferred to EMR care provided: the patient's required care falls within EMR scope of practice, vital signs are within normal limits, and it has been a minimum of 15 minutes since a PCP intervention was performed. All three criteria must be satisfied. Transfer should not delay conveyance."},
+// ── MEDICAL ──────────────────────────────────────────────────────────────────
+{cat:"medical",diff:"foundational",scope:"emr",src:"A02",q:"Per BCEHS A02, what three things does the 'doorway impression' assess?",opts:["A. Heart rate, blood pressure, temperature","B. Work of breathing, skin appearance, and mentation","C. Mechanism, scene hazards, patient's age","D. SpO2, RR, GCS"],ans:1,exp:"BCEHS A02 states EMRs should observe the patient's work of breathing, the appearance of their skin, and their mentation to form a general impression before making contact. These three — WOB, skin, and LOC — are the rapid doorway impression tools."},
+{cat:"medical",diff:"foundational",scope:"emr",src:"A02",q:"Per BCEHS A02, what clinical scoring tool does BCEHS advocate for identifying patients at risk of rapid deterioration?",opts:["A. APACHE II","B. GCS","C. NEWS2","D. SOFA"],ans:2,exp:"BCEHS A02 states: 'BC Emergency Health Services advocates the use of the National Early Warning Score 2 (NEWS2) to identify patients at risk of rapid deterioration.' For pediatrics, the BC Pediatric Warning Score (PEWS) is used. NEWS2 uses Scale 2 for confirmed COPD patients."},
+{cat:"medical",diff:"intermediate",scope:"emr",src:"A02",q:"Per BCEHS A02, how does assessment differ for an unconscious patient vs. a conscious patient?",opts:["A. Same ABCDE sequence for both","B. Conscious: ABCDE in sequence; Unconscious: breathing and circulation assessed simultaneously, compressions if pulseless","C. Unconscious patients only need airway assessed until ALS arrives","D. Unconscious patients skip breathing assessment"],ans:1,exp:"BCEHS A02: conscious patients get sequential ABCDE. Unconscious patients have circulation and breathing assessed simultaneously — chest compressions initiated if pulses are absent. Formal airway assessment is deferred until resuscitation is underway."},
+{cat:"medical",diff:"foundational",scope:"emr",src:"A04",q:"Per BCEHS A04, a blood glucose of what value in a patient in custody requires conveyance to hospital?",opts:["A. <3.0 or >15.0 mmol/L","B. <4.0 or >10.0 mmol/L","C. <5.0 or >12.0 mmol/L","D. <3.5 or >8.0 mmol/L"],ans:1,exp:"BCEHS A04 specifies glucose <4.0 mmol/L or >10.0 mmol/L in patients in custody should prompt conveyance. Intoxicated or altered patients may have underlying metabolic emergencies — these thresholds are more conservative than typical clinical thresholds."},
+{cat:"medical",diff:"intermediate",scope:"emr",src:"A04",q:"A patient refuses care after a submersion injury. Per BCEHS A04, what must the EMR do before leaving?",opts:["A. Document refusal and leave","B. Consult CliniCall — submersion is a mandatory consult for refusals","C. Obtain written refusal only","D. Contact the patient's family physician"],ans:1,exp:"BCEHS A04 lists submersion injury as a mandatory CliniCall consultation when a patient refuses care. Other mandatory consults include resolved FBAO, ALTE/BRUE, chest pain, SOB, headache, fever, and abnormal vitals. CliniCall must be consulted before leaving."},
+{cat:"medical",diff:"advanced",scope:"emr",src:"A04",q:"Per BCEHS A04, which finding does NOT constitute evidence of a patient lacking capacity to refuse care?",opts:["A. Inability to answer orienting questions","B. Actions demonstrating danger to self","C. A preference for home over hospital","D. Intoxication affecting decision-making"],ans:2,exp:"BCEHS A04 states patients lack capacity if their actions demonstrate danger to self, or due to mental disorder, intoxication, or inability to answer orienting questions. Expressing a preference for home — even unwise — is not itself evidence of incapacity if the patient demonstrates understanding of risks and benefits."},
+{cat:"medical",diff:"advanced",scope:"emr",src:"A04",q:"Per BCEHS A04, which restraint position is explicitly prohibited during conveyance?",opts:["A. Left lateral","B. Supine","C. Prone","D. Semi-recumbent"],ans:2,exp:"BCEHS A04 contains the explicit warning: 'Do not convey restrained positions in the prone position, due to the risk of positional asphyxia.' Prone restraint has caused in-custody deaths. This is a BCEHS-specific prohibition regardless of patient behaviour."},
+{cat:"medical",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, after CEW (Taser) exposure, patients must be monitored for a minimum of how long?",opts:["A. 5 minutes","B. 10 minutes","C. 15 minutes","D. 30 minutes"],ans:2,exp:"BCEHS A04 states patients exposed to CEWs must be monitored for a minimum of 15 minutes after employment. A 12-lead ECG should be obtained if possible. This monitoring period exists because CEW-induced cardiac dysrhythmias may be delayed."},
+{cat:"medical",diff:"foundational",scope:"emr",src:"A02",q:"Per BCEHS A02, NEWS2 SpO2 Scale 2 (vs. Scale 1) is used specifically for which patients?",opts:["A. Patients under 18","B. Patients with confirmed COPD","C. Patients with SpO2 below 90%","D. Post-cardiac arrest patients"],ans:1,exp:"BCEHS A02 specifies: 'SpO2 Scale 1 is for patients not diagnosed with COPD; SpO2 Scale 2 is for patients diagnosed with COPD.' COPD patients have lower baseline SpO2 — using Scale 1 would over-score them. Using the wrong scale can lead to inappropriate clinical decisions."},
 
-// ── PHARMACOLOGY ────────────────────────────────────────────────────────────
-{cat:"pharmacology",diff:"foundational",src:"A04/D02",q:"BCEHS protocols note that the Trendelenburg position (legs elevated) is listed as which type of evidence for hemorrhagic shock management?",opts:["A. Supportive — recommended for all hypotensive patients","B. Against — it is listed against in BCEHS evidence","C. Neutral — no evidence either way","D. Required — it is mandatory in hemorrhagic shock"],ans:1,exp:"BCEHS D02 lists Trendelenburg as 'against' in the evidence base for hemorrhagic shock. Despite being a historical standard, evidence shows it does not reliably improve blood flow and may exacerbate bleeding. BCEHS evidence-based practice sections categorize interventions as Supportive, Neutral, or Against — knowing what NOT to do is as important as knowing what to do."},
-{cat:"pharmacology",diff:"intermediate",src:"N03",q:"Per BCEHS N03, what is the maximum fluid bolus for post-ROSC hypotension, and why is larger volume cautioned?",opts:["A. 10 mL/kg — cardiac overload risk","B. 20 mL/kg — large volumes of saline are associated with poor outcomes","C. 500 mL total — renal protection","D. 1 L — electrolyte dilution"],ans:1,exp:"BCEHS N03 states: 'Limit fluid bolus to a maximum of 20 mL/kg unless treating suspected hypovolemia... Large volumes of saline are associated with poor outcomes.' The handbook notes paramedics should aim to maintain SBP of 100 mmHg (or MAP 65 mmHg) — enough to perfuse, not more. Aggressive crystalloid resuscitation is listed Against in BCEHS evidence."},
-{cat:"pharmacology",diff:"advanced",src:"N03",q:"Per BCEHS N03, what is the preferred vasopressor in post-arrest care?",opts:["A. Dopamine","B. Norepinephrine","C. EPINEPHrine","D. Phenylephrine"],ans:2,exp:"BCEHS N03 explicitly states: 'EPINEPHrine is the preferred vasopressor in post-arrest care.' Note BCEHS intentionally capitalizes the mixed-case 'EPINEPHrine' as a safety measure to differentiate it from epinephrine used in other contexts and to highlight it as a high-alert medication. This is an ACP intervention, not EMR scope."},
-{cat:"pharmacology",diff:"foundational",src:"A04",q:"A patient in custody complains of an unknown tetanus vaccination history after dart wounds from a CEW. Per BCEHS A04, what should occur?",opts:["A. EMR administers tetanus booster on scene","B. Inform law enforcement that a tetanus booster will be required within 72 hours","C. Tetanus risk from dart wounds is negligible — no action needed","D. Transport to hospital immediately for tetanus prophylaxis"],ans:1,exp:"BCEHS A04 states: 'If the patient's tetanus status is unknown, or their date of last vaccination is over 10 years in the past, inform the law enforcement officers that a tetanus booster will be required within 72 hours.' This is a communication task — EMRs don't administer tetanus vaccine in the field. Documenting and communicating the need for follow-up is the priority."},
-{cat:"pharmacology",diff:"intermediate",src:"D02",q:"According to BCEHS D02 evidence, vasoconstrictors (pressors) for non-compressible uncontrolled hemorrhage are listed as:",opts:["A. Supportive — helpful in all hemorrhagic shock","B. Neutral — insufficient evidence","C. Contraindicated, except with concomitant TBI","D. First-line before fluid resuscitation"],ans:2,exp:"BCEHS D02 states vasoconstrictors are 'contraindicated for patients with a non-compressible uncontrolled hemorrhage. The exception being with a concomitant TBI.' It also notes 'fluid resuscitation must be initiated first' and 'morbidity and mortality is not improved with vasoconstrictor use.' This reflects permissive hypotension concepts for hemorrhagic shock."},
+// ── PHARMACOLOGY ─────────────────────────────────────────────────────────────
+{cat:"pharmacology",diff:"intermediate",scope:"pcp",src:"N03",q:"Per BCEHS N03, what is the maximum fluid bolus for post-ROSC hypotension, and why is larger volume cautioned?",opts:["A. 10 mL/kg — cardiac overload risk","B. 20 mL/kg — large volumes of saline are associated with poor outcomes","C. 500 mL flat cap — renal protection","D. 1 L — electrolyte dilution"],ans:1,exp:"BCEHS N03 states: 'Limit fluid bolus to a maximum of 20 mL/kg unless treating suspected hypovolemia. Large volumes of saline are associated with poor outcomes.' Target SBP 100 mmHg (MAP 65) — permissive approach. Aggressive crystalloids are listed Against in BCEHS evidence."},
+{cat:"pharmacology",diff:"advanced",scope:"pcp",src:"D02",q:"Per BCEHS D02 evidence, vasoconstrictors for non-compressible uncontrolled hemorrhage are categorized as:",opts:["A. Supportive — beneficial in all hemorrhagic shock","B. Neutral — insufficient evidence","C. Contraindicated, except with concomitant TBI","D. First-line before fluid resuscitation"],ans:2,exp:"BCEHS D02 lists vasoconstrictors as contraindicated for patients with non-compressible uncontrolled hemorrhage. The exception is concomitant TBI. 'Fluid resuscitation must be initiated first. Morbidity and mortality is not improved with vasoconstrictor use.' Trendelenburg is also listed Against."},
+{cat:"pharmacology",diff:"foundational",scope:"emr",src:"A04",q:"Per BCEHS A04, if a patient's tetanus status is unknown after CEW dart wounds, what should occur?",opts:["A. EMR administers tetanus booster on scene","B. Inform law enforcement that a tetanus booster is required within 72 hours","C. Tetanus risk from darts is negligible","D. Transport immediately for tetanus prophylaxis"],ans:1,exp:"BCEHS A04 states: 'If the patient's tetanus status is unknown, or date of last vaccination is over 10 years past, inform law enforcement that a tetanus booster will be required within 72 hours.' Documenting and communicating follow-up need is the prehospital task — EMRs don't administer tetanus vaccine."},
+{cat:"pharmacology",diff:"intermediate",scope:"pcp",src:"N03",q:"Per BCEHS N03, EPINEPHrine is the preferred vasopressor post-arrest. Why does BCEHS write it in mixed-case?",opts:["A. It is a brand name","B. It is a high-alert medication safety measure to prevent confusion","C. It indicates a lower dose formulation","D. It is a different drug from epinephrine"],ans:1,exp:"BCEHS uses mixed-case 'EPINEPHrine' as a medication safety convention to highlight it as a high-alert drug and reduce confusion with other contexts where epinephrine is used (e.g., anaphylaxis, cardiac arrest). This is a standard in Canadian pharmacy safety practices."},
 
-// ── ASSESSMENT ──────────────────────────────────────────────────────────────
-{cat:"assessment",diff:"foundational",src:"A02",q:"Per BCEHS A02, what three things should EMRs observe from the doorway during the initial survey to form a general impression?",opts:["A. Heart rate, blood pressure, and temperature","B. Work of breathing, skin appearance, and mentation","C. Mechanism of injury, scene hazards, and patient's age","D. Pulse oximetry, respiratory rate, and GCS"],ans:1,exp:"BCEHS A02 states: 'Paramedics and EMRs/FRs should observe the patient's work of breathing, the appearance of their skin, and their mentation to form a general impression of the patient's condition and acuity.' These three — WOB, skin, and LOC — are the rapid doorway impression tools before formal assessment begins."},
-{cat:"assessment",diff:"intermediate",src:"A02",q:"Per BCEHS A02, what pain stimulus is explicitly discouraged during LOC assessment, and which are preferred?",opts:["A. Nail bed pressure is discouraged; sternal rub is preferred","B. Sternal rub is discouraged; trap squeeze, supraorbital pressure, and fingernail pressure are preferred","C. No pain stimuli are ever appropriate in BCEHS assessment","D. Any stimulus is acceptable if GCS is below 8"],ans:1,exp:"BCEHS A02 explicitly states: 'sternal rubs are generally unhelpful and should be avoided, while trap squeezes, supraorbital pressure, and fingernail pressure are more useful for establishing levels of consciousness and identifying focal neurological deficits.' Sternal rubs can cause bruising and don't reliably test lateralizing deficits."},
-{cat:"assessment",diff:"advanced",src:"A02",q:"Per BCEHS A02, tasks with minimal effects on clinical outcomes should be handled how?",opts:["A. Completed on scene before transport","B. Deferred until the patient is en route to the destination facility","C. Delegated to bystanders","D. Skipped entirely to minimize scene time"],ans:1,exp:"BCEHS A02 states: 'Tasks that have minimal effects on clinical outcomes should be deferred until the patient is en route to the destination facility. On-scene tasks should be limited to those procedures and interventions that will yield meaningful information that affects the overall management plan or that addresses an immediate and urgent patient need.' This is the 'load and go' principle embedded in BCEHS assessment."},
-{cat:"assessment",diff:"foundational",src:"A02",q:"Per BCEHS A02, NEWS2 SpO2 Scale 2 is specifically used for which patient population?",opts:["A. Patients under 18 years","B. Patients with COPD","C. Patients with SpO2 below 90%","D. Post-cardiac arrest patients"],ans:1,exp:"BCEHS A02 specifies: 'SpO2 Scale 1 is for patients not diagnosed with COPD; SpO2 Scale 2 is for patients diagnosed with COPD.' NEWS2 Scale 2 accounts for the fact that COPD patients have lower baseline SpO2 — using Scale 1 would over-score these patients and incorrectly elevate their risk category."},
-{cat:"assessment",diff:"intermediate",src:"A04",q:"Per BCEHS A04, a mature minor's decision to refuse care can be overridden by parents or guardians — true or false?",opts:["A. True — parents always have final authority","B. False — a mature minor's consent decision cannot be overridden by parents","C. True — if the minor is under 16","D. False — but only if CliniCall agrees"],ans:1,exp:"BCEHS A04 states explicitly: 'A mature minor's decision to give or withhold consent for health care cannot be overridden by parents or guardians.' The BC Infants Act allows mature minors to make independent healthcare decisions. The EMR must document reasons for granting mature minor status and the patient's informed decision."},
-{cat:"assessment",diff:"advanced",src:"A04",q:"According to BCEHS A04, which of the following would NOT support granting mature minor status to a 16-year-old?",opts:["A. Living independently from parents","B. Demonstrated ability to make independent decisions","C. The parent insisting the minor is not mature","D. Economic independence"],ans:2,exp:"BCEHS A04 lists traits of a mature minor: demonstrated independent decision-making, actions in their own interest, capacity to understand risks/benefits, age 14–19, living apart from parents, or economic independence. A parent's opinion that their child is not a mature minor is NOT a factor — the EMR exercises independent clinical judgment. Parents cannot override a mature minor's informed decision."},
-{cat:"assessment",diff:"foundational",src:"A04",q:"BCEHS A04 consolidation of care at hospital permits a paramedic to manage up to how many patients simultaneously?",opts:["A. 1","B. 2","C. 3","D. 5"],ans:2,exp:"BCEHS A04 states that when directed, 'paramedic crews will consolidate patient care in a hospital or other health facility... Paramedics will manage care for up to 3 patients, or as directed.' Of those 3, no more than 1 may require cardiac monitoring, be hemodynamically unstable, require SMR, have GCS <13, or be uncooperative."},
+// ── ASSESSMENT ───────────────────────────────────────────────────────────────
+{cat:"assessment",diff:"foundational",scope:"emr",src:"A02",q:"Per BCEHS A02, which pain stimulus is explicitly discouraged during LOC assessment?",opts:["A. Nail bed pressure","B. Trap squeeze","C. Sternal rub","D. Supraorbital pressure"],ans:2,exp:"BCEHS A02 states: 'Sternal rubs are generally unhelpful and should be avoided, while trap squeezes, supraorbital pressure, and fingernail pressure are more useful.' Sternal rubs cause bruising and don't test lateralizing deficits — preferred stimuli provide more clinically useful information."},
+{cat:"assessment",diff:"intermediate",scope:"emr",src:"A02",q:"Per BCEHS A02, tasks with minimal effects on clinical outcomes should be handled how?",opts:["A. Completed on scene before transport","B. Deferred until en route to destination","C. Delegated to bystanders","D. Skipped to minimize scene time"],ans:1,exp:"BCEHS A02: 'Tasks that have minimal effects on clinical outcomes should be deferred until the patient is en route to the destination facility.' On-scene tasks should be limited to interventions that yield meaningful information or address immediate urgent needs. This is BCEHS's 'load and go' philosophy."},
+{cat:"assessment",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, a mature minor's decision to refuse care can be overridden by parents?",opts:["A. Yes — parents always retain final authority","B. No — a mature minor's consent/refusal cannot be overridden by parents or guardians","C. Yes — if the minor is under 16","D. No — only if CliniCall agrees with the minor's decision"],ans:1,exp:"BCEHS A04 explicitly states: 'A mature minor's decision to give or withhold consent for health care cannot be overridden by parents or guardians.' The BC Infants Act grants mature minors independent healthcare decision-making. Document reasons for granting mature minor status."},
+{cat:"assessment",diff:"foundational",scope:"emr",src:"A04",q:"Per BCEHS A04 and the BC Age of Majority Act, at what age is a person an adult in BC?",opts:["A. 16","B. 17","C. 18","D. 19"],ans:3,exp:"BCEHS A04 references the BC Age of Majority Act: the age of majority is 19 in BC. This differs from many other provinces (18). EMRs must obtain parental consent for patients under 19, unless mature minor status applies."},
+{cat:"assessment",diff:"advanced",scope:"emr",src:"A04",q:"Per BCEHS A04, which of the following does NOT qualify as a trait supporting mature minor status?",opts:["A. Living independently from parents","B. Demonstrated ability to make independent decisions (e.g., calling 911)","C. A parent's assertion that the minor is not mature","D. Economic independence"],ans:2,exp:"BCEHS A04 lists mature minor traits: independent decision-making, actions in own best interest, understanding risks/benefits, age 14–19, living apart from parents, economic independence. A parent's opinion is NOT a determining factor — the EMR exercises independent clinical judgment. Mature minor status cannot be overridden by parents."},
+{cat:"assessment",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, a paramedic can manage up to how many patients during consolidation of care at hospital?",opts:["A. 1","B. 2","C. 3","D. 5"],ans:2,exp:"BCEHS A04: paramedics will manage up to 3 patients during hospital consolidation. Of those 3, no more than 1 may: require cardiac monitoring, be hemodynamically unstable, require SMR, have GCS <13, or be uncooperative. Multiple pediatric patients cannot be consolidated."},
+{cat:"assessment",diff:"advanced",scope:"emr",src:"A04",q:"Per BCEHS A04, a patient in custody has a HR of 118 and chest pain but refuses care. What must the EMR do?",opts:["A. Respect refusal — document and leave","B. Consult CliniCall — both HR >115 and chest pain are mandatory CliniCall triggers for refusals","C. Transport against will due to abnormal vitals","D. Contact family for consent"],ans:1,exp:"BCEHS A04 lists mandatory CliniCall consultation for patients refusing care when: HR >115, chest pain, SOB, headache, and several other triggers. HR 118 and chest pain both independently trigger CliniCall. Additionally, HR >110 in custody patients is a conveyance trigger. EMRs cannot leave without consulting CliniCall in this scenario."},
 
-// ── LEGAL / PROFESSIONAL ────────────────────────────────────────────────────
-{cat:"legal",diff:"foundational",src:"A04",q:"Per BCEHS A04, who is the Most Responsible Paramedic (MRP) or EMR on scene?",opts:["A. The most experienced responder regardless of designation","B. The paramedic or EMR on scene with the most qualified designated role as determined by BCEHS","C. The first responder to arrive","D. The senior paramedic by years of service"],ans:1,exp:"BCEHS A04 states: 'The paramedic or EMR on-scene with the most qualified designated role, as determined by BC Emergency Health Services, shall be the most responsible paramedic (MRP), or EMR.' Designation level, not experience or arrival order, determines the MRP. An ACP is MRP over a PCP, who is MRP over an EMR."},
-{cat:"legal",diff:"intermediate",src:"A04",q:"Under BCEHS A04, a clinical error or near-miss must be reported through which system?",opts:["A. Direct call to medical director","B. Patient Safety Learning System (PSLS)","C. Verbal report to supervisor only","D. Anonymous online form"],ans:1,exp:"BCEHS A04 states: 'Paramedics and EMRs must report deviations from clinical practice, patient safety events, near misses, and clinical errors via the Patient Safety Learning System (PSLS).' This is a mandatory reporting requirement, not optional. Accurate documentation in the PCR is also required for all patient encounters."},
-{cat:"legal",diff:"advanced",src:"A04",q:"A patient in police custody refuses care but has a heart rate of 118 and complains of chest pain. Per BCEHS A04, what must happen?",opts:["A. The patient's refusal is final — document and leave","B. Consult CliniCall — chest pain and HR >115 are mandatory CliniCall triggers for patients refusing care","C. Transport the patient against their will due to abnormal vitals","D. Contact the patient's family for consent"],ans:1,exp:"BCEHS A04 lists mandatory CliniCall consultation triggers when patients refuse care, including chest pain and HR >115 bpm (or <50). Additionally, the patient's HR of 118 meets the 'HR >110' threshold for conveyance in custody patients. Both triggers apply here. EMRs are obligated to consult CliniCall; they cannot simply leave based on patient refusal alone in these scenarios."},
-{cat:"legal",diff:"foundational",src:"A04",q:"Under BCEHS A04 and the BC Age of Majority Act, at what age is consent from a parent or guardian required in BC (barring mature minor status)?",opts:["A. Under 16","B. Under 17","C. Under 18","D. Under 19"],ans:3,exp:"BCEHS A04 references the BC Age of Majority Act which sets the age of majority at 19. Therefore, paramedics and EMRs must obtain informed consent from parents or legal representatives for patients under 19, unless mature minor status applies. This is different from many other Canadian provinces where the age of majority is 18."},
-{cat:"legal",diff:"intermediate",src:"A04",q:"A patient who recovered from a complete airway obstruction (FBAO) now wants to refuse care and go home. Per BCEHS A04, what must the EMR do?",opts:["A. Allow refusal — the obstruction resolved","B. Consult CliniCall before leaving — resolved FBAO is a mandatory consult","C. Document refusal and leave without further steps","D. Only call CliniCall if the patient is under 18"],ans:1,exp:"BCEHS A04 explicitly lists 'Recovered from a partial or complete foreign body airway obstruction' as a mandatory CliniCall consultation scenario when a patient refuses care. Complications from FBAO (mucosal injury, aspiration, arrhythmia) can develop after apparent resolution. CliniCall must be consulted before leaving any such patient."},
-{cat:"legal",diff:"advanced",src:"A04",q:"During consolidation of care at hospital, per BCEHS A04, a patient with which finding would make consolidation INAPPROPRIATE?",opts:["A. Patient is over 70 years old","B. Patient is diagnosed with diabetes","C. Patient is violent or requires restraints","D. Patient has a minor laceration"],ans:2,exp:"BCEHS A04 states: 'Paramedics may determine that consolidation of care is inappropriate if the patient... is violent or requires the use of restraints.' Also excluded: patients requiring infection control or isolation precautions. Multiple pediatric patients cannot be consolidated. Standard exclusion criteria (cardiac monitoring, GCS <13, hemodynamic instability, SMR) must also be considered."},
-{cat:"legal",diff:"intermediate",src:"A04",q:"Per BCEHS A04, a law enforcement officer may be left in charge of a patient in custody (without paramedic supervision) only after what minimum observation period?",opts:["A. 5 minutes","B. 10 minutes","C. 15 minutes","D. 30 minutes"],ans:2,exp:"BCEHS A04 states: 'Paramedics or EMRs may otherwise leave patients in the custody of police after at least 15 minutes of observation. In these cases, paramedics or EMRs must consult with CliniCall prior to leaving the scene.' This applies only when no mandatory CliniCall triggers are met and the patient does not require conveyance."},
+// ── LEGAL / PROFESSIONAL ──────────────────────────────────────────────────────
+{cat:"legal",diff:"foundational",scope:"emr",src:"A04",q:"Per BCEHS A04, who is the Most Responsible Paramedic (MRP) on scene?",opts:["A. The most experienced responder regardless of designation","B. The paramedic or EMR with the most qualified designated role per BCEHS","C. The first responder to arrive","D. The senior paramedic by years of service"],ans:1,exp:"BCEHS A04: 'The paramedic or EMR on-scene with the most qualified designated role, as determined by BC Emergency Health Services, shall be the most responsible paramedic (MRP), or EMR.' Designation level — not experience, seniority, or arrival order — determines the MRP."},
+{cat:"legal",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, clinical errors and near-misses must be reported through which system?",opts:["A. Direct call to medical director","B. Patient Safety Learning System (PSLS)","C. Verbal report to supervisor only","D. Anonymous online form at BCEHS.ca"],ans:1,exp:"BCEHS A04: 'Paramedics and EMRs must report deviations from clinical practice, patient safety events, near misses, and clinical errors via the Patient Safety Learning System (PSLS).' This is mandatory. Accurate documentation in the PCR is also required for every patient encounter."},
+{cat:"legal",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, a patient who recovered from a complete FBAO (foreign body airway obstruction) now wants to refuse care. What must the EMR do?",opts:["A. Allow refusal — obstruction resolved","B. Consult CliniCall before leaving — resolved FBAO is a mandatory consult","C. Document refusal and leave","D. Call CliniCall only if under 18"],ans:1,exp:"BCEHS A04 explicitly lists 'Recovered from a partial or complete foreign body airway obstruction' as a mandatory CliniCall consultation scenario for patient refusals. Post-FBAO complications (aspiration, mucosal injury, arrhythmia) can develop after apparent resolution."},
+{cat:"legal",diff:"advanced",scope:"emr",src:"A04",q:"Per BCEHS A04, which finding makes hospital consolidation of care INAPPROPRIATE?",opts:["A. Patient is over 70 years old","B. Patient has diabetes","C. Patient is violent or requires restraints","D. Patient has a minor laceration"],ans:2,exp:"BCEHS A04: consolidation is inappropriate if the patient is violent or requires restraints, or requires infection control/isolation precautions. Standard exclusion criteria (cardiac monitoring, GCS <13, hemodynamic instability, SMR) also apply. Multiple pediatric patients cannot be consolidated."},
+{cat:"legal",diff:"foundational",scope:"emr",src:"A01",q:"Per BCEHS A01, if in doubt about diagnosis or specific treatment, what should the EMR do?",opts:["A. Do nothing and transport","B. Give basic supportive measures, minimize scene time, consult CliniCall if possible","C. Request ALS intercept before doing anything","D. Document uncertainty and proceed with treatment guess"],ans:1,exp:"BCEHS A01 states: 'If in doubt about the diagnosis and the specific treatment required, give basic supportive measures, minimize time on scene, and consult with CliniCall (1-833-829-4099) if possible.' CliniCall provides physician-level consultation 24/7 for exactly these situations."},
+{cat:"legal",diff:"intermediate",scope:"emr",src:"A04",q:"Per BCEHS A04, a law enforcement officer may be left with a patient in custody (without further paramedic supervision) after what minimum observation period?",opts:["A. 5 minutes","B. 10 minutes","C. 15 minutes","D. 30 minutes"],ans:2,exp:"BCEHS A04: EMRs may leave patients in police custody after at least 15 minutes of observation, AND must consult CliniCall before leaving. This only applies when no mandatory CliniCall triggers are present and the patient does not require conveyance."},
+{cat:"legal",diff:"advanced",scope:"pcp",src:"A04",q:"Per BCEHS A04, all criteria must be met to transfer a patient from PCP to EMR care (Newton's Cradle). Which set is correct?",opts:["A. Patient consents and ALS agrees verbally","B. Required care within EMR scope, vitals within normal limits, minimum 15 minutes since PCP intervention","C. Transport time under 30 minutes and patient stable","D. PCP provides verbal handoff and documents the transfer"],ans:1,exp:"BCEHS A04: PCP to EMR transfer requires: required care falls within EMR scope, vital signs within normal limits, and minimum 15 minutes since a PCP intervention. All three conditions must be simultaneously met. Transfer must not delay conveyance."}
 
-// ── MORE AIRWAY ──────────────────────────────────────────────────────────────
-{cat:"airway",diff:"intermediate",src:"A02",q:"Per BCEHS A02, the goal of the initial (doorway) survey includes identifying life-threatening hemorrhage AND what else?",opts:["A. Identifying the mechanism of injury and delegating spinal motion restriction","B. Establishing IV access","C. Obtaining a SAMPLE history","D. Performing a full neurological exam"],ans:0,exp:"BCEHS A02 states the initial survey aims to: identify life-threatening hemorrhage, identify a potential mechanism of injury, delegate responsibilities for spinal motion restriction, and formulate a general impression. These all happen before formal contact and before the primary ABCDE survey. SMR delegation happens at the doorway — not mid-assessment."},
-{cat:"airway",diff:"advanced",src:"B01",q:"A patient with suspected spinal injury is found apneic. You attempt jaw thrust but cannot open the airway sufficiently. Per BCEHS B01 philosophy, what should you do?",opts:["A. Abandon ventilation attempts — spinal protection is paramount","B. Use head-tilt chin-lift — a living patient's airway always supersedes spinal precautions","C. Only use the NPA and avoid manual maneuvers","D. Begin CPR without airway management"],ans:1,exp:"BCEHS B01 states 'jaw thrust and head-tilt chin-lift are not mutually exclusive maneuvers. In the absence of cervical spinal injury, the two maneuvers should occur in tandem.' Critically, the overarching principle is that airway takes priority — the handbook philosophy reinforces that a dead patient doesn't benefit from spinal protection. If jaw thrust fails, head-tilt chin-lift is appropriate."},
+]; // END Q
 
-// ── MORE CARDIAC ─────────────────────────────────────────────────────────────
-{cat:"cardiac",diff:"intermediate",src:"N03",q:"After ROSC, BCEHS N03 states to check blood sugar and treat what condition?",opts:["A. Hyperglycemia above 8.0 mmol/L","B. Hypoglycemia","C. Both hypo- and hyperglycemia","D. Only glucose if the arrest was suspected cardiac"],ans:1,exp:"BCEHS N03 states: 'Check blood sugar and treat hypoglycemia accordingly.' Hypoglycemia can cause or contribute to cardiac arrest and must be excluded post-ROSC. The handbook does not specify treating hyperglycemia prehospital — focus is on correcting hypoglycemia as a potentially reversible cause."},
-{cat:"cardiac",diff:"foundational",src:"N03",q:"Per BCEHS N03, during ROSC management, if pulse oximetry is unreliable due to peripheral perfusion deficits, what oxygen concentration should be used?",opts:["A. Room air — to avoid hyperoxia","B. 40% via simple face mask","C. The highest available oxygen concentration","D. 88% target only if ETCO2 is available"],ans:2,exp:"BCEHS N03 states: 'If pulse oximetry is unreliable because of peripheral perfusion deficits, use the highest available oxygen concentration.' When you can't measure SpO2 reliably, err toward more oxygen. The 92–98% target only applies when oximetry is reliable. Poor perfusion renders pulse ox inaccurate — use clinical judgment and high-flow O2."},
-
-// ── MORE ASSESSMENT ───────────────────────────────────────────────────────────
-{cat:"assessment",diff:"intermediate",src:"A04",q:"A 17-year-old patient calls 911 for themselves, appears to make clear and independent decisions, lives alone, and understands the risks of refusing care. Per BCEHS A04, this patient likely qualifies as:",opts:["A. A minor — age 17 means parental consent is always required","B. A mature minor who may consent to or refuse their own care","C. A minor only if both parents are unreachable","D. An adult — BCEHS considers 17 the threshold"],ans:1,exp:"BCEHS A04 lists traits of a mature minor including: demonstrated ability to make independent decisions (e.g., calling 911), actions in their own best interests, capacity to understand risks/benefits, age 14–19, and living apart from parents. This 17-year-old meets multiple criteria. EMRs must document their reasoning for granting mature minor status."},
-{cat:"assessment",diff:"advanced",src:"A04",q:"Per BCEHS A04, what must happen to allow a patient in ACP care to be transferred to PCP care (Newton's Cradle)?",opts:["A. ACP must ride along to the receiving hospital","B. Patient not anticipated to require ACP interventions; vital signs within normal limits; minimum 15 minutes since ACP intervention","C. Patient consents and ACP notifies medical control","D. Transport distance is less than 20 minutes"],ans:1,exp:"BCEHS A04 states a patient in ACP care can be transferred to PCP care if: the patient is not anticipated to require any ACP interventions for the remainder of the trip, vital signs are within normal limits, and it has been a minimum of 15 minutes since an ACP intervention. All three conditions must be met. Transfer should not delay conveyance."},
-
-// ── MORE TRAUMA ───────────────────────────────────────────────────────────────
-{cat:"trauma",diff:"advanced",src:"H09",q:"Per BCEHS H09, what are the general principles for reducing a pulseless, severely angulated fracture (in order)?",opts:["A. Splint first, then reduce if pulse returns","B. Irrigate open wounds, apply traction/counter-traction, manipulate under traction if needed, then splint","C. Apply tourniquet, then reduce under tourniq control","D. Reduce only if in-hospital — do not attempt prehospital"],ans:1,exp:"BCEHS H09 outlines the reduction sequence: provide procedural analgesia, irrigate open wounds with 500 mL–1 L saline, apply traction and gentle counter-traction in line with the limb, if required further manipulation should occur while still under traction, then splint following reduction. EMRs note: procedural analgesia is a PCP intervention — EMRs reduce if pulseless and angulated but without pharmacological analgesia."},
-{cat:"trauma",diff:"foundational",src:"H09",q:"According to BCEHS H09, which of the following fracture types is specifically listed as being evaluated using the Ottawa Ankle Rule?",opts:["A. Tibial shaft fracture","B. Patellar fracture","C. Isolated ankle or ankle/foot injury","D. Calcaneal fracture from a fall"],ans:2,exp:"BCEHS H09 references the Ottawa Ankle Rule for isolated knee or ankle/foot injuries. Criteria include: bone tenderness at the posterior edge or tip of either malleolus, inability to bear weight for four steps, bone tenderness at the base of the 5th metatarsal, or navicular tenderness. Note caution in patients under 18. These rules help determine if imaging is needed."}
-
-]; // END ALL_QUESTIONS
-
-// ─── APP STATE ───────────────────────────────────────────────────────────────
+// ── APP STATE ─────────────────────────────────────────────────────────────────
 let score=0, qTotal=0, streak=0, currentCat='all', usedIdx=new Set();
-let enabledDiffs = {foundational:true, intermediate:true, advanced:true};
+let enabledDiffs={foundational:true,intermediate:true,advanced:true};
+let enabledScopes={emr:true,pcp:true};
 
-function getPool() {
-  return ALL_QUESTIONS.filter(q =>
-    (currentCat==='all' || q.cat===currentCat) && enabledDiffs[q.diff]
+function getPool(){
+  return Q.filter(q=>
+    (currentCat==='all'||q.cat===currentCat) &&
+    enabledDiffs[q.diff] &&
+    enabledScopes[q.scope]
   );
 }
 
-function nextQuestion() {
-  const pool = getPool();
-  if (!pool.length) { document.getElementById('questionText').textContent='No questions match current filters.'; document.getElementById('optionsList').innerHTML=''; return; }
-  if (usedIdx.size >= pool.length) usedIdx.clear();
+function nextQuestion(){
+  const pool=getPool();
+  if(!pool.length){
+    document.getElementById('questionText').innerHTML='<div class="no-qs"><strong>No questions match your filters.</strong>Try enabling more difficulty levels or license levels in Settings.</div>';
+    document.getElementById('optionsList').innerHTML='';
+    document.getElementById('explanation').className='explanation';
+    document.getElementById('skipBtn').style.display='none';
+    document.getElementById('nextBtn').style.display='none';
+    document.getElementById('qcount').textContent='';
+    return;
+  }
+  if(usedIdx.size>=pool.length) usedIdx.clear();
   let idx;
-  do { idx = Math.floor(Math.random()*pool.length); } while(usedIdx.has(idx));
+  do{idx=Math.floor(Math.random()*pool.length);}while(usedIdx.has(idx));
   usedIdx.add(idx);
-  renderQ(pool[idx], pool.length);
+  renderQ(pool[idx],pool.length);
 }
 
-function renderQ(q, poolSize) {
-  const diffColors={foundational:'#6b7280',intermediate:'#f0a500',advanced:'#e85d2f'};
-  const diffLabel=document.getElementById('diffLabel');
+function renderQ(q,poolSize){
+  const diffC={foundational:'#6b7280',intermediate:'#f0a500',advanced:'#e85d2f'};
+  // diff tag
+  const dl=document.getElementById('diffLabel');
+  dl.textContent=q.diff;dl.style.color=diffC[q.diff];dl.style.borderColor=diffC[q.diff];
+  // scope tag
+  const sl=document.getElementById('scopeLabel');
+  sl.textContent=q.scope.toUpperCase();
+  sl.className='tag '+(q.scope==='emr'?'scope-emr':'scope-pcp');
   document.getElementById('catLabel').textContent=q.cat.toUpperCase();
-  diffLabel.textContent=q.diff;
-  diffLabel.style.color=diffColors[q.diff];
-  diffLabel.style.borderColor=diffColors[q.diff];
   document.getElementById('srcLabel').textContent='CPG '+q.src;
   document.getElementById('questionText').textContent=q.q;
   document.getElementById('explanation').className='explanation';
@@ -323,13 +344,13 @@ function renderQ(q, poolSize) {
   });
 }
 
-function selectAns(chosen, correct) {
+function selectAns(chosen,correct){
   qTotal++;
   document.getElementById('qNumDisp').textContent=qTotal;
   const opts=document.querySelectorAll('.opt');
-  opts.forEach((b,i)=>{ b.disabled=true; if(i===correct) b.classList.add('correct'); else if(i===chosen) b.classList.add('wrong'); });
-  if(chosen===correct){ score++; streak++; document.getElementById('scoreDisp').textContent=score; }
-  else { streak=0; }
+  opts.forEach((b,i)=>{b.disabled=true;if(i===correct)b.classList.add('correct');else if(i===chosen)b.classList.add('wrong');});
+  if(chosen===correct){score++;streak++;document.getElementById('scoreDisp').textContent=score;}
+  else{streak=0;}
   document.getElementById('streakDisp').textContent=streak;
   document.getElementById('explanation').classList.add('show');
   document.getElementById('skipBtn').style.display='none';
@@ -344,41 +365,47 @@ function updateStats(){
 }
 
 function toggleDiff(d){
-  const enabled=Object.values(enabledDiffs).filter(Boolean).length;
-  if(enabledDiffs[d] && enabled===1) return; // keep at least one on
+  const on=Object.values(enabledDiffs).filter(Boolean).length;
+  if(enabledDiffs[d]&&on===1)return;
   enabledDiffs[d]=!enabledDiffs[d];
-  document.getElementById('tog-'+d).classList.toggle('on',enabledDiffs[d]);
-  document.getElementById('tog-'+d).textContent=enabledDiffs[d]?'On':'Off';
+  const btn=document.getElementById('tog-'+d);
+  btn.classList.toggle('on-diff',enabledDiffs[d]);
+  btn.textContent=enabledDiffs[d]?'On':'Off';
   usedIdx.clear();
 }
 
-function showTab(t){
+function toggleScope(s){
+  const on=Object.values(enabledScopes).filter(Boolean).length;
+  if(enabledScopes[s]&&on===1)return;
+  enabledScopes[s]=!enabledScopes[s];
+  const btn=document.getElementById('tog-'+s);
+  btn.classList.toggle('on-'+s,enabledScopes[s]);
+  btn.textContent=enabledScopes[s]?'On':'Off';
+  usedIdx.clear();
+}
+
+function showTab(t,el){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  el.classList.add('active');
   document.getElementById('quizArea').style.display=t==='quiz'?'block':'none';
-  const sp=document.getElementById('settingsPanel');
-  sp.classList.toggle('show',t==='settings');
+  document.getElementById('settingsPanel').classList.toggle('show',t==='settings');
 }
 
 function resetSession(){
-  score=0; qTotal=0; streak=0; usedIdx.clear();
+  score=0;qTotal=0;streak=0;usedIdx.clear();
   document.getElementById('scoreDisp').textContent=0;
   document.getElementById('qNumDisp').textContent=0;
   document.getElementById('streakDisp').textContent=0;
   updateStats();
   nextQuestion();
-  showTabById('quiz');
-}
-
-function showTabById(t){
-  document.querySelectorAll('.tab').forEach((b,i)=>{ b.classList.toggle('active',i===(t==='quiz'?0:1)); });
-  document.getElementById('quizArea').style.display=t==='quiz'?'block':'none';
-  document.getElementById('settingsPanel').classList.toggle('show',t!=='quiz');
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('quizArea').style.display='block';
+  document.getElementById('settingsPanel').classList.remove('show');
 }
 
 document.getElementById('catBar').addEventListener('click',e=>{
   const btn=e.target.closest('.cat-btn');
-  if(!btn) return;
+  if(!btn)return;
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentCat=btn.dataset.cat;
