@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMR Quiz</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --border: #252a38;
+    --accent: #e85d2f;
+    --accent2: #f0a500;
+    --green: #3ddc84;
+    --red: #e85d2f;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .stats {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+  }
+
+  .stat-val { color: var(--text); font-weight: 600; }
+
+  .category-bar {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .cat-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .cat-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+  .card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 24px;
+    position: relative;
+  }
+
+  .card-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .question {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.55;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.45;
+  }
+
+  .opt:hover:not(:disabled) { border-color: #4a5168; background: #1e2332; }
+
+  .opt .letter {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    min-width: 18px;
+    margin-top: 1px;
+  }
+
+  .opt.correct { border-color: var(--green); background: rgba(61,220,132,0.08); }
+  .opt.correct .letter { color: var(--green); }
+  .opt.wrong { border-color: var(--red); background: rgba(232,93,47,0.08); }
+  .opt.wrong .letter { color: var(--red); }
+  .opt:disabled { cursor: default; }
+
+  .explanation {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #a8b0c4;
+    background: #13172080;
+    border-left: 3px solid var(--accent2);
+    padding: 12px 14px;
+    border-radius: 0 4px 4px 0;
+    margin-top: 4px;
+    display: none;
+  }
+
+  .explanation.show { display: block; }
+
+  .actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-ghost { background: var(--border); color: var(--text); }
+
+  .progress {
+    width: 100%;
+    max-width: 640px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  #loading {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-top: 80px;
+    text-align: center;
+  }
+
+  .pulse::after {
+    content: '▋';
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #score-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 640px;
+    width: 100%;
+    gap: 20px;
+  }
+
+  .score-big {
+    font-family: var(--mono);
+    font-size: 72px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .score-label { font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">EMR Quiz</span>
+  <div class="stats">
+    <span>Score: <span class="stat-val" id="scoreDisp">0</span></span>
+    <span>Q: <span class="stat-val" id="qNumDisp">0</span></span>
+  </div>
+</header>
+
+<div class="category-bar" id="catBar">
+  <button class="cat-btn active" data-cat="all">All</button>
+  <button class="cat-btn" data-cat="airway">Airway</button>
+  <button class="cat-btn" data-cat="cardiac">Cardiac</button>
+  <button class="cat-btn" data-cat="trauma">Trauma</button>
+  <button class="cat-btn" data-cat="medical">Medical</button>
+  <button class="cat-btn" data-cat="pharmacology">Pharm</button>
+  <button class="cat-btn" data-cat="assessment">Assessment</button>
+</div>
+
+<div class="progress"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div id="loading"><span class="pulse">Generating question</span></div>
+
+<div class="card" id="quizCard" style="display:none;">
+  <div class="card-meta">
+    <span id="catLabel">—</span>
+    <span id="diffLabel">—</span>
+  </div>
+  <div class="question" id="questionText"></div>
+  <div class="options" id="optionsList"></div>
+  <div class="explanation" id="explanation"></div>
+  <div class="actions">
+    <button class="btn btn-ghost" id="skipBtn" onclick="loadQuestion()">Skip</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="loadQuestion()" style="display:none;">Next →</button>
+  </div>
+</div>
+
+<div id="score-screen">
+  <div class="score-big" id="finalScore">—</div>
+  <div class="score-label">questions correct</div>
+  <button class="btn btn-primary" onclick="restartQuiz()">Start Over</button>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are an EMR (Emergency Medical Responder) quiz engine for a paramedic student in BC, Canada. 
+Generate a single multiple-choice question appropriate for EMR-level knowledge (per BCEHS/EMALB standards, aligned with Nancy Caroline's Emergency Care in the Streets framework).
+The student is studying for their PCP exam so questions can lean toward PCP-level challenge but stay within EMR scope.
+
+Respond ONLY with a JSON object (no markdown, no backticks):
+{
+  "category": one of: "airway","cardiac","trauma","medical","pharmacology","assessment",
+  "difficulty": one of: "foundational","intermediate","advanced",
+  "question": "the question text",
+  "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+  "correct": 0,
+  "explanation": "2-3 sentence clinical explanation of why the answer is correct and relevant to field care"
+}
+
+Rules:
+- 4 options, exactly one correct (index 0-3)
+- Questions should be clinically realistic and scenario-based where possible
+- Vary difficulty and scenarios each call
+- Do not repeat questions
+- Category filter (if specified): only generate questions in that category
+- BC context where relevant (e.g. BCEHS protocols, metric vitals)`;
+
+let score = 0;
+let qCount = 0;
+let currentCat = 'all';
+let sessionHistory = [];
+
+async function loadQuestion() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('quizCard').style.display = 'none';
+
+  const catInstruction = currentCat === 'all' ? '' : `Category filter: ${currentCat} only.`;
+  const historyNote = sessionHistory.length > 0 
+    ? `\nAvoid repeating these recent topics: ${sessionHistory.slice(-5).join(', ')}.` 
+    : '';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ 
+          role: 'user', 
+          content: `Generate a new EMR quiz question. ${catInstruction}${historyNote}` 
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.find(b => b.type === 'text')?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const q = JSON.parse(clean);
+
+    sessionHistory.push(q.question.slice(0, 40));
+    renderQuestion(q);
+  } catch (e) {
+    document.getElementById('loading').innerHTML = '<span style="color:#e85d2f">Error loading question. Tap Skip to retry.</span>';
+    document.getElementById('quizCard').style.display = 'block';
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+function renderQuestion(q) {
+  document.getElementById('loading').style.display = 'none';
+  const card = document.getElementById('quizCard');
+  card.style.display = 'block';
+
+  document.getElementById('catLabel').textContent = q.category.toUpperCase();
+  const diffColors = { foundational: '#6b7280', intermediate: '#f0a500', advanced: '#e85d2f' };
+  const diffEl = document.getElementById('diffLabel');
+  diffEl.textContent = q.difficulty;
+  diffEl.style.color = diffColors[q.difficulty] || '#6b7280';
+
+  document.getElementById('questionText').textContent = q.question;
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('explanation').textContent = q.explanation;
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('skipBtn').style.display = 'inline-block';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${opt.replace(/^[A-D]\.\s*/, '')}</span>`;
+    btn.onclick = () => selectAnswer(i, q.correct, q);
+    list.appendChild(btn);
+  });
+
+  // Update progress (rolls over every 10)
+  const pct = ((qCount % 10) / 10) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function selectAnswer(chosen, correct, q) {
+  qCount++;
+  document.getElementById('qNumDisp').textContent = qCount;
+
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+  });
+
+  if (chosen === correct) {
+    score++;
+    document.getElementById('scoreDisp').textContent = score;
+  }
+
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('skipBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function restartQuiz() {
+  score = 0; qCount = 0; sessionHistory = [];
+  document.getElementById('scoreDisp').textContent = 0;
+  document.getElementById('qNumDisp').textContent = 0;
+  document.getElementById('score-screen').style.display = 'none';
+  loadQuestion();
+}
+
+// Category filter
+document.getElementById('catBar').addEventListener('click', e => {
+  const btn = e.target.closest('.cat-btn');
+  if (!btn) return;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  loadQuestion();
+});
+
+// Start
+loadQuestion();
+</script>
+</body>
+</html>
