@@ -63,6 +63,29 @@
 
   /* ── Week ── */
   .week-label { font-size:.62rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#b0b8c8; margin:18px 0 8px 2px; }
+
+  /* ── Weekly Goals ── */
+  .goals-card { background:#f0f4ff; border:1px solid #c8d4f8; border-radius:10px; margin-bottom:10px; overflow:hidden; }
+  .goals-header { display:flex; align-items:center; gap:8px; padding:9px 12px; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
+  .goals-header:active { background:#e8eeff; }
+  .goals-title { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3d5afe; flex:1; }
+  .goals-toggle { font-size:.6rem; color:#9098a8; transition:transform .2s; }
+  .goals-toggle.open { transform:rotate(180deg); }
+  .goals-met-badge { font-size:.6rem; background:#22c55e; color:#fff; border-radius:8px; padding:1px 7px; font-weight:700; display:none; }
+  .goals-met-badge.visible { display:inline-block; }
+  .goals-body { padding:0 12px 12px; }
+  .goal-row { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid #dde6ff; }
+  .goal-row:last-child { border-bottom:none; }
+  .goal-check { width:18px; height:18px; border-radius:50%; border:2px solid #c0ccf8; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:.65rem; color:#fff; transition:all .2s; }
+  .goal-check.met { background:#22c55e; border-color:#22c55e; }
+  .goal-text { flex:1; font-size:.75rem; color:#3a4060; line-height:1.3; }
+  .goal-text.met { color:#22c55e; text-decoration:line-through; opacity:.7; }
+  .goal-progress { font-size:.65rem; color:#8090a8; background:#e8eeff; border-radius:8px; padding:2px 7px; white-space:nowrap; }
+  .goal-edit-btn { font-size:.75rem; color:#b0b8d0; cursor:pointer; padding:2px 4px; -webkit-tap-highlight-color:transparent; }
+  .goals-add-btn { display:flex; align-items:center; gap:5px; margin-top:8px; background:none; border:1.5px dashed #c0ccf8; border-radius:7px; padding:6px 10px; font-size:.72rem; color:#6878c8; cursor:pointer; width:100%; -webkit-tap-highlight-color:transparent; }
+  .goals-add-btn:active { background:#e8eeff; }
+  /* Goals modal */
+  .goals-modal { background:#fff; border-radius:14px; padding:20px; width:90%; max-width:340px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
   .week-divider { border:none; border-top:1px solid #dde1e9; margin:20px 0 16px; }
 
   /* ── Day card — list view ── */
@@ -417,7 +440,7 @@
     <button class="ctrl-btn" id="undoBtn" onclick="undo()" style="opacity:.35;pointer-events:none;">↩ Undo</button>
   </div>
 
-  <div id="rareTaskBar" style="display:none;margin-bottom:14px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;padding:10px 14px;"></div>
+  <div id="rareTaskBar" style="display:none;margin-bottom:14px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
 
   <div id="schedule"><div class="loading-screen"><div class="spinner"></div>Loading…</div></div>
 </div><!-- /.page-wrap -->
@@ -634,6 +657,37 @@
   </div>
 </div>
 
+<!-- Weekly Goal modal -->
+<div class="modal-overlay hidden" id="goalModalOverlay">
+  <div class="goals-modal">
+    <h3 id="goalModalTitle" style="font-size:.95rem;font-weight:800;color:#1a1c24;margin:0 0 14px;">Add Goal</h3>
+    <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Goal description</label>
+    <input type="text" id="gmText" placeholder="e.g. Hit the gym 4 times" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:.82rem;margin-bottom:12px;" />
+    <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Target count <span style="font-weight:400;color:#9098a8;">(optional — for auto ✓)</span></label>
+    <input type="number" id="gmTarget" min="0" max="99" placeholder="e.g. 4" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:.82rem;margin-bottom:12px;" />
+    <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Category to count <span style="font-weight:400;color:#9098a8;">(optional)</span></label>
+    <select id="gmCat" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:.82rem;margin-bottom:16px;background:#fff;">
+      <option value="">— any / manual —</option>
+      <option value="gym">🏋️ Gym</option>
+      <option value="study">📖 Study</option>
+      <option value="piano">🎹 Piano</option>
+      <option value="food">🍗 Meal Prep</option>
+      <option value="health">💉 Health</option>
+      <option value="chore">🧺 Chores</option>
+      <option value="burrito">🌯 Batch Cook</option>
+      <option value="event">🎉 Event</option>
+      <option value="rest">😴 Rest</option>
+    </select>
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeGoalModal()" style="flex:1;padding:10px;border:1px solid #dde1e9;border-radius:8px;background:#f5f6f8;font-size:.8rem;color:#6b7280;cursor:pointer;">Cancel</button>
+      <button onclick="saveGoalModal()" style="flex:2;padding:10px;border:none;border-radius:8px;background:#3d5afe;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;">Save</button>
+    </div>
+    <div id="gmDeleteWrap" style="margin-top:10px;text-align:center;">
+      <button onclick="deleteGoalModal()" style="background:none;border:none;color:#c03050;font-size:.75rem;cursor:pointer;padding:4px 8px;">🗑 Delete goal</button>
+    </div>
+  </div>
+</div>
+
 <div id="dragGhost"></div>
 <div class="toast" id="toast"></div>
 
@@ -705,6 +759,8 @@ let _switchGen = 0; // increments on every switchPeriod call to cancel stale one
 let active      = null;
 let swapFirst   = null, swapMode = false;
 let clipboard   = null, clipboardKey = null;
+let weeklyGoals = {}; // periodId → { wIdx → [{ text, target, cat, id }] }
+let goalsCollapsed = {}; // periodId+wIdx → bool
 let modalMode   = null, modalTarget  = null;
 let pendingPasteKey = null;
 let drag = null, dropInfo = null, dragStarted = false;
@@ -881,6 +937,8 @@ async function switchPeriod(id) {
   renderTabs();
   document.getElementById('schedule').innerHTML = '<div class="loading-screen"><div class="spinner"></div>Loading…</div>';
   const _rtb = document.getElementById('rareTaskBar'); if (_rtb) _rtb.style.display = 'none';
+  loadGoals();
+  loadGoalsCollapsed();
 
   // Safety timeout
   const loadingTimeout = setTimeout(() => {
@@ -1122,6 +1180,14 @@ function fmtDate(d) {
   return MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
 }
 
+// Compute "Jun 14 – Jul 4" label from actual week dates
+function computePeriodLabel(weeks) {
+  if (!weeks || !weeks.length) return '';
+  const allDays = weeks.flatMap(w => w.days || []).filter(d => d.date && d.date !== '—');
+  if (!allDays.length) return '';
+  return allDays[0].date + ' – ' + allDays[allDays.length-1].date;
+}
+
 // Add days to a date
 function addDays(d, n) {
   const r = new Date(d); r.setDate(r.getDate() + n); return r;
@@ -1191,10 +1257,18 @@ async function saveTabOptions() {
     newWeeks.forEach((w, i) => { w.week = `Week ${i+1}`; });
   }
 
+  // Auto-update label from actual date range of weeks
+  const autoLabel = computePeriodLabel(newWeeks);
+  const labelInput = document.getElementById('toLabel');
+  if (autoLabel && (!labelInput.value.trim() || labelInput.value.trim() === (periods.find(p=>p.id===id)?.label||''))) {
+    labelInput.value = autoLabel;
+  }
+  const finalLabel = document.getElementById('toLabel').value.trim() || autoLabel || newLabel || 'New Period';
+
   closeTabOptions();
 
   const p = periods.find(p => p.id === id);
-  if (p) p.label = newLabel;
+  if (p) p.label = finalLabel;
 
   if (id === activePeriodId) {
     pushUndo();
@@ -1202,7 +1276,7 @@ async function saveTabOptions() {
   }
 
   const payload = {
-    label: newLabel,
+    label: finalLabel,
     order: p?.order ?? 0,
     weeks: newWeeks,
     ...(startInput ? { startDate: startInput } : {})
@@ -1767,6 +1841,7 @@ document.addEventListener('click',e=>{
   if(active&&!swapMode) hideToolbar();
 });
 document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modalOverlay')) closeModal(); });
+document.getElementById('goalModalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('goalModalOverlay')) closeGoalModal(); });
 document.getElementById('mText').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmModal(); });
 
 // ── Task Palette ───────────────────────────────────────────────────────────
@@ -2292,17 +2367,19 @@ function buildExclusionList(filter) {
 }
 
 // ── Rare task notification bar ─────────────────────────────────────────────
+function getRareCollapsed() { try { return localStorage.getItem('gs_rare_collapsed') === '1'; } catch(_) { return false; } }
+function setRareCollapsed(v) { try { localStorage.setItem('gs_rare_collapsed', v ? '1' : '0'); } catch(_) {} }
+
 function renderRareTaskBar() {
   const bar = document.getElementById('rareTaskBar');
   if (!bar || !schedule.length) { if(bar) bar.style.display='none'; return; }
 
-  // Count how many times each task text appears across ALL days in ALL weeks
   const counts = {};
-  const taskMeta = {}; // text → { emoji, cat }
+  const taskMeta = {};
   schedule.forEach(week => {
     week.days.forEach(day => {
       (day.tasks||[]).forEach(t => {
-        if (t.cat === 'gym') return; // gym tasks excluded from rare detection
+        if (t.cat === 'gym') return;
         counts[t.text] = (counts[t.text] || 0) + 1;
         if (!taskMeta[t.text]) taskMeta[t.text] = { emoji: t.emoji, cat: t.cat };
       });
@@ -2315,15 +2392,17 @@ function renderRareTaskBar() {
 
   if (!rare.length) { bar.style.display='none'; return; }
 
+  const collapsed = getRareCollapsed();
   bar.style.display = 'block';
-  bar._rareList = rare; // store for click handler
+  bar._rareList = rare;
   bar.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <div onclick="toggleRareBar()" style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;">
       <span style="font-size:.85rem;">⚠️</span>
-      <span style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a07820;">Rare tasks this period</span>
+      <span style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a07820;flex:1;">Rare tasks this period</span>
       <span style="font-size:.62rem;color:#c09830;background:#fef3c0;border-radius:10px;padding:1px 7px;">${rare.length}</span>
+      <span id="rareToggleArrow" style="font-size:.6rem;color:#c8cdd8;transition:transform .2s;transform:${collapsed?'rotate(0deg)':'rotate(180deg)'};">▲</span>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+    <div id="rareBody" style="padding:0 14px ${collapsed?'0':'10px'};display:${collapsed?'none':'flex'};flex-wrap:wrap;gap:6px;">
       ${rare.map(([text, count], i) => {
         const m = taskMeta[text] || { emoji: '📌' };
         return `<span data-rare-idx="${i}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:500;background:#fff;border:1px solid #f0d880;color:#6b5010;cursor:pointer;">
@@ -2331,14 +2410,206 @@ function renderRareTaskBar() {
         </span>`;
       }).join('')}
     </div>`;
-  // Wire up clicks via delegation
+
   bar.querySelectorAll('[data-rare-idx]').forEach(el => {
-    el.addEventListener('click', () => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
       const idx = parseInt(el.getAttribute('data-rare-idx'));
       const text = bar._rareList[idx]?.[0];
       if (text) selectRareTask(text);
     });
   });
+}
+
+function toggleRareBar() {
+  const body = document.getElementById('rareBody');
+  const arrow = document.getElementById('rareToggleArrow');
+  if (!body) return;
+  const nowCollapsed = body.style.display === 'none';
+  body.style.display = nowCollapsed ? 'flex' : 'none';
+  if (nowCollapsed) body.style.paddingBottom = '10px';
+  else body.style.paddingBottom = '0';
+  if (arrow) arrow.style.transform = nowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+  setRareCollapsed(!nowCollapsed);
+}
+
+// ── Weekly Goals ──────────────────────────────────────────────────────────
+
+function getGoalsKey() { return 'gs_goals_' + activePeriodId; }
+function getGoalsCollapseKey() { return 'gs_goalscol_' + activePeriodId; }
+
+function loadGoals() {
+  try {
+    const raw = localStorage.getItem(getGoalsKey());
+    weeklyGoals[activePeriodId] = raw ? JSON.parse(raw) : {};
+  } catch(_) { weeklyGoals[activePeriodId] = {}; }
+  // Also try Firebase
+  if (db && fsFns) {
+    const { ref, get } = fsFns;
+    get(ref(db, 'schedule/goals/' + activePeriodId)).then(snap => {
+      if (snap.val()) { weeklyGoals[activePeriodId] = snap.val(); render(); }
+    }).catch(()=>{});
+  }
+}
+
+function saveGoals() {
+  const goals = weeklyGoals[activePeriodId] || {};
+  try { localStorage.setItem(getGoalsKey(), JSON.stringify(goals)); } catch(_) {}
+  if (db && fsFns) {
+    const { ref, set } = fsFns;
+    set(ref(db, 'schedule/goals/' + activePeriodId), goals).catch(()=>{});
+  }
+}
+
+function loadGoalsCollapsed() {
+  try {
+    const raw = localStorage.getItem(getGoalsCollapseKey());
+    goalsCollapsed[activePeriodId] = raw ? JSON.parse(raw) : {};
+  } catch(_) { goalsCollapsed[activePeriodId] = {}; }
+}
+
+function saveGoalsCollapsed() {
+  try { localStorage.setItem(getGoalsCollapseKey(), JSON.stringify(goalsCollapsed[activePeriodId] || {})); } catch(_) {}
+}
+
+function countGoalProgress(goal, wIdx) {
+  const weeks = schedule;
+  if (!weeks[wIdx]) return 0;
+  const cat = goal.cat || '';
+  let count = 0;
+  weeks[wIdx].days.forEach(day => {
+    (day.tasks||[]).forEach(t => {
+      if (cat && t.cat === cat) count++;
+      else if (!cat && t.text.toLowerCase().includes((goal.text||'').toLowerCase().split(' ')[0].toLowerCase())) count++;
+    });
+  });
+  return count;
+}
+
+function isGoalMet(goal, wIdx) {
+  if (!goal.target || goal.target <= 0) return false;
+  return countGoalProgress(goal, wIdx) >= goal.target;
+}
+
+function renderGoalsSection(container, wIdx) {
+  const periodGoals = weeklyGoals[activePeriodId] || {};
+  const goals = periodGoals[wIdx] || [];
+  const colMap = goalsCollapsed[activePeriodId] || {};
+  const isCollapsed = colMap[wIdx] === true;
+
+  const allMet = goals.length > 0 && goals.every(g => isGoalMet(g, wIdx));
+  const anyMet = goals.some(g => isGoalMet(g, wIdx));
+
+  const card = document.createElement('div');
+  card.className = 'goals-card';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.className = 'goals-header';
+  hdr.innerHTML = `
+    <span style="font-size:.9rem;">🎯</span>
+    <span class="goals-title">Weekly Goals</span>
+    ${goals.length ? `<span class="goals-met-badge${allMet?' visible':''}">✓ All met</span>` : ''}
+    <span class="goals-toggle${isCollapsed?'':' open'}">▲</span>`;
+  hdr.addEventListener('click', () => {
+    const colMap2 = goalsCollapsed[activePeriodId] || {};
+    colMap2[wIdx] = !colMap2[wIdx];
+    goalsCollapsed[activePeriodId] = colMap2;
+    saveGoalsCollapsed();
+    render();
+  });
+  card.appendChild(hdr);
+
+  if (!isCollapsed) {
+    const body = document.createElement('div');
+    body.className = 'goals-body';
+
+    goals.forEach((goal, gIdx) => {
+      const met = isGoalMet(goal, wIdx);
+      const progress = goal.target ? countGoalProgress(goal, wIdx) : null;
+      const row = document.createElement('div');
+      row.className = 'goal-row';
+      row.innerHTML = `
+        <div class="goal-check${met?' met':''}">✓</div>
+        <div class="goal-text${met?' met':''}">${goal.text}</div>
+        ${goal.target ? `<span class="goal-progress">${progress}/${goal.target}</span>` : ''}
+        <span class="goal-edit-btn" data-gidx="${gIdx}">✏️</span>`;
+      row.querySelector('.goal-edit-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        openGoalModal(wIdx, gIdx);
+      });
+      body.appendChild(row);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'goals-add-btn';
+    addBtn.innerHTML = '<span>＋</span> Add goal';
+    addBtn.addEventListener('click', () => openGoalModal(wIdx, null));
+    body.appendChild(addBtn);
+
+    card.appendChild(body);
+  }
+
+  container.appendChild(card);
+}
+
+// Goal modal
+let _goalModalWIdx = null, _goalModalGIdx = null;
+
+function openGoalModal(wIdx, gIdx) {
+  _goalModalWIdx = wIdx;
+  _goalModalGIdx = gIdx;
+  const periodGoals = weeklyGoals[activePeriodId] || {};
+  const goals = periodGoals[wIdx] || [];
+  const goal = gIdx !== null ? goals[gIdx] : null;
+
+  const overlay = document.getElementById('goalModalOverlay');
+  document.getElementById('gmText').value = goal?.text || '';
+  document.getElementById('gmTarget').value = goal?.target || '';
+  document.getElementById('gmCat').value = goal?.cat || '';
+  document.getElementById('goalModalTitle').textContent = gIdx !== null ? 'Edit Goal' : 'Add Goal';
+  document.getElementById('gmDeleteWrap').style.display = gIdx !== null ? 'block' : 'none';
+  overlay.classList.remove('hidden');
+  setTimeout(() => document.getElementById('gmText').focus(), 80);
+}
+
+function closeGoalModal() {
+  document.getElementById('goalModalOverlay').classList.add('hidden');
+}
+
+function saveGoalModal() {
+  const text = document.getElementById('gmText').value.trim();
+  if (!text) { document.getElementById('gmText').focus(); return; }
+  const target = parseInt(document.getElementById('gmTarget').value) || 0;
+  const cat = document.getElementById('gmCat').value;
+
+  const periodGoals = weeklyGoals[activePeriodId] || {};
+  if (!periodGoals[_goalModalWIdx]) periodGoals[_goalModalWIdx] = [];
+  const goals = periodGoals[_goalModalWIdx];
+
+  const goalObj = { text, target, cat, id: Date.now() };
+
+  if (_goalModalGIdx !== null) {
+    goalObj.id = goals[_goalModalGIdx].id || goalObj.id;
+    goals[_goalModalGIdx] = goalObj;
+  } else {
+    goals.push(goalObj);
+  }
+
+  weeklyGoals[activePeriodId] = periodGoals;
+  saveGoals();
+  closeGoalModal();
+  render();
+}
+
+function deleteGoalModal() {
+  const periodGoals = weeklyGoals[activePeriodId] || {};
+  const goals = periodGoals[_goalModalWIdx] || [];
+  if (_goalModalGIdx !== null) goals.splice(_goalModalGIdx, 1);
+  weeklyGoals[activePeriodId] = periodGoals;
+  saveGoals();
+  closeGoalModal();
+  render();
 }
 
 function handleGoNext() {
@@ -2932,6 +3203,7 @@ function renderList(){
   schedule.forEach((week,wIdx)=>{
     const lbl=document.createElement('div'); lbl.className='week-label'; lbl.textContent=week.week;
     container.appendChild(lbl);
+    renderGoalsSection(container, wIdx);
     week.days.forEach((day,dIdx)=>{
       const card=document.createElement('div'); card.className='day-card';
       if(isToday(day.date)) card.classList.add('today');
@@ -2959,6 +3231,7 @@ function renderWeek(){
     const dateRange = firstDate && lastDate ? `  ·  ${firstDate} – ${lastDate}` : '';
     const lbl=document.createElement('div'); lbl.className='week-label'; lbl.textContent=week.week + dateRange;
     container.appendChild(lbl);
+    renderGoalsSection(container, wIdx);
 
     const scrollWrap=document.createElement('div'); scrollWrap.className='week-view-scroll';
     const grid=document.createElement('div'); grid.className='week-grid';
