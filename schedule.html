@@ -188,7 +188,7 @@
   }
   .task.in-clipboard { animation:borderMarch 1.4s ease-in-out infinite; }
 
-  .task.dragging { opacity:.2; }
+  /* .task.dragging handled in #dragGhost block */
   .task.drag-above { border-top:2px solid #3d5afe !important; }
   .task.drag-below { border-bottom:2px solid #3d5afe !important; }
   .task.selected-1 { border-color:#3d5afe !important; background:#eef1ff !important; box-shadow:0 0 0 2px rgba(61,90,254,.18); }
@@ -228,10 +228,15 @@
   /* Drag ghost */
   #dragGhost {
     position:fixed; pointer-events:none; z-index:999;
-    border-radius:8px; display:none; opacity:.96;
-    box-shadow:0 16px 40px rgba(0,0,0,.22), 0 4px 12px rgba(0,0,0,.12);
-    transform:rotate(1.5deg) scale(1.03);
-    transition:box-shadow .1s; cursor:grabbing;
+    border-radius:7px; display:none; opacity:.97;
+    box-shadow:0 20px 48px rgba(0,0,0,.28), 0 6px 16px rgba(0,0,0,.14);
+    transform:scale(1.04) rotate(1deg);
+    transition:none; cursor:grabbing;
+    margin:0 !important;
+  }
+  .task.dragging {
+    opacity:0 !important;
+    pointer-events:none;
   }
 
   /* ── Modal ── */
@@ -1810,13 +1815,13 @@ function startDrag(wIdx,dIdx,tIdx,srcEl,cx,cy){
   const cats=['gym','rest','study','piano','food','health','chore','burrito','event'];
   const cat=cats.find(c=>srcEl.classList.contains(c))||'';
   ghost.className=`task ${cat}`;
-  ghost.style.cssText='';
+  // Copy any custom inline color styles from the source
+  ghost.style.background = srcEl.style.background || '';
+  ghost.style.borderColor = srcEl.style.borderColor || '';
+  ghost.style.color       = srcEl.style.color || '';
   ghost.innerHTML=srcEl.innerHTML;
   ghost.style.display='block';
   ghost.style.width=w+'px';
-  ghost.style.position='fixed';
-  ghost.style.pointerEvents='none';
-  ghost.style.zIndex='999';
   posGhost(cx,cy);
   startAutoScroll();
 }
@@ -3556,35 +3561,35 @@ function appendTasks(container, tasks, wIdx, dIdx){
     },{passive:false});
 
     // ── Touch: long-press on task body = shake then drag ────────
-    let lpTimer=null, lpShaking=false;
+    let lpTimer=null, lpShaking=false, lpStartX=0, lpStartY=0;
+
     el.addEventListener('touchstart',e=>{
-      if(e.target===handle||e.target.closest('.drag-handle')) return; // handled above
-      const t0=e.touches[0]; const sx=t0.clientX, sy=t0.clientY;
-      // Start 2s timer
+      if(e.target===handle||e.target.closest('.drag-handle')) return;
+      const t0=e.touches[0];
+      lpStartX=t0.clientX; lpStartY=t0.clientY;
+      clearTimeout(lpTimer);
       lpTimer=setTimeout(()=>{
         lpShaking=true;
         el.classList.add('shaking');
-        navigator.vibrate&&navigator.vibrate(30);
-        // Once shaking starts, kill any pending text-selection
         window.getSelection&&window.getSelection().removeAllRanges();
-      },2000);
+        // Vibrate: try both patterns for broader device support
+        try { navigator.vibrate&&navigator.vibrate([40]); } catch(_){}
+      },1200);
     },{passive:false});
 
     el.addEventListener('touchmove',e=>{
+      const t=e.touches[0];
+      const moved=Math.abs(t.clientX-lpStartX)>8||Math.abs(t.clientY-lpStartY)>8;
       if(lpShaking){
-        // User started moving while shaking — begin drag
+        // Moved after shake started — begin drag
         e.preventDefault();
-        const t=e.touches[0];
         el.classList.remove('shaking'); lpShaking=false;
         clearTimeout(lpTimer); lpTimer=null;
         startDrag(wIdx,dIdx,tIdx,el,t.clientX,t.clientY);
         return;
       }
-      // Cancel long-press if they move before 2s
-      const t=e.touches[0];
-      if(Math.abs(t.clientX-e.touches[0].clientX)>6||Math.abs(t.clientY-e.touches[0].clientY)>6){
-        clearTimeout(lpTimer); lpTimer=null;
-      }
+      // Cancel long-press timer if finger moved too much
+      if(moved){ clearTimeout(lpTimer); lpTimer=null; }
     },{passive:false});
 
     el.addEventListener('touchend',e=>{
@@ -3598,7 +3603,7 @@ function appendTasks(container, tasks, wIdx, dIdx){
       if(lpShaking){ el.classList.remove('shaking'); lpShaking=false; }
     },{passive:true});
 
-    el.addEventListener('click',e=>{ /* handled by touchend above on mobile */ });
+    el.addEventListener('click',e=>{ /* handled by touchend */ });
     container.appendChild(el);
   });
 }
