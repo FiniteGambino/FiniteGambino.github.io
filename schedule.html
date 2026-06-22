@@ -47,6 +47,7 @@
   .tb-btn.tb-edit  { color:#7c50c4; border-color:#d8c8ef; background:#f3eefb; }
   .tb-btn.tb-copy  { color:#a07820; border-color:#e8d8a0; background:#faf5e4; }
   .tb-btn.tb-cut   { color:#c05820; border-color:#f0cca8; background:#fdf0e8; }
+  .tb-btn.tb-palette { color:#5030a0; border-color:#d0b8ef; background:#f3eefb; }
   .tb-btn.tb-paste { color:#2e8a5a; border-color:#b8dfc9; background:#eaf6ef; }
   .tb-btn.tb-paste.dim { opacity:.3; pointer-events:none; }
   .tb-btn.tb-add   { color:#3a6a88; border-color:#b8d4e4; background:#eaf2f7; }
@@ -499,6 +500,7 @@
     <button class="tb-btn tb-add" onclick="handleAddBtn()"><span class="tb-icon">＋</span>Add</button>
     <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="openAtwFromToolbar()"><span class="tb-icon">📅</span>Add to<br>Week</button>
     <button class="tb-btn tb-delete" onclick="handleDeleteBtn()"><span class="tb-icon">✕</span>Delete</button>
+    <button class="tb-btn tb-palette" onclick="openPalette()"><span class="tb-icon">✦</span>Palette</button>
     <button class="tb-btn" id="tbGoNext" style="color:#1a56db;border-color:#c3d4f8;background:#eef2ff;" onclick="handleGoNext()"><span class="tb-icon">↓</span>Go to<br>next</button>
     <button class="tb-btn tb-close" onclick="closeToolbar()"><span class="tb-icon">↓</span>Close</button>
   </div>
@@ -1810,23 +1812,22 @@ function updateAutoScroll(cy) {
 
 function startDrag(wIdx,dIdx,tIdx,srcEl,cx,cy){
   drag={wIdx,dIdx,tIdx,el:srcEl}; dragStarted=true;
-  srcEl.classList.add('dragging');
   const rect=srcEl.getBoundingClientRect();
-  // grabOff: where within the element the finger is, clamped so ghost stays on screen
-  grabOffX=Math.max(0, Math.min(cx-rect.left, rect.width));
-  grabOffY=Math.max(0, Math.min(cy-rect.top,  rect.height));
+  grabOffX=Math.max(4, Math.min(cx-rect.left, rect.width-4));
+  grabOffY=Math.max(4, Math.min(cy-rect.top,  rect.height-4));
   const cats=['gym','rest','study','piano','food','health','chore','burrito','event'];
   const cat=cats.find(c=>srcEl.classList.contains(c))||'';
-  // Clone computed styles properly
   const computed=getComputedStyle(srcEl);
   ghost.className=`task ${cat}`;
+  ghost.removeAttribute('style');
   ghost.style.background  = srcEl.style.background  || computed.backgroundColor;
-  ghost.style.borderColor = srcEl.style.borderColor || computed.borderColor;
+  ghost.style.border      = computed.border;
   ghost.style.color       = srcEl.style.color       || computed.color;
   ghost.style.width       = rect.width + 'px';
   ghost.style.display     = 'flex';
-  ghost.innerHTML=srcEl.innerHTML;
-  posGhost(cx,cy);
+  ghost.innerHTML = srcEl.innerHTML;
+  posGhost(cx, cy);
+  requestAnimationFrame(() => srcEl.classList.add('dragging'));
   startAutoScroll();
 }
 function posGhost(x,y){ ghost.style.left=(x-grabOffX)+'px'; ghost.style.top=(y-grabOffY)+'px'; }
@@ -1877,7 +1878,7 @@ function onDragMove(cx,cy){
 function onDragEnd(){
   if(!drag) return;
   ghost.style.display='none';
-  drag.el.classList.remove('dragging'); clearDropHL();
+  drag.el.classList.remove('dragging','shaking'); clearDropHL();
   if(dropInfo&&dragStarted){
     const {wIdx:sW,dIdx:sD,tIdx:sT}=drag;
     const {wIdx:dW,dIdx:dD,tIdx:dT,pos}=dropInfo;
@@ -3569,7 +3570,7 @@ function appendTasks(container, tasks, wIdx, dIdx){
 
     function lpCancel(){
       clearTimeout(lpTimer); lpTimer=null;
-      if(lpShaking){ el.classList.remove('shaking'); lpShaking=false; }
+      el.classList.remove('shaking'); lpShaking=false;
     }
 
     el.addEventListener('touchstart',e=>{
@@ -3578,16 +3579,13 @@ function appendTasks(container, tasks, wIdx, dIdx){
       e.preventDefault();
       const t0=e.touches[0];
       lpStartX=t0.clientX; lpStartY=t0.clientY;
-      clearTimeout(lpTimer); lpShaking=false;
-      el.classList.remove('shaking');
+      lpCancel();
       window.getSelection&&window.getSelection().removeAllRanges();
       lpTimer=setTimeout(()=>{
-        // Start shaking — keep element visible so user can SEE it shake
         lpShaking=true;
         el.classList.add('shaking');
-        window.getSelection&&window.getSelection().removeAllRanges();
-        try { navigator.vibrate&&navigator.vibrate([50,30,50]); } catch(_){}
-      },900);
+        try { navigator.vibrate&&navigator.vibrate([40,20,40]); } catch(_){}
+      },400);
     },{passive:false});
 
     el.addEventListener('touchmove',e=>{
@@ -3595,17 +3593,14 @@ function appendTasks(container, tasks, wIdx, dIdx){
       const t=e.touches[0];
       const dx=Math.abs(t.clientX-lpStartX), dy=Math.abs(t.clientY-lpStartY);
       if(lpShaking){
-        // Moved while shaking — initiate drag
         e.preventDefault();
         el.classList.remove('shaking'); lpShaking=false;
         clearTimeout(lpTimer); lpTimer=null;
-        // Pass the touchstart position as grab origin so ghost attaches at hold point
         startDrag(wIdx,dIdx,tIdx,el,lpStartX,lpStartY);
-        // Immediately move ghost to current finger position
         onDragMove(t.clientX,t.clientY);
         return;
       }
-      if(dx>8||dy>8){ lpCancel(); }
+      if(dx>10||dy>10){ lpCancel(); }
     },{passive:false});
 
     el.addEventListener('touchend',e=>{
@@ -3616,7 +3611,7 @@ function appendTasks(container, tasks, wIdx, dIdx){
 
     el.addEventListener('touchcancel',()=>{ lpCancel(); },{passive:true});
 
-    el.addEventListener('click',e=>{ /* handled by touchend */ });
+    el.addEventListener('click',()=>{ /* handled by touchend */ });
     container.appendChild(el);
   });
 }
