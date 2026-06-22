@@ -2461,8 +2461,10 @@ function renderRareTaskBar() {
     });
   });
 
+  const weekCount = schedule.length;
+  const rareThreshold = weekCount <= 2 ? 2 : 3;
   const rare = Object.entries(counts)
-    .filter(([, count]) => count < 3)
+    .filter(([, count]) => count < rareThreshold)
     .sort((a, b) => a[1] - b[1]);
 
   if (!rare.length) { bar.style.display='none'; return; }
