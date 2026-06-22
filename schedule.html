@@ -106,6 +106,14 @@
   .cg-cancel { background:#f0f2f5; color:#6b7280; }
   .cg-confirm { background:#3d5afe; color:#fff; }
   .cg-confirm:disabled { opacity:.4; pointer-events:none; }
+  .cg-section-title { font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#9098a8; margin:12px 0 6px; }
+  .cg-goal-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border:1.5px solid #dde1e9; border-radius:8px; cursor:pointer; margin-bottom:5px; -webkit-tap-highlight-color:transparent; transition:background .12s,border-color .12s; }
+  .cg-goal-item.selected { border-color:#3d5afe; background:#eef1ff; }
+  .cg-goal-check { width:18px; height:18px; border-radius:50%; border:2px solid #dde1e9; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.6rem; color:#fff; transition:all .15s; }
+  .cg-goal-item.selected .cg-goal-check { background:#3d5afe; border-color:#3d5afe; }
+  .cg-divider { border:none; border-top:1px solid #edf0f4; margin:10px 0; }
+  .goals-copy-btn { display:flex; align-items:center; gap:4px; padding:4px 10px; border-radius:7px; border:1.5px solid #c0ccf8; background:#eef2ff; color:#3d5afe; font-size:.65rem; font-weight:700; cursor:pointer; -webkit-tap-highlight-color:transparent; flex-shrink:0; }
+  .goals-copy-btn:active { background:#d8e4ff; }
   .week-divider { border:none; border-top:1px solid #dde1e9; margin:20px 0 16px; }
 
   /* ── Day card — list view ── */
@@ -689,7 +697,7 @@
 <div class="copy-goals-sheet" id="copyGoalsSheet">
   <div class="copy-goals-panel">
     <h3>Copy Goals To…</h3>
-    <p class="cg-sub">Select one or more weeks to copy these goals into.</p>
+    <p class="cg-sub">Choose which goals to copy and where.</p>
     <div class="cg-list" id="cgList"></div>
     <div class="cg-footer">
       <button class="cg-cancel" onclick="closeCopyGoalsSheet()">Cancel</button>
@@ -2577,7 +2585,10 @@ function renderGoalsSection(container, wIdx) {
     <span style="font-size:.9rem;">🎯</span>
     <span class="goals-title">Weekly Goals</span>
     ${goals.length ? `<span class="goals-met-badge${allMet?' visible':''}">✓ All met</span>` : ''}
+    ${goals.length ? `<button class="goals-copy-btn" id="goalsCopyBtn_${wIdx}">⧉ Copy</button>` : ''}
     <span class="goals-toggle${isCollapsed?'':' open'}">▲</span>`;
+  const copyBtnEl = hdr.querySelector(`#goalsCopyBtn_${wIdx}`);
+  if (copyBtnEl) copyBtnEl.addEventListener('click', e => { e.stopPropagation(); openCopyGoalsSheet(wIdx); });
   hdr.addEventListener('click', () => {
     const colMap2 = goalsCollapsed[activePeriodId] || {};
     colMap2[wIdx] = !colMap2[wIdx];
@@ -2614,14 +2625,7 @@ function renderGoalsSection(container, wIdx) {
     addBtn.addEventListener('click', () => openGoalModal(wIdx, null));
     body.appendChild(addBtn);
 
-    if (goals.length > 0) {
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'goals-add-btn';
-      copyBtn.style.cssText = 'color:#3d5afe;border-color:#c0ccf8;background:#eef2ff;margin-top:4px;';
-      copyBtn.innerHTML = '<span>⧉</span> Copy goals to another week';
-      copyBtn.addEventListener('click', () => openCopyGoalsSheet(wIdx));
-      body.appendChild(copyBtn);
-    }
+
 
     card.appendChild(body);
   }
@@ -2653,27 +2657,28 @@ function openGoalModal(wIdx, gIdx) {
 let _cgSourceWIdx = null;
 let _cgSelected = new Set(); // "periodId:wIdx" strings
 
+let _cgSelectedGoalIds = new Set();
+
 async function openCopyGoalsSheet(sourceWIdx) {
   _cgSourceWIdx = sourceWIdx;
   _cgSelected = new Set();
+  _cgSelectedGoalIds = new Set();
   const sheet = document.getElementById('copyGoalsSheet');
   const list  = document.getElementById('cgList');
-  list.innerHTML = '<div style="font-size:.75rem;color:#9098a8;padding:8px;">Loading weeks…</div>';
+  list.innerHTML = '<div style="font-size:.75rem;color:#9098a8;padding:8px;">Loading…</div>';
   sheet.classList.add('open');
   document.getElementById('cgConfirmBtn').disabled = true;
 
-  // Fetch all periods and their weeks
-  const items = []; // { periodId, periodLabel, wIdx, weekLabel, dateRange }
+  const sourceGoals = (weeklyGoals[activePeriodId]||{})[sourceWIdx] || [];
+  sourceGoals.forEach(g => _cgSelectedGoalIds.add(String(g.id))); // all pre-selected
 
-  // Current period weeks (already loaded in `schedule`)
+  const items = [];
   schedule.forEach((week, wi) => {
-    if (wi === sourceWIdx) return; // skip source
+    if (wi === sourceWIdx) return;
     const dates = (week.days||[]).filter(d => d.date && d.date !== '—');
     const range = dates.length ? `${dates[0].date} – ${dates[dates.length-1].date}` : '';
     items.push({ periodId: activePeriodId, periodLabel: periods.find(p=>p.id===activePeriodId)?.label||'', wIdx: wi, weekLabel: week.week, dateRange: range });
   });
-
-  // Other periods
   const otherPeriods = periods.filter(p => p.id !== activePeriodId);
   for (const p of otherPeriods) {
     try {
@@ -2694,34 +2699,72 @@ async function openCopyGoalsSheet(sourceWIdx) {
       });
     } catch(e) { console.warn('Could not load period', p.id, e); }
   }
+  sheet._items = items;
+  sheet._sourceGoals = sourceGoals;
 
-  if (!items.length) {
-    list.innerHTML = '<div style="font-size:.75rem;color:#9098a8;padding:8px;">No other weeks found.</div>';
-    return;
+  function updateConfirmBtn() {
+    document.getElementById('cgConfirmBtn').disabled =
+      _cgSelected.size === 0 || _cgSelectedGoalIds.size === 0;
   }
 
   list.innerHTML = '';
-  items.forEach(item => {
-    const key = item.periodId + ':' + item.wIdx;
-    const div = document.createElement('div');
-    div.className = 'cg-item';
-    div.dataset.key = key;
-    div.innerHTML = `
-      <div class="cg-check">✓</div>
-      <div style="flex:1;">
-        <div class="cg-item-label">${item.weekLabel}${item.dateRange ? ' · ' + item.dateRange : ''}</div>
-        <div class="cg-item-sub">${item.periodLabel !== (periods.find(p=>p.id===activePeriodId)?.label||'') ? item.periodLabel : 'Current tab'}</div>
-      </div>`;
-    div.addEventListener('click', () => {
-      if (_cgSelected.has(key)) { _cgSelected.delete(key); div.classList.remove('selected'); }
-      else { _cgSelected.add(key); div.classList.add('selected'); }
-      document.getElementById('cgConfirmBtn').disabled = _cgSelected.size === 0;
-    });
-    list.appendChild(div);
-  });
 
-  // Store items for confirm step
-  document.getElementById('copyGoalsSheet')._items = items;
+  // ── Section 1: Which goals to copy ──
+  if (sourceGoals.length) {
+    const gtitle = document.createElement('div');
+    gtitle.className = 'cg-section-title';
+    gtitle.textContent = 'Goals to copy';
+    list.appendChild(gtitle);
+
+    sourceGoals.forEach(goal => {
+      const gid = String(goal.id);
+      const row = document.createElement('div');
+      row.className = 'cg-goal-item selected';
+      row.innerHTML = `<div class="cg-goal-check">✓</div><div style="flex:1;font-size:.78rem;color:#3a4060;">${goal.text}${goal.target ? ' <span style="font-size:.65rem;color:#9098a8;">×'+goal.target+'</span>' : ''}</div>`;
+      row.addEventListener('click', () => {
+        if (_cgSelectedGoalIds.has(gid)) { _cgSelectedGoalIds.delete(gid); row.classList.remove('selected'); }
+        else { _cgSelectedGoalIds.add(gid); row.classList.add('selected'); }
+        updateConfirmBtn();
+      });
+      list.appendChild(row);
+    });
+
+    const hr = document.createElement('hr');
+    hr.className = 'cg-divider';
+    list.appendChild(hr);
+  }
+
+  // ── Section 2: Which weeks to copy into ──
+  const wtitle = document.createElement('div');
+  wtitle.className = 'cg-section-title';
+  wtitle.textContent = 'Copy into week';
+  list.appendChild(wtitle);
+
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:.75rem;color:#9098a8;padding:6px 0;';
+    empty.textContent = 'No other weeks found.';
+    list.appendChild(empty);
+  } else {
+    items.forEach(item => {
+      const key = item.periodId + ':' + item.wIdx;
+      const div = document.createElement('div');
+      div.className = 'cg-item';
+      div.dataset.key = key;
+      div.innerHTML = `
+        <div class="cg-check">✓</div>
+        <div style="flex:1;">
+          <div class="cg-item-label">${item.weekLabel}${item.dateRange ? ' · ' + item.dateRange : ''}</div>
+          <div class="cg-item-sub">${item.periodLabel !== (periods.find(p=>p.id===activePeriodId)?.label||'') ? item.periodLabel : 'Current tab'}</div>
+        </div>`;
+      div.addEventListener('click', () => {
+        if (_cgSelected.has(key)) { _cgSelected.delete(key); div.classList.remove('selected'); }
+        else { _cgSelected.add(key); div.classList.add('selected'); }
+        updateConfirmBtn();
+      });
+      list.appendChild(div);
+    });
+  }
 }
 
 function closeCopyGoalsSheet() {
@@ -2731,7 +2774,8 @@ function closeCopyGoalsSheet() {
 async function confirmCopyGoals() {
   const sheet = document.getElementById('copyGoalsSheet');
   const items = sheet._items || [];
-  const sourceGoals = (weeklyGoals[activePeriodId]||{})[_cgSourceWIdx] || [];
+  const allSourceGoals = sheet._sourceGoals || (weeklyGoals[activePeriodId]||{})[_cgSourceWIdx] || [];
+  const sourceGoals = allSourceGoals.filter(g => _cgSelectedGoalIds.has(String(g.id)));
   if (!sourceGoals.length) { closeCopyGoalsSheet(); return; }
 
   let copied = 0;
@@ -2739,7 +2783,6 @@ async function confirmCopyGoals() {
     const [periodId, wIdxStr] = key.split(':');
     const wi = parseInt(wIdxStr);
     if (!weeklyGoals[periodId]) weeklyGoals[periodId] = {};
-    // Merge: append goals that don't already exist (by text)
     const existing = weeklyGoals[periodId][wi] || [];
     const existingTexts = new Set(existing.map(g => g.text));
     const toAdd = sourceGoals.filter(g => !existingTexts.has(g.text)).map(g => ({...g, id: Date.now() + Math.random()}));
