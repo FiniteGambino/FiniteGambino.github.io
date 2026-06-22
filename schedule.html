@@ -1522,23 +1522,48 @@ function executeSwap(){
   const a=swapFirst, b=swapFirst._second;
   const elA=taskEl(a), elB=taskEl(b);
   if(!elA||!elB){ doSwap(a,b); return; }
+
+  // Capture positions BEFORE any data change
   const rA=elA.getBoundingClientRect();
   const rB=elB.getBoundingClientRect();
-  doSwap(a,b);
-  requestAnimationFrame(()=>{
-    const nA=taskEl(a), nB=taskEl(b);
-    if(!nA||!nB) return;
-    const dyA=rA.top-nA.getBoundingClientRect().top;
-    const dyB=rB.top-nB.getBoundingClientRect().top;
-    [nA,nB].forEach((el,i)=>{
-      const dy=i===0?dyA:dyB;
-      el.style.transition='none'; el.style.transform=`translateY(${dy}px)`;
-      el.getBoundingClientRect();
-      el.classList.add('flip-animate'); el.style.transform='translateY(0)';
-      setTimeout(()=>{ el.style.transition=''; el.style.transform=''; el.classList.remove('flip-animate'); },500);
-    });
+  const dxA=rB.left-rA.left, dyA=rB.top-rA.top;
+  const dxB=rA.left-rB.left, dyB=rA.top-rB.top;
+
+  // Lift both tasks above everything, freeze their layout space with placeholders
+  const phA=document.createElement('div');
+  phA.style.cssText=`height:${rA.height}px;margin-bottom:${getComputedStyle(elA).marginBottom};flex-shrink:0;`;
+  const phB=document.createElement('div');
+  phB.style.cssText=`height:${rB.height}px;margin-bottom:${getComputedStyle(elB).marginBottom};flex-shrink:0;`;
+
+  elA.parentNode.insertBefore(phA, elA);
+  elB.parentNode.insertBefore(phB, elB);
+
+  // Pull both out of flow and position fixed at their current spots
+  [elA,elB].forEach((el,i)=>{
+    const r=i===0?rA:rB;
+    el.style.cssText+=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;z-index:600;margin:0;transition:none;box-shadow:0 6px 24px rgba(0,0,0,.18);`;
   });
-  showToast('Swapped ⇄');
+
+  // Force reflow then animate to each other's spots
+  elA.getBoundingClientRect();
+
+  const DUR=380;
+  const ease='cubic-bezier(.4,0,.2,1)';
+  elA.style.transition=`transform ${DUR}ms ${ease}, box-shadow ${DUR}ms`;
+  elB.style.transition=`transform ${DUR}ms ${ease}, box-shadow ${DUR}ms`;
+  elA.style.transform=`translate(${dxA}px,${dyA}px) scale(1.03)`;
+  elB.style.transform=`translate(${dxB}px,${dyB}px) scale(1.03)`;
+
+  setTimeout(()=>{
+    // Clean up flying elements
+    phA.remove(); phB.remove();
+    [elA,elB].forEach(el=>{
+      el.style.cssText=''; el.style.transform=''; el.style.transition='';
+    });
+    // Now do the actual data swap + re-render
+    doSwap(a,b);
+    showToast('Swapped ⇄');
+  }, DUR+20);
 }
 
 function doSwap(a,b){
