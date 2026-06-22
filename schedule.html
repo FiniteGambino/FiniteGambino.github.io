@@ -46,6 +46,7 @@
   .tb-btn.tb-swap.active { color:#fff; background:#3d5afe; border-color:#3d5afe; }
   .tb-btn.tb-edit  { color:#7c50c4; border-color:#d8c8ef; background:#f3eefb; }
   .tb-btn.tb-copy  { color:#a07820; border-color:#e8d8a0; background:#faf5e4; }
+  .tb-btn.tb-cut   { color:#c05820; border-color:#f0cca8; background:#fdf0e8; }
   .tb-btn.tb-paste { color:#2e8a5a; border-color:#b8dfc9; background:#eaf6ef; }
   .tb-btn.tb-paste.dim { opacity:.3; pointer-events:none; }
   .tb-btn.tb-add   { color:#3a6a88; border-color:#b8d4e4; background:#eaf2f7; }
@@ -427,6 +428,7 @@
     <button class="tb-btn tb-swap" id="tbSwapBtn" onclick="handleSwapBtn()"><span class="tb-icon">⇄</span>Swap</button>
     <button class="tb-btn tb-edit" onclick="handleEditBtn()"><span class="tb-icon">✏️</span>Edit</button>
     <button class="tb-btn tb-copy" onclick="handleCopyBtn()"><span class="tb-icon">⧉</span>Copy</button>
+    <button class="tb-btn tb-cut" onclick="handleCutBtn()"><span class="tb-icon">✂️</span>Cut</button>
     <button class="tb-btn tb-paste" id="tbPaste" onclick="handlePasteBtn()"><span class="tb-icon">📋</span>Paste</button>
     <button class="tb-btn tb-add" onclick="handleAddBtn()"><span class="tb-icon">＋</span>Add</button>
     <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="openAtwFromToolbar()"><span class="tb-icon">📅</span>Add to<br>Week</button>
@@ -1344,6 +1346,23 @@ function handleCopyBtn(){
   if(srcEl) srcEl.classList.add('in-clipboard');
   updateClip();
   showToast(`Copied: ${clipboard.emoji} ${clipboard.text}`);
+  document.getElementById('tbPaste').classList.remove('dim');
+}
+
+function handleCutBtn(){
+  if(!active) return;
+  if(clipboardKey){
+    const old=document.querySelector(`[data-key="${clipboardKey}"]`);
+    if(old) old.classList.remove('in-clipboard');
+  }
+  const {wIdx,dIdx,tIdx}=active;
+  clipboard={...schedule[wIdx].days[dIdx].tasks[tIdx]};
+  clipboardKey=null; // cut removes the source, no marching border needed
+  pushUndo();
+  schedule[wIdx].days[dIdx].tasks.splice(tIdx,1);
+  hideToolbar(); save(); render();
+  updateClip();
+  showToast(`Cut: ${clipboard.emoji} ${clipboard.text}`);
   document.getElementById('tbPaste').classList.remove('dim');
 }
 
