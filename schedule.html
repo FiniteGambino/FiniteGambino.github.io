@@ -6,7 +6,7 @@
 <title>Gaurav's Schedule</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:#f0f2f5; color:#2c2f3a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; padding:0 0 90px; }
+  body { background:#f0f2f5; color:#2c2f3a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; padding:0 0 90px; -webkit-user-select:none; user-select:none; }
   .page-wrap { max-width:1100px; margin:0 auto; padding:0 20px; }
 
   /* ── Header ── */
@@ -167,7 +167,7 @@
     border:1.5px solid transparent; font-size:.78rem;
     user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; cursor:pointer; position:relative;
     -webkit-tap-highlight-color:transparent;
-    touch-action:pan-y;
+    touch-action:none;
     will-change:transform,opacity;
   }
   .task:last-child { margin-bottom:0; }
@@ -3563,45 +3563,53 @@ function appendTasks(container, tasks, wIdx, dIdx){
     // ── Touch: long-press on task body = shake then drag ────────
     let lpTimer=null, lpShaking=false, lpStartX=0, lpStartY=0;
 
+    function lpCancel(){
+      clearTimeout(lpTimer); lpTimer=null;
+      if(lpShaking){ el.classList.remove('shaking'); lpShaking=false; }
+      el.style.touchAction=''; // restore scroll
+    }
+
     el.addEventListener('touchstart',e=>{
       if(e.target===handle||e.target.closest('.drag-handle')) return;
+      // If a drag just finished, dragStarted may still be true for a tick — ignore
+      if(drag) return;
+      // Immediately prevent browser from triggering text-selection / callout
+      e.preventDefault();
       const t0=e.touches[0];
       lpStartX=t0.clientX; lpStartY=t0.clientY;
-      clearTimeout(lpTimer);
+      clearTimeout(lpTimer); lpShaking=false;
+      window.getSelection&&window.getSelection().removeAllRanges();
       lpTimer=setTimeout(()=>{
         lpShaking=true;
+        el.style.touchAction='none'; // lock scroll now that drag is starting
         el.classList.add('shaking');
         window.getSelection&&window.getSelection().removeAllRanges();
-        // Vibrate: try both patterns for broader device support
         try { navigator.vibrate&&navigator.vibrate([40]); } catch(_){}
       },1200);
     },{passive:false});
 
     el.addEventListener('touchmove',e=>{
+      if(drag) return; // already dragging via handle
       const t=e.touches[0];
-      const moved=Math.abs(t.clientX-lpStartX)>8||Math.abs(t.clientY-lpStartY)>8;
+      const dx=Math.abs(t.clientX-lpStartX), dy=Math.abs(t.clientY-lpStartY);
       if(lpShaking){
-        // Moved after shake started — begin drag
         e.preventDefault();
         el.classList.remove('shaking'); lpShaking=false;
         clearTimeout(lpTimer); lpTimer=null;
         startDrag(wIdx,dIdx,tIdx,el,t.clientX,t.clientY);
         return;
       }
-      // Cancel long-press timer if finger moved too much
-      if(moved){ clearTimeout(lpTimer); lpTimer=null; }
+      // Cancel timer if moved more than 8px
+      if(dx>8||dy>8){ lpCancel(); }
     },{passive:false});
 
     el.addEventListener('touchend',e=>{
-      clearTimeout(lpTimer); lpTimer=null;
-      if(lpShaking){ el.classList.remove('shaking'); lpShaking=false; }
-      if(!dragStarted) onTaskTap(wIdx,dIdx,tIdx);
+      const wasDragging=dragStarted;
+      lpCancel();
+      if(!wasDragging) onTaskTap(wIdx,dIdx,tIdx);
     },{passive:true});
 
-    el.addEventListener('touchcancel',()=>{
-      clearTimeout(lpTimer); lpTimer=null;
-      if(lpShaking){ el.classList.remove('shaking'); lpShaking=false; }
-    },{passive:true});
+    el.addEventListener('touchcancel',()=>{ lpCancel(); },{passive:true});
 
     el.addEventListener('click',e=>{ /* handled by touchend */ });
     container.appendChild(el);
