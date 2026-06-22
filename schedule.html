@@ -1360,10 +1360,11 @@ function handleCutBtn(){
   clipboardKey=null; // cut removes the source, no marching border needed
   pushUndo();
   schedule[wIdx].days[dIdx].tasks.splice(tIdx,1);
-  hideToolbar(); save(); render();
+  active=null; save(); render();
   updateClip();
   showToast(`Cut: ${clipboard.emoji} ${clipboard.text}`);
   document.getElementById('tbPaste').classList.remove('dim');
+  // keep toolbar visible so user can tap a target and paste
 }
 
 function handlePasteBtn(){
