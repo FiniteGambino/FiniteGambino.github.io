@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Gaurav's Schedule</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -86,6 +86,26 @@
   .goals-add-btn:active { background:#e8eeff; }
   /* Goals modal */
   .goals-modal { background:#fff; border-radius:14px; padding:20px; width:90%; max-width:340px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+  /* Copy goals sheet */
+  .copy-goals-sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:350; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .copy-goals-sheet.open { opacity:1; pointer-events:auto; }
+  .copy-goals-panel { background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:520px; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); max-height:75vh; display:flex; flex-direction:column; transform:translateY(100%); transition:transform .3s cubic-bezier(.34,1.1,.64,1); }
+  .copy-goals-sheet.open .copy-goals-panel { transform:translateY(0); }
+  .copy-goals-panel h3 { font-size:.9rem; font-weight:800; color:#1a1c24; margin:0 0 4px; }
+  .copy-goals-panel .cg-sub { font-size:.72rem; color:#9098a8; margin-bottom:14px; }
+  .cg-list { overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px; }
+  .cg-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1.5px solid #dde1e9; border-radius:9px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s,border-color .15s; }
+  .cg-item:active { background:#f0f4ff; }
+  .cg-item.selected { border-color:#3d5afe; background:#eef1ff; }
+  .cg-item-label { flex:1; font-size:.78rem; font-weight:600; color:#3a3f52; }
+  .cg-item-sub { font-size:.65rem; color:#9098a8; }
+  .cg-check { width:18px; height:18px; border-radius:50%; border:2px solid #dde1e9; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.6rem; color:#fff; }
+  .cg-item.selected .cg-check { background:#3d5afe; border-color:#3d5afe; }
+  .cg-footer { display:flex; gap:8px; margin-top:14px; }
+  .cg-footer button { flex:1; padding:11px; border-radius:9px; font-size:.82rem; font-weight:700; cursor:pointer; border:none; }
+  .cg-cancel { background:#f0f2f5; color:#6b7280; }
+  .cg-confirm { background:#3d5afe; color:#fff; }
+  .cg-confirm:disabled { opacity:.4; pointer-events:none; }
   .week-divider { border:none; border-top:1px solid #dde1e9; margin:20px 0 16px; }
 
   /* ── Day card — list view ── */
@@ -207,7 +227,7 @@
   .color-swatch { width:28px; height:28px; border-radius:7px; cursor:pointer; border:2px solid #dde1e9; transition:transform .1s,box-shadow .1s; flex-shrink:0; }
   .color-swatch:hover { transform:scale(1.15); }
   .color-swatch.selected { box-shadow:0 0 0 3px #3d5afe; transform:scale(1.15); }
-  .modal input,.modal select { width:100%; background:#f5f6f8; border:1px solid #dde1e9; border-radius:7px; color:#2c2f3a; font-size:.8rem; padding:8px 10px; outline:none; transition:border-color .2s; }
+  .modal input,.modal select { width:100%; background:#f5f6f8; border:1px solid #dde1e9; border-radius:7px; color:#2c2f3a; font-size:16px; padding:8px 10px; outline:none; transition:border-color .2s; }
   .modal input:focus,.modal select:focus { border-color:#3d5afe; }
   .modal select option { background:#ffffff; }
   .modal-btns { display:flex; gap:8px; margin-top:16px; }
@@ -657,16 +677,29 @@
   </div>
 </div>
 
+<!-- Copy Goals Sheet -->
+<div class="copy-goals-sheet" id="copyGoalsSheet">
+  <div class="copy-goals-panel">
+    <h3>Copy Goals To…</h3>
+    <p class="cg-sub">Select one or more weeks to copy these goals into.</p>
+    <div class="cg-list" id="cgList"></div>
+    <div class="cg-footer">
+      <button class="cg-cancel" onclick="closeCopyGoalsSheet()">Cancel</button>
+      <button class="cg-confirm" id="cgConfirmBtn" onclick="confirmCopyGoals()" disabled>Copy</button>
+    </div>
+  </div>
+</div>
+
 <!-- Weekly Goal modal -->
 <div class="modal-overlay hidden" id="goalModalOverlay">
   <div class="goals-modal">
     <h3 id="goalModalTitle" style="font-size:.95rem;font-weight:800;color:#1a1c24;margin:0 0 14px;">Add Goal</h3>
     <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Goal description</label>
-    <input type="text" id="gmText" placeholder="e.g. Hit the gym 4 times" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:.82rem;margin-bottom:12px;" />
+    <input type="text" id="gmText" placeholder="e.g. Hit the gym 4 times" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin-bottom:12px;" />
     <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Target count <span style="font-weight:400;color:#9098a8;">(optional — for auto ✓)</span></label>
-    <input type="number" id="gmTarget" min="0" max="99" placeholder="e.g. 4" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:.82rem;margin-bottom:12px;" />
+    <input type="number" id="gmTarget" min="0" max="99" placeholder="e.g. 4" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin-bottom:12px;" />
     <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Category to count <span style="font-weight:400;color:#9098a8;">(optional)</span></label>
-    <select id="gmCat" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:.82rem;margin-bottom:16px;background:#fff;">
+    <select id="gmCat" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin-bottom:16px;background:#fff;">
       <option value="">— any / manual —</option>
       <option value="gym">🏋️ Gym</option>
       <option value="study">📖 Study</option>
@@ -1842,6 +1875,7 @@ document.addEventListener('click',e=>{
 });
 document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modalOverlay')) closeModal(); });
 document.getElementById('goalModalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('goalModalOverlay')) closeGoalModal(); });
+document.getElementById('copyGoalsSheet').addEventListener('click',e=>{ if(e.target===document.getElementById('copyGoalsSheet')) closeCopyGoalsSheet(); });
 document.getElementById('mText').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmModal(); });
 
 // ── Task Palette ───────────────────────────────────────────────────────────
@@ -2547,6 +2581,15 @@ function renderGoalsSection(container, wIdx) {
     addBtn.addEventListener('click', () => openGoalModal(wIdx, null));
     body.appendChild(addBtn);
 
+    if (goals.length > 0) {
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'goals-add-btn';
+      copyBtn.style.cssText = 'color:#3d5afe;border-color:#c0ccf8;background:#eef2ff;margin-top:4px;';
+      copyBtn.innerHTML = '<span>⧉</span> Copy goals to another week';
+      copyBtn.addEventListener('click', () => openCopyGoalsSheet(wIdx));
+      body.appendChild(copyBtn);
+    }
+
     card.appendChild(body);
   }
 
@@ -2571,6 +2614,117 @@ function openGoalModal(wIdx, gIdx) {
   document.getElementById('gmDeleteWrap').style.display = gIdx !== null ? 'block' : 'none';
   overlay.classList.remove('hidden');
   setTimeout(() => document.getElementById('gmText').focus(), 80);
+}
+
+// ── Copy Goals Sheet ──────────────────────────────────────────────────────
+let _cgSourceWIdx = null;
+let _cgSelected = new Set(); // "periodId:wIdx" strings
+
+async function openCopyGoalsSheet(sourceWIdx) {
+  _cgSourceWIdx = sourceWIdx;
+  _cgSelected = new Set();
+  const sheet = document.getElementById('copyGoalsSheet');
+  const list  = document.getElementById('cgList');
+  list.innerHTML = '<div style="font-size:.75rem;color:#9098a8;padding:8px;">Loading weeks…</div>';
+  sheet.classList.add('open');
+  document.getElementById('cgConfirmBtn').disabled = true;
+
+  // Fetch all periods and their weeks
+  const items = []; // { periodId, periodLabel, wIdx, weekLabel, dateRange }
+
+  // Current period weeks (already loaded in `schedule`)
+  schedule.forEach((week, wi) => {
+    if (wi === sourceWIdx) return; // skip source
+    const dates = (week.days||[]).filter(d => d.date && d.date !== '—');
+    const range = dates.length ? `${dates[0].date} – ${dates[dates.length-1].date}` : '';
+    items.push({ periodId: activePeriodId, periodLabel: periods.find(p=>p.id===activePeriodId)?.label||'', wIdx: wi, weekLabel: week.week, dateRange: range });
+  });
+
+  // Other periods
+  const otherPeriods = periods.filter(p => p.id !== activePeriodId);
+  for (const p of otherPeriods) {
+    try {
+      let weeks = [];
+      if (db && fsFns) {
+        const { ref, get } = fsFns;
+        const snap = await get(ref(db, `schedule/periods/${p.id}/weeks`));
+        weeks = snap.val() || [];
+      } else {
+        const saved = localStorage.getItem('gs_v9_' + p.id);
+        const data = saved ? JSON.parse(saved) : null;
+        weeks = data ? (data.weeks || data || []) : [];
+      }
+      weeks.forEach((week, wi) => {
+        const dates = (week.days||[]).filter(d => d.date && d.date !== '—');
+        const range = dates.length ? `${dates[0].date} – ${dates[dates.length-1].date}` : '';
+        items.push({ periodId: p.id, periodLabel: p.label, wIdx: wi, weekLabel: week.week, dateRange: range });
+      });
+    } catch(e) { console.warn('Could not load period', p.id, e); }
+  }
+
+  if (!items.length) {
+    list.innerHTML = '<div style="font-size:.75rem;color:#9098a8;padding:8px;">No other weeks found.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  items.forEach(item => {
+    const key = item.periodId + ':' + item.wIdx;
+    const div = document.createElement('div');
+    div.className = 'cg-item';
+    div.dataset.key = key;
+    div.innerHTML = `
+      <div class="cg-check">✓</div>
+      <div style="flex:1;">
+        <div class="cg-item-label">${item.weekLabel}${item.dateRange ? ' · ' + item.dateRange : ''}</div>
+        <div class="cg-item-sub">${item.periodLabel !== (periods.find(p=>p.id===activePeriodId)?.label||'') ? item.periodLabel : 'Current tab'}</div>
+      </div>`;
+    div.addEventListener('click', () => {
+      if (_cgSelected.has(key)) { _cgSelected.delete(key); div.classList.remove('selected'); }
+      else { _cgSelected.add(key); div.classList.add('selected'); }
+      document.getElementById('cgConfirmBtn').disabled = _cgSelected.size === 0;
+    });
+    list.appendChild(div);
+  });
+
+  // Store items for confirm step
+  document.getElementById('copyGoalsSheet')._items = items;
+}
+
+function closeCopyGoalsSheet() {
+  document.getElementById('copyGoalsSheet').classList.remove('open');
+}
+
+async function confirmCopyGoals() {
+  const sheet = document.getElementById('copyGoalsSheet');
+  const items = sheet._items || [];
+  const sourceGoals = (weeklyGoals[activePeriodId]||{})[_cgSourceWIdx] || [];
+  if (!sourceGoals.length) { closeCopyGoalsSheet(); return; }
+
+  let copied = 0;
+  for (const key of _cgSelected) {
+    const [periodId, wIdxStr] = key.split(':');
+    const wi = parseInt(wIdxStr);
+    if (!weeklyGoals[periodId]) weeklyGoals[periodId] = {};
+    // Merge: append goals that don't already exist (by text)
+    const existing = weeklyGoals[periodId][wi] || [];
+    const existingTexts = new Set(existing.map(g => g.text));
+    const toAdd = sourceGoals.filter(g => !existingTexts.has(g.text)).map(g => ({...g, id: Date.now() + Math.random()}));
+    weeklyGoals[periodId][wi] = [...existing, ...toAdd];
+
+    // Save to localStorage
+    try { localStorage.setItem('gs_goals_' + periodId, JSON.stringify(weeklyGoals[periodId])); } catch(_) {}
+    // Save to Firebase
+    if (db && fsFns) {
+      const { ref, set } = fsFns;
+      set(ref(db, 'schedule/goals/' + periodId), weeklyGoals[periodId]).catch(()=>{});
+    }
+    copied++;
+  }
+
+  closeCopyGoalsSheet();
+  render();
+  showToast(`Goals copied to ${copied} week${copied>1?'s':''}`);
 }
 
 function closeGoalModal() {
