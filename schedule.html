@@ -498,9 +498,9 @@
     <button class="tb-btn tb-cut" onclick="handleCutBtn()"><span class="tb-icon">✂️</span>Cut</button>
     <button class="tb-btn tb-paste" id="tbPaste" onclick="handlePasteBtn()"><span class="tb-icon">📋</span>Paste</button>
     <button class="tb-btn tb-add" onclick="handleAddBtn()"><span class="tb-icon">＋</span>Add</button>
+    <button class="tb-btn tb-palette" onclick="openPalette()"><span class="tb-icon">✦</span>Add from<br>Palette</button>
     <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="openAtwFromToolbar()"><span class="tb-icon">📅</span>Add to<br>Week</button>
     <button class="tb-btn tb-delete" onclick="handleDeleteBtn()"><span class="tb-icon">✕</span>Delete</button>
-    <button class="tb-btn tb-palette" onclick="openPalette()"><span class="tb-icon">✦</span>Palette</button>
     <button class="tb-btn" id="tbGoNext" style="color:#1a56db;border-color:#c3d4f8;background:#eef2ff;" onclick="handleGoNext()"><span class="tb-icon">↓</span>Go to<br>next</button>
     <button class="tb-btn tb-close" onclick="closeToolbar()"><span class="tb-icon">↓</span>Close</button>
   </div>
@@ -1798,11 +1798,10 @@ function stopAutoScroll() {
   autoScrollDY = 0;
 }
 function updateAutoScroll(cy) {
-  const zone = 160; // px from edge — wider zone so scroll triggers earlier
-  const maxSpeed = 14;
+  const zone = 220; // px from edge — triggers in top/bottom ~30% of screen
+  const maxSpeed = 18;
   const h = window.innerHeight;
   if (cy < zone) {
-    // Quadratic ease so speed ramps up gradually rather than jumping
     const t = 1 - cy / zone;
     autoScrollDY = -Math.round(maxSpeed * t * t);
   } else if (cy > h - zone) {
