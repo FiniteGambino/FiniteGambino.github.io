@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Gaurav's Schedule</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Schedule">
+<meta name="theme-color" content="#f0f2f5">
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:#f0f2f5; color:#2c2f3a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; padding:0 0 90px; -webkit-user-select:none; user-select:none; }
@@ -296,7 +301,7 @@
   .ctx-divider { height:1px; background:#edf0f4; margin:4px 0; }
 
   /* ── Copy Day / Copy Week buttons ── */
-  .copy-row { display:flex; justify-content:center; gap:8px; margin:-4px 0 14px; }
+  .copy-row { display:flex; justify-content:center; gap:8px; margin:8px 0 14px; }
   .copy-btn { display:flex; align-items:center; gap:6px; padding:7px 16px; border-radius:8px; font-size:.72rem; font-weight:600; border:1px solid #cdd9ef; background:#eef2ff; color:#3149c4; cursor:pointer; transition:background .15s,transform .1s; -webkit-tap-highlight-color:transparent; }
   .copy-btn:active { transform:scale(.96); }
   .copy-btn .cb-ic { font-size:.9rem; }
@@ -311,17 +316,24 @@
   .cw-card-top { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
   .cw-card-label { font-size:.8rem; font-weight:700; color:#2c2f3a; }
   .cw-card-sub { font-size:.64rem; color:#9098a8; margin-left:auto; }
-  .cw-preview { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-  .cw-day { border:1px solid #e6e9f0; border-radius:7px; padding:5px 3px; min-height:52px; display:flex; flex-direction:column; gap:3px; background:#fafbff; transition:background .12s,border-color .12s; }
-  .cw-day.cw-toggle { cursor:pointer; }
-  .cw-day.cw-off { opacity:.34; background:#f3f4f7; }
+  .cw-preview { display:flex; flex-direction:column; gap:5px; }
+  .cw-day { border:1px solid #e6e9f0; border-radius:8px; padding:7px 9px; display:flex; flex-direction:column; gap:2px; background:#fafbff; transition:background .12s,border-color .12s; }
+  .cw-day.cw-toggle { cursor:pointer; flex-direction:row; align-items:flex-start; gap:8px; }
+  .cw-day.cw-off { opacity:.4; background:#f3f4f7; }
   .cw-day.cw-sel { border-color:#3d5afe; background:#eef1ff; }
-  .cw-day-h { font-size:.5rem; font-weight:800; letter-spacing:.02em; text-transform:uppercase; color:#8a93a6; text-align:center; }
-  .cw-day-d { font-size:.5rem; color:#b0b8c8; text-align:center; margin-top:-2px; }
-  .cw-chips { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
-  .cw-chip { height:5px; border-radius:3px; background:#cdd6e8; }
-  .cw-more { font-size:.46rem; color:#9098a8; text-align:center; line-height:1; }
-  .cw-empty { font-size:.6rem; color:#c4ccd8; text-align:center; }
+  .cw-day-h { font-size:.62rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#5a6273; }
+  .cw-day-d { font-size:.58rem; color:#b0b8c8; margin-top:-1px; }
+  .cw-day.cw-toggle .cw-day-h, .cw-day.cw-toggle .cw-day-d { text-align:left; }
+  .cw-day-body { flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .cw-day.cw-toggle .cw-day-d { display:inline; }
+  .cw-day.cw-toggle > .cw-toggle-mark { margin-top:1px; }
+  .cw-chips { display:flex; flex-direction:column; gap:3px; margin-top:3px; flex:1; }
+  .cw-task { display:flex; align-items:center; gap:5px; font-size:.68rem; color:#3a3f52; line-height:1.25; }
+  .cw-task-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .cw-task-emoji { font-size:.72rem; flex-shrink:0; }
+  .cw-task-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cw-more { font-size:.58rem; color:#9098a8; }
+  .cw-empty { font-size:.62rem; color:#c4ccd8; }
   .cw-toggle-mark { font-size:.62rem; font-weight:800; color:#3d5afe; text-align:center; }
   .copy-warn { background:#fff8ec; border:1.5px solid #f0d68a; border-radius:11px; padding:13px 14px; }
   .copy-warn b { color:#a07012; }
@@ -675,7 +687,7 @@
   body[data-theme="d"] .cw-day.cw-sel { border-color:#d6ff4a; background:#26242e; }
   body[data-theme="d"] .cw-day-h { color:#a6a4b8; }
   body[data-theme="d"] .cw-day-d { color:#6a6878; }
-  body[data-theme="d"] .cw-chip { background:#3a3846; }
+  body[data-theme="d"] .cw-task { color:#c8c6d4; }
   body[data-theme="d"] .cw-more,
   body[data-theme="d"] .cw-empty { color:#6a6878; }
   body[data-theme="d"] .cw-toggle-mark { color:#d6ff4a; }
@@ -693,6 +705,24 @@
   body[data-theme="d"] .ctx-item.danger { color:#e8607e; }
   body[data-theme="d"] .ctx-item.danger:hover { background:#2e1a20; }
   body[data-theme="d"] .ctx-divider { background:#2a2833; }
+
+  /* ── Mobile: vertical week view ── */
+  @media (max-width:640px){
+    .week-view-scroll { overflow-x:visible; margin:0; padding:0 0 8px; }
+    .week-grid { display:flex; flex-direction:column; gap:10px; }
+    .wv-col { flex-direction:row; align-items:stretch; border-radius:12px; }
+    .wv-col.today { box-shadow:0 0 0 2px rgba(61,90,254,.18); }
+    .wv-header { border-bottom:none; border-right:1px solid #edf0f4; padding:10px 6px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:64px; flex-shrink:0; }
+    .wv-col.today .wv-header { background:#f5f7ff; }
+    .wv-day-name { font-size:.6rem; }
+    .wv-day-date { font-size:1rem; margin-top:2px; }
+    .wv-tasks { padding:8px; flex:1; min-height:44px; display:flex; flex-direction:column; justify-content:center; }
+    .wv-tasks .task { font-size:.8rem; padding:8px 10px; margin-bottom:5px; }
+    .wv-tasks .task:last-child { margin-bottom:0; }
+    .wv-tasks .task .drag-handle { display:inline-block; }
+    .wv-tasks:empty::after { content:"No tasks"; font-size:.7rem; color:#c4ccd8; }
+    body[data-theme="d"] .wv-header { border-right-color:#2a2833; }
+  }
 </style>
 </head>
 <body>
@@ -4113,8 +4143,10 @@ function copyChips(day){
   const tasks=(day&&day.tasks)||[];
   if(!tasks.length) return '<div class="cw-empty">·</div>';
   let h='';
-  tasks.slice(0,4).forEach(t=>{ h+=`<div class="cw-chip" style="background:${t.color||CAT_COLOR[t.cat]||'#cdd6e8'}"></div>`; });
-  if(tasks.length>4) h+=`<div class="cw-more">+${tasks.length-4}</div>`;
+  tasks.forEach(t=>{
+    const col=t.color&&COLOR_MAP&&COLOR_MAP[t.color]?COLOR_MAP[t.color].border:(CAT_COLOR[t.cat]||'#cdd6e8');
+    h+=`<div class="cw-task"><span class="cw-task-dot" style="background:${col}"></span><span class="cw-task-emoji">${t.emoji||''}</span><span class="cw-task-name">${t.text||''}</span></div>`;
+  });
   return h;
 }
 function weekPreview(week){
@@ -4225,7 +4257,7 @@ function renderCopyStep(){
     (wk.days||[]).forEach((d,i)=>{
       const inc=f.includeDays.has(i);
       const cell=document.createElement('div'); cell.className='cw-day cw-toggle'+(inc?' cw-sel':' cw-off');
-      cell.innerHTML=`<div class="cw-toggle-mark">${inc?'✓':'○'}</div><div class="cw-day-h">${(d.name||'').slice(0,3)}</div><div class="cw-day-d">${(d.date||'').replace(/^[A-Za-z]+\s/,'')}</div><div class="cw-chips">${copyChips(d)}</div>`;
+      cell.innerHTML=`<div class="cw-toggle-mark">${inc?'✓':'○'}</div><div class="cw-day-body"><div class="cw-day-h">${(d.name||'').slice(0,3)} <span class="cw-day-d">${(d.date||'').replace(/^[A-Za-z]+\s/,'')}</span></div><div class="cw-chips">${copyChips(d)}</div></div>`;
       cell.onclick=()=>{ if(f.includeDays.has(i))f.includeDays.delete(i); else f.includeDays.add(i); renderCopyStep(); };
       grid.appendChild(cell);
     });
