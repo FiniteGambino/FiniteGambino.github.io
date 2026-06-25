@@ -310,7 +310,22 @@
 
   /* ── Copy flow sheet ── */
   .copy-step-pill { display:inline-flex; align-items:center; gap:6px; font-size:.6rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3d5afe; background:#eef1ff; border-radius:999px; padding:3px 10px; margin-bottom:10px; }
-  .cw-card { border:1.5px solid #dde1e9; border-radius:11px; padding:11px 12px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .14s,border-color .14s; }
+  .cw-card { border:1.5px solid #dde1e9; border-radius:11px; padding:11px 12px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .14s,border-color .14s,box-shadow .14s; }
+  /* Copy-day date selector */
+  .copy-datesel { display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:2px 0 12px; margin-bottom:10px; border-bottom:1px solid #e6e9f0; scrollbar-width:none; }
+  .copy-datesel::-webkit-scrollbar { display:none; }
+  .copy-datechip { flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:6px 9px; border-radius:9px; border:1.5px solid #dde1e9; background:#f5f6f8; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:all .12s; min-width:42px; min-height:38px; line-height:1.1; }
+  .copy-datechip .cdc-dow { font-size:.52rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#8a93a6; }
+  .copy-datechip .cdc-date { font-size:.7rem; font-weight:700; color:#3d5afe; white-space:nowrap; }
+  .copy-datechip.on { border-color:#3d5afe; background:#3d5afe; }
+  .copy-datechip.on .cdc-dow { color:#cfd8ff; }
+  .copy-datechip.on .cdc-date { color:#fff; }
+  .copy-daylist { display:flex; flex-direction:column; gap:8px; }
+  .copy-week-divider { display:flex; align-items:center; gap:8px; margin:8px 0 2px; font-size:.6rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#9098a8; }
+  .copy-week-divider span { flex-shrink:0; }
+  .copy-week-divider::after { content:''; flex:1; height:1px; background:#e6e9f0; }
+  .cw-card.cw-flash { animation:cwFlash .9s ease; }
+  @keyframes cwFlash { 0%,100%{ box-shadow:0 0 0 0 rgba(61,90,254,0); } 30%{ box-shadow:0 0 0 3px rgba(61,90,254,.35); } }
   .cw-card:active { background:#f0f4ff; }
   .cw-card.selected { border-color:#3d5afe; background:#eef1ff; }
   .cw-card-top { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
@@ -682,6 +697,17 @@
   body[data-theme="d"] .cw-card.selected { border-color:#d6ff4a; background:#26242e; }
   body[data-theme="d"] .cw-card-label { color:#eceaf2; }
   body[data-theme="d"] .cw-card-sub { color:#8a8898; }
+  body[data-theme="d"] .copy-datesel { background:#1b1a20; border-bottom-color:#2a2833; }
+  body[data-theme="d"] .copy-datechip { background:#141318; border-color:#2a2833; }
+  body[data-theme="d"] .copy-datechip .cdc-dow { color:#8a8898; }
+  body[data-theme="d"] .copy-datechip .cdc-date { color:#d6ff4a; }
+  body[data-theme="d"] .copy-datechip.on { background:#d6ff4a; border-color:#d6ff4a; }
+  body[data-theme="d"] .copy-datechip.on .cdc-dow { color:#3a4010; }
+  body[data-theme="d"] .copy-datechip.on .cdc-date { color:#141318; }
+  body[data-theme="d"] .copy-week-divider { color:#8a8898; }
+  body[data-theme="d"] .copy-week-divider::after { background:#2a2833; }
+  body[data-theme="d"] .cw-card.cw-flash { animation:cwFlashD .9s ease; }
+  @keyframes cwFlashD { 0%,100%{ box-shadow:0 0 0 0 rgba(214,255,74,0); } 30%{ box-shadow:0 0 0 3px rgba(214,255,74,.4); } }
   body[data-theme="d"] .cw-day { border-color:#2a2833; background:#1f1e26; }
   body[data-theme="d"] .cw-day.cw-off { background:#1a191f; }
   body[data-theme="d"] .cw-day.cw-sel { border-color:#d6ff4a; background:#26242e; }
@@ -1112,6 +1138,7 @@
     <div class="copy-step-pill" id="copyPill">Step 1</div>
     <h3 id="copyTitle">Copy</h3>
     <div class="cg-sub" id="copySub"></div>
+    <div id="copyDateSel"></div>
     <div class="cg-list" id="copyBody"></div>
     <div class="cg-footer" id="copyFooter">
       <button class="cg-cancel" id="copyBackBtn" onclick="copyBack()" style="display:none;">Back</button>
@@ -4199,20 +4226,71 @@ function renderCopyStep(){
   const body=document.getElementById('copyBody');
   const title=document.getElementById('copyTitle'), sub=document.getElementById('copySub'), pill=document.getElementById('copyPill');
   body.innerHTML='';
+  const dateSel=document.getElementById('copyDateSel'); if(dateSel) dateSel.innerHTML='';
 
   if(f.mode==='day' && f.step==='src'){
     pill.textContent='Step 1 of 2'; title.textContent='Copy a Day';
-    sub.textContent='Pick the day you want to copy.';
+    sub.textContent='Pick a date below to jump to it, or scroll.';
+
+    // Build a flat list of days-with-tasks so we can make a quick date selector
+    const entries=[];
     f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=> (wk.days||[]).forEach((d,di)=>{
       if(!(d.tasks||[]).length) return;
-      const card=document.createElement('div'); card.className='cw-card';
-      const cnt=d.tasks.length, seld=(f.srcPeriodId===p.periodId&&f.srcWIdx===wi&&f.srcDIdx===di);
-      if(seld) card.classList.add('selected');
-      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${d.name} <span style="color:#9098a8;font-weight:600;">${d.date||''}</span></span><span class="cw-card-sub">${p.periodLabel} · ${wk.week} · ${cnt} task${cnt===1?'':'s'}</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;">${dayTaskPills(d)}</div>`;
-      card.onclick=()=>{ f.srcPeriodId=p.periodId; f.srcWIdx=wi; f.srcDIdx=di; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
-      body.appendChild(card);
+      entries.push({p,wk,wi,d,di});
     })));
-    if(!body.children.length) body.innerHTML='<div style="font-size:.75rem;color:#9098a8;padding:8px;">No days with tasks to copy.</div>';
+
+    if(!entries.length){ body.innerHTML='<div style="font-size:.75rem;color:#9098a8;padding:8px;">No days with tasks to copy.</div>'; setCopyFooter({next:'Next', nextOn:false, back:false}); return; }
+
+    // ── Date selector chip row ──
+    const selBar=document.createElement('div'); selBar.className='copy-datesel';
+    entries.forEach((e,idx)=>{
+      const cid='cpsrc-'+e.p.periodId+'-'+e.wi+'-'+e.di;
+      const chip=document.createElement('button'); chip.className='copy-datechip'; chip.dataset.target=cid;
+      chip.innerHTML=`<span class="cdc-dow">${(e.d.name||'').slice(0,3)}</span><span class="cdc-date">${(e.d.date||'').replace(/^[A-Za-z]+\s/,'')}</span>`;
+      const seld=(f.srcPeriodId===e.p.periodId&&f.srcWIdx===e.wi&&f.srcDIdx===e.di);
+      if(seld) chip.classList.add('on');
+      chip.onclick=()=>{
+        f.srcPeriodId=e.p.periodId; f.srcWIdx=e.wi; f.srcDIdx=e.di;
+        document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected'));
+        document.querySelectorAll('#copyBody .copy-datechip').forEach(c=>c.classList.remove('on'));
+        chip.classList.add('on');
+        const card=document.getElementById(cid);
+        if(card){ card.classList.add('selected'); card.scrollIntoView({behavior:'smooth',block:'center'}); card.classList.add('cw-flash'); setTimeout(()=>card.classList.remove('cw-flash'),900); }
+        updateCopyNext();
+      };
+      selBar.appendChild(chip);
+    });
+    document.getElementById('copyDateSel').appendChild(selBar);
+
+    // ── Scrollable list of day cards, grouped by week with dividers ──
+    const listWrap=document.createElement('div'); listWrap.className='copy-daylist';
+    let lastGroup=null;
+    entries.forEach(e=>{
+      const groupKey=e.p.periodId+':'+e.wi;
+      if(groupKey!==lastGroup){
+        lastGroup=groupKey;
+        const div=document.createElement('div'); div.className='copy-week-divider';
+        div.innerHTML=`<span>${e.p.periodLabel} · ${e.wk.week}</span>`;
+        listWrap.appendChild(div);
+      }
+      const cid='cpsrc-'+e.p.periodId+'-'+e.wi+'-'+e.di;
+      const card=document.createElement('div'); card.className='cw-card'; card.id=cid;
+      const cnt=e.d.tasks.length, seld=(f.srcPeriodId===e.p.periodId&&f.srcWIdx===e.wi&&f.srcDIdx===e.di);
+      if(seld) card.classList.add('selected');
+      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${e.d.name} <span style="color:#9098a8;font-weight:600;">${e.d.date||''}</span></span><span class="cw-card-sub">${cnt} task${cnt===1?'':'s'}</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;">${dayTaskPills(e.d)}</div>`;
+      card.onclick=()=>{
+        f.srcPeriodId=e.p.periodId; f.srcWIdx=e.wi; f.srcDIdx=e.di;
+        document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected'));
+        document.querySelectorAll('#copyBody .copy-datechip').forEach(c=>c.classList.remove('on'));
+        card.classList.add('selected');
+        const chip=document.querySelector(`#copyBody .copy-datechip[data-target="${cid}"]`);
+        if(chip) chip.classList.add('on');
+        updateCopyNext();
+      };
+      listWrap.appendChild(card);
+    });
+    body.appendChild(listWrap);
+
     setCopyFooter({next:'Next', nextOn:f.srcDIdx!=null, back:false});
     return;
   }
@@ -4221,11 +4299,14 @@ function renderCopyStep(){
     pill.textContent = f.fromPreset ? 'Paste onto' : 'Step 2 of 2'; title.textContent='Paste Onto Which Days?';
     const src=cpDay(f.srcPeriodId,f.srcWIdx,f.srcDIdx)||{};
     sub.innerHTML=`Copying <b>${src.name||''} ${src.date||''}</b> — tick every day to paste it onto. Tick multiple if you like.`;
+    let lastG=null;
     f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=> (wk.days||[]).forEach((d,di)=>{
       if(p.periodId===f.srcPeriodId && wi===f.srcWIdx && di===f.srcDIdx) return;
+      const gKey=p.periodId+':'+wi;
+      if(gKey!==lastG){ lastG=gKey; const dv=document.createElement('div'); dv.className='copy-week-divider'; dv.innerHTML=`<span>${p.periodLabel} · ${wk.week}</span>`; body.appendChild(dv); }
       const key=p.periodId+':'+wi+':'+di, cnt=(d.tasks||[]).length;
       const card=document.createElement('div'); card.className='cw-card'+(f.destDays.has(key)?' selected':'');
-      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${d.name} <span style="color:#9098a8;font-weight:600;">${d.date||''}</span></span><span class="cw-card-sub">${p.periodLabel} · ${wk.week} · ${cnt} task${cnt===1?'':'s'}</span></div>`;
+      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${d.name} <span style="color:#9098a8;font-weight:600;">${d.date||''}</span></span><span class="cw-card-sub">${cnt} task${cnt===1?'':'s'}</span></div>`;
       card.onclick=()=>{ if(f.destDays.has(key))f.destDays.delete(key); else f.destDays.add(key); card.classList.toggle('selected'); updateCopyNext(); };
       body.appendChild(card);
     })));
