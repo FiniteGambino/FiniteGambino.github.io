@@ -3489,18 +3489,23 @@ function handleGoNext() {
   showToast('No more occurrences');
 }
 
+function normTaskText(s){ return (s||'').replace(/[\u2010-\u2015]/g,'-').replace(/\s+/g,' ').trim().toLowerCase(); }
 function selectRareTask(text) {
-  // Find first occurrence of this task in the schedule
+  const target = normTaskText(text);
+  // Find first occurrence of this task in the schedule (tolerant match)
   for (let wIdx = 0; wIdx < schedule.length; wIdx++) {
     const days = schedule[wIdx].days;
     for (let dIdx = 0; dIdx < days.length; dIdx++) {
-      const tIdx = (days[dIdx].tasks||[]).findIndex(t => t.text === text);
+      const tIdx = (days[dIdx].tasks||[]).findIndex(t => normTaskText(t.text) === target);
       if (tIdx !== -1) {
         // Deselect previous
         if (active) {
           const prev = taskEl(active);
           if (prev) prev.classList.remove('selected-1');
         }
+        // Make sure the day is expanded so the task is visible
+        const card = document.querySelector(`.day-card[data-w="${wIdx}"][data-d="${dIdx}"]`);
+        if(card){ const tl=card.querySelector('.task-list'); if(tl&&tl.classList.contains('collapsed')){ tl.classList.remove('collapsed'); const tg=card.querySelector('.day-toggle'); if(tg) tg.classList.add('open'); } }
         active = { wIdx, dIdx, tIdx };
         showToolbar(wIdx, dIdx, tIdx);
         const el = taskEl(active);
@@ -3760,9 +3765,15 @@ async function handleCalendarSync() {
       }
     } catch(_) {}
 
-    // Also count existing schedule tasks to avoid duplicating
-    const existingTasks = new Set();
-    schedule.forEach(week => week.days.forEach(day => (day.tasks||[]).forEach(t => existingTasks.add(t.text.toLowerCase()))));
+    // Also track existing schedule tasks PER DATE to avoid duplicating on the SAME day.
+    // (A title that exists on Jun 27 should NOT block adding it to Jun 28.)
+    const existingByDate = new Set();
+    schedule.forEach(week => week.days.forEach(day => {
+      const dObj = parseDayDate(day.date);
+      const dKey = dObj ? toInputDate(dObj) : '';
+      (day.tasks||[]).forEach(t => { existingByDate.add(dKey + '|' + t.text.trim().toLowerCase()); });
+    }));
+    const existsOnDate = (dateStr, title) => existingByDate.has((dateStr||'') + '|' + (title||'').trim().toLowerCase());
 
     // Helper: expand a date range into individual YYYY-MM-DD strings
     const expandDates = (startStr, endStr) => {
@@ -3803,7 +3814,7 @@ async function handleCalendarSync() {
           startDate: dateStr,
           guessedCat: cat,
           guessedEmoji: emoji,
-          ignored: existingTasks.has(title.toLowerCase()),
+          ignored: existsOnDate(dateStr, title),
           edited: false
         });
       });
@@ -3821,7 +3832,7 @@ async function handleCalendarSync() {
         startDate: dateStr,
         guessedCat: cat,
         guessedEmoji: emoji,
-        ignored: existingTasks.has(title.toLowerCase()),
+        ignored: existsOnDate(dateStr, title),
         edited: false
       });
     });
