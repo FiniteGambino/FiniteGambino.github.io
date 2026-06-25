@@ -2600,18 +2600,32 @@ function buildChipList(wrap, items, isSession) {
   });
 }
 
+function paletteActionBarDefaultHTML() {
+  return `
+    <div style="font-size:.7rem;color:#9098a8;margin-bottom:10px;">Selected: <b id="paletteSelLabel">${selectedPaletteItem ? selectedPaletteItem.emoji+' '+selectedPaletteItem.text : ''}</b></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-confirm" style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;" onclick="paletteAddToDay()">＋ Add to Day</button>
+      <button style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;background:#f3eefb;color:#6030a0;" onclick="paletteOpenAtw()">📅 Add to Week</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="deletePaletteItem()" style="flex:1;padding:8px;border-radius:8px;font-size:.75rem;font-weight:500;border:1px solid #f0c0c8;background:#fdeef1;color:#c03050;cursor:pointer;">🗑 Remove from palette</button>
+      <button onclick="clearPaletteSelection()" style="flex:1;padding:8px;border-radius:8px;font-size:.75rem;font-weight:500;border:1px solid #dde1e9;background:#f5f6f8;color:#8090a0;cursor:pointer;">Cancel</button>
+    </div>`;
+}
 function updatePaletteActionBar() {
   const bar = document.getElementById('paletteActionBar');
   if (!selectedPaletteItem) {
     bar.style.display = 'none';
+    bar.innerHTML = paletteActionBarDefaultHTML(); // reset so next selection starts clean
     return;
   }
   bar.style.display = 'block';
-  document.getElementById('paletteSelLabel').textContent = `${selectedPaletteItem.emoji} ${selectedPaletteItem.text}`;
+  bar.innerHTML = paletteActionBarDefaultHTML(); // always restore default buttons (fixes stuck add-to-week / back)
 }
 
 function clearPaletteSelection() {
   selectedPaletteItem = null;
+  window.paletteDaySel = new Set(); window.paletteDaySelWeek = null;
   buildPaletteChips();
 }
 
@@ -2678,21 +2692,45 @@ function showDayPickerForPalette(wIdx) {
     `;
     bar.style.display = 'block';
   } else {
-    // Step 2: pick day
+    // Step 2: pick day(s) — multi-select, vertical stack
     const week = schedule[wIdx];
+    if(!window.paletteDaySel || window.paletteDaySelWeek !== wIdx){ window.paletteDaySel = new Set(); window.paletteDaySelWeek = wIdx; }
     bar.innerHTML = `
-      <div style="font-size:.7rem;color:#9098a8;margin-bottom:10px;">Add <b>${selectedPaletteItem.emoji} ${selectedPaletteItem.text}</b> to ${week.week} — pick a day:</div>
+      <div style="font-size:.7rem;color:#9098a8;margin-bottom:10px;">Add <b>${selectedPaletteItem.emoji} ${selectedPaletteItem.text}</b> to ${week.week} — tap one or more days:</div>
       <div style="display:flex;flex-direction:column;gap:5px;">
-        ${week.days.map((day, dIdx) => `
-          <button onclick="paletteDropOnDay(${wIdx},${dIdx})" style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid #dde1e9;background:#f5f6f8;color:#2c2f3a;cursor:pointer;text-align:left;">
-            <span>${day.name}</span>
+        ${week.days.map((day, dIdx) => {
+          const on = window.paletteDaySel.has(dIdx);
+          return `<button onclick="togglePaletteDay(${wIdx},${dIdx})" data-pd="${dIdx}" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;font-size:.78rem;font-weight:600;border:1.5px solid ${on?'#3d5afe':'#dde1e9'};background:${on?'#eef2ff':'#f5f6f8'};color:${on?'#2c41c4':'#2c2f3a'};cursor:pointer;text-align:left;">
+            <span style="display:flex;align-items:center;gap:8px;"><span style="display:inline-flex;width:18px;height:18px;border-radius:5px;border:1.5px solid ${on?'#3d5afe':'#c2c8d4'};background:${on?'#3d5afe':'transparent'};color:#fff;align-items:center;justify-content:center;font-size:.7rem;">${on?'✓':''}</span>${day.name}</span>
             <span style="font-size:.7rem;color:#9098a8;">${day.date !== '—' ? day.date : ''}</span>
-          </button>`).join('')}
+          </button>`;
+        }).join('')}
       </div>
-      <button onclick="${schedule.length > 1 ? 'showDayPickerForPalette()' : 'updatePaletteActionBar()'}" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;font-size:.75rem;font-weight:500;border:1px solid #dde1e9;background:#f5f6f8;color:#8090a0;cursor:pointer;">↩ Back</button>
+      <button onclick="confirmPaletteMultiDay(${wIdx})" id="pdConfirm" style="width:100%;margin-top:10px;padding:11px;border-radius:8px;font-size:.8rem;font-weight:700;border:none;background:#3d5afe;color:#fff;cursor:pointer;opacity:${window.paletteDaySel.size?'1':'.45'};">Add to ${window.paletteDaySel.size||0} day${window.paletteDaySel.size===1?'':'s'}</button>
+      <button onclick="${schedule.length > 1 ? 'window.paletteDaySel=new Set();showDayPickerForPalette()' : 'window.paletteDaySel=new Set();updatePaletteActionBar()'}" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;font-size:.75rem;font-weight:500;border:1px solid #dde1e9;background:#f5f6f8;color:#8090a0;cursor:pointer;">↩ Back</button>
     `;
     bar.style.display = 'block';
   }
+}
+
+function togglePaletteDay(wIdx, dIdx){
+  if(!window.paletteDaySel) window.paletteDaySel = new Set();
+  if(window.paletteDaySel.has(dIdx)) window.paletteDaySel.delete(dIdx); else window.paletteDaySel.add(dIdx);
+  showDayPickerForPalette(wIdx);
+}
+
+function confirmPaletteMultiDay(wIdx){
+  if(!selectedPaletteItem || !window.paletteDaySel || !window.paletteDaySel.size) return;
+  pushUndo();
+  const days=[...window.paletteDaySel].sort((a,b)=>a-b);
+  days.forEach(dIdx=>{
+    schedule[wIdx].days[dIdx].tasks.push({ text:selectedPaletteItem.text, emoji:selectedPaletteItem.emoji, cat:selectedPaletteItem.cat });
+  });
+  save(); render();
+  showToast(`Added ${selectedPaletteItem.emoji} ${selectedPaletteItem.text} to ${days.length} day${days.length===1?'':'s'}`);
+  window.paletteDaySel = new Set();
+  clearPaletteSelection();
+  closePalette();
 }
 
 function paletteDropOnDay(wIdx, dIdx) {
