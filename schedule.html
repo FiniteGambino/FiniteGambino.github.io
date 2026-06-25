@@ -90,13 +90,22 @@
   .goals-toggle.open { transform:rotate(180deg); }
   .goals-met-badge { font-size:.6rem; background:#22c55e; color:#fff; border-radius:8px; padding:1px 7px; font-weight:700; display:none; }
   .goals-met-badge.visible { display:inline-block; }
+  .goals-met-badge.status-allmet { background:#22c55e; }
+  .goals-met-badge.status-ontrack { background:#a78bfa; }
+  .goals-met-badge.status-notmet { background:#f0a0a0; color:#7a2020; }
   .goals-body { padding:0 12px 12px; }
   .goal-row { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid #dde6ff; }
   .goal-row:last-child { border-bottom:none; }
   .goal-check { width:18px; height:18px; border-radius:50%; border:2px solid #c0ccf8; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:.65rem; color:#fff; transition:all .2s; }
   .goal-check.met { background:#22c55e; border-color:#22c55e; }
+  .goal-row .goal-check:not(.met) { border-color:#c0ccf8; }
   .goal-text { flex:1; font-size:.75rem; color:#3a4060; line-height:1.3; }
-  .goal-text.met { color:#22c55e; text-decoration:line-through; opacity:.7; }
+  /* on-track: green text, NO strikethrough (not done yet) */
+  .goal-text.met.ontrack { color:#16a34a; }
+  /* done (week passed, met): green + strikethrough */
+  .goal-text.met.done { color:#22c55e; text-decoration:line-through; opacity:.7; }
+  /* missed (week passed, not met): muted red */
+  .goal-text.missed { color:#b06060; }
   .goal-progress { font-size:.65rem; color:#8090a8; background:#e8eeff; border-radius:8px; padding:2px 7px; white-space:nowrap; }
   .goal-edit-btn { font-size:.75rem; color:#b0b8d0; cursor:pointer; padding:2px 4px; -webkit-tap-highlight-color:transparent; }
   .goals-add-btn { display:flex; align-items:center; gap:5px; margin-top:8px; background:none; border:1.5px dashed #c0ccf8; border-radius:7px; padding:6px 10px; font-size:.72rem; color:#6878c8; cursor:pointer; width:100%; -webkit-tap-highlight-color:transparent; }
@@ -693,6 +702,30 @@
   body[data-theme="d"] .week-count-btn { background:#26242e; border-color:#34313e; color:#d6ff4a; }
   body[data-theme="d"] .week-count-btn:hover { background:#34313e; }
   body[data-theme="d"] .week-count-val { color:#eceaf2; }
+  body[data-theme="d"] .goals-met-badge.status-ontrack { background:#8b5cf6; color:#fff; }
+  body[data-theme="d"] .goals-met-badge.status-notmet { background:#5a3838; color:#f0b0b0; }
+  body[data-theme="d"] .goal-text.met.ontrack { color:#4ade80; }
+  body[data-theme="d"] .goal-text.missed { color:#d09090; }
+
+  /* ── Per-theme control buttons (Expand/Collapse/Undo) and +/- ── */
+  /* a2 — coral */
+  body[data-theme="a2"] .ctrl-btn { background:#fff; border-color:#f0e6d8; color:#7a6a55; border-radius:12px; font-family:'Nunito'; font-weight:700; }
+  body[data-theme="a2"] .ctrl-btn:active { background:#fdeee8; color:#ff7a59; }
+  body[data-theme="a2"] #undoBtn { color:#ff7a59; }
+  body[data-theme="a2"] .week-count-btn { background:#fff5f0; border-color:#f5d6c8; color:#ff7a59; border-radius:12px; }
+  body[data-theme="a2"] .week-count-btn:hover { background:#fbe2d6; }
+  /* f — mono near-black */
+  body[data-theme="f"] .ctrl-btn { background:#fff; border-color:#e6e6ea; color:#444; font-family:'Archivo'; }
+  body[data-theme="f"] .ctrl-btn:active { background:#f0f0f2; color:#16171b; }
+  body[data-theme="f"] #undoBtn { color:#16171b; }
+  body[data-theme="f"] .week-count-btn { background:#f4f4f6; border-color:#dcdce0; color:#16171b; }
+  body[data-theme="f"] .week-count-btn:hover { background:#e8e8ec; }
+  /* c — red/cream editorial */
+  body[data-theme="c"] .ctrl-btn { background:#f7f4ee; border-color:#ddd4c2; color:#6a5e48; font-family:'Archivo'; font-weight:700; }
+  body[data-theme="c"] .ctrl-btn:active { background:#f0e6d8; color:#e0301e; }
+  body[data-theme="c"] #undoBtn { color:#e0301e; }
+  body[data-theme="c"] .week-count-btn { background:#fbeee9; border-color:#e8c4ba; color:#e0301e; }
+  body[data-theme="c"] .week-count-btn:hover { background:#f5ddd5; }
   body[data-theme="d"] .day-card.wv-drag-over { border-color:#d6ff4a !important; box-shadow:0 0 0 2px rgba(214,255,74,.2); }
   body[data-theme="d"] .day-card.wv-drag-over .task-list:empty { border-color:#d6ff4a; background:#26242e; }
   body[data-theme="d"] .palette-handle { background:#3a3846; }
@@ -2305,7 +2338,10 @@ function appConfirm(msg, title='Are you sure?', okLabel='OK', danger=false) {
   return new Promise(resolve => {
     _confirmResolveInternal = resolve;
     document.getElementById('confirmTitle').textContent = title;
-    document.getElementById('confirmMsg').textContent = msg;
+    const msgEl = document.getElementById('confirmMsg');
+    msgEl.textContent = msg;
+    msgEl.style.whiteSpace = msg.includes('\n') ? 'pre-line' : '';
+    msgEl.style.textAlign = msg.includes('\n') ? 'left' : '';
     const okBtn = document.getElementById('confirmOkBtn');
     okBtn.textContent = okLabel;
     okBtn.style.background = danger ? '#c03050' : '#3d5afe';
@@ -3182,17 +3218,102 @@ function isGoalMet(goal, wIdx) {
   return countGoalProgress(goal, wIdx) >= goal.target;
 }
 
+// Has the given week fully passed (its last dated day is before today)?
+function weekHasPassed(wIdx) {
+  const wk = schedule[wIdx];
+  if (!wk) return false;
+  let last = null;
+  wk.days.forEach(d => { const p = parseDayDate(d.date); if (p) last = p; });
+  if (!last) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  last.setHours(0,0,0,0);
+  return last < today;
+}
+
+// Overall status for a week's goals: 'none' | 'on-track' | 'all-met' | 'not-met' | 'partial'
+function weekGoalStatus(wIdx) {
+  const periodGoals = weeklyGoals[activePeriodId] || {};
+  const goals = periodGoals[wIdx] || [];
+  if (!goals.length) return 'none';
+  const allMet = goals.every(g => isGoalMet(g, wIdx));
+  const passed = weekHasPassed(wIdx);
+  if (passed) return allMet ? 'all-met' : 'not-met';
+  // current/future week
+  if (allMet) return 'on-track';
+  return 'partial';
+}
+
+// Record goal stats whenever we render a passed week (for later analytics)
+function recordGoalStats(wIdx) {
+  if (!weekHasPassed(wIdx)) return;
+  const periodGoals = weeklyGoals[activePeriodId] || {};
+  const goals = periodGoals[wIdx] || [];
+  if (!goals.length) return;
+  let stats = {};
+  try { stats = JSON.parse(localStorage.getItem('gs_goal_stats') || '{}'); } catch(_) { stats = {}; }
+  const wk = schedule[wIdx];
+  let weekKey = activePeriodId + '|w' + wIdx;
+  // Use last date as a stable identifier if available
+  let lastDate = '';
+  wk.days.forEach(d => { const p = parseDayDate(d.date); if (p) lastDate = toInputDate(p); });
+  if (lastDate) weekKey = activePeriodId + '|' + lastDate;
+  stats[weekKey] = {
+    recordedAt: new Date().toISOString().slice(0,10),
+    period: activePeriodId,
+    goals: goals.map(g => ({ text: g.text, target: g.target||0, achieved: countGoalProgress(g, wIdx), met: isGoalMet(g, wIdx) }))
+  };
+  try { localStorage.setItem('gs_goal_stats', JSON.stringify(stats)); } catch(_) {}
+}
+
+function showGoalStats() {
+  let stats = {};
+  try { stats = JSON.parse(localStorage.getItem('gs_goal_stats') || '{}'); } catch(_) { stats = {}; }
+  const weeks = Object.values(stats);
+  if (!weeks.length) { appConfirm('No completed weeks recorded yet. Stats appear here once a week with goals has fully passed.', 'Goal stats', 'OK', false); return; }
+  // Aggregate per goal text
+  const perGoal = {}; // text → {met, total}
+  let weeksAllMet = 0;
+  weeks.forEach(wk => {
+    const allMet = (wk.goals||[]).length && wk.goals.every(g => g.met);
+    if (allMet) weeksAllMet++;
+    (wk.goals||[]).forEach(g => {
+      if (!perGoal[g.text]) perGoal[g.text] = { met:0, total:0 };
+      perGoal[g.text].total++;
+      if (g.met) perGoal[g.text].met++;
+    });
+  });
+  const lines = Object.entries(perGoal)
+    .sort((a,b) => (a[1].met/a[1].total) - (b[1].met/b[1].total))
+    .map(([text, s]) => {
+      const pct = Math.round(100*s.met/s.total);
+      return `• ${text}: met ${s.met}/${s.total} weeks (${pct}%)`;
+    });
+  const summary =
+    `Weeks recorded: ${weeks.length}\n` +
+    `All goals met: ${weeksAllMet}/${weeks.length} weeks\n\n` +
+    `By goal (lowest first):\n` + lines.join('\n');
+  appConfirm(summary, '📊 Goal stats', 'OK', false);
+}
+
 function renderGoalsSection(container, wIdx) {
   const periodGoals = weeklyGoals[activePeriodId] || {};
   const goals = periodGoals[wIdx] || [];
   const colMap = goalsCollapsed[activePeriodId] || {};
   const isCollapsed = colMap[wIdx] === true;
 
-  const allMet = goals.length > 0 && goals.every(g => isGoalMet(g, wIdx));
-  const anyMet = goals.some(g => isGoalMet(g, wIdx));
+  const status = weekGoalStatus(wIdx);
+  const passed = weekHasPassed(wIdx);
+  recordGoalStats(wIdx);
 
   const card = document.createElement('div');
   card.className = 'goals-card';
+
+  // Badge by status
+  let badgeHTML = '';
+  if (status === 'all-met') badgeHTML = `<span class="goals-met-badge status-allmet visible">✓ All met</span>`;
+  else if (status === 'on-track') badgeHTML = `<span class="goals-met-badge status-ontrack visible">⟳ On track</span>`;
+  else if (status === 'not-met') badgeHTML = `<span class="goals-met-badge status-notmet visible">✕ Goal not met</span>`;
+  // 'partial' and 'none' show no badge
 
   // Header
   const hdr = document.createElement('div');
@@ -3200,9 +3321,12 @@ function renderGoalsSection(container, wIdx) {
   hdr.innerHTML = `
     <span style="font-size:.9rem;">🎯</span>
     <span class="goals-title">Weekly Goals</span>
-    ${goals.length ? `<span class="goals-met-badge${allMet?' visible':''}">✓ All met</span>` : ''}
+    ${goals.length ? badgeHTML : ''}
     ${goals.length ? `<button class="goals-copy-btn" id="goalsCopyBtn_${wIdx}">⧉ Copy</button>` : ''}
+    ${wIdx===0 ? `<button class="goals-copy-btn" id="goalsStatsBtn" title="Goal stats">📊</button>` : ''}
     <span class="goals-toggle${isCollapsed?'':' open'}">▲</span>`;
+  const statsBtnEl = hdr.querySelector('#goalsStatsBtn');
+  if (statsBtnEl) statsBtnEl.addEventListener('click', e => { e.stopPropagation(); showGoalStats(); });
   const copyBtnEl = hdr.querySelector(`#goalsCopyBtn_${wIdx}`);
   if (copyBtnEl) copyBtnEl.addEventListener('click', e => { e.stopPropagation(); openCopyGoalsSheet(wIdx); });
   hdr.addEventListener('click', () => {
@@ -3221,11 +3345,14 @@ function renderGoalsSection(container, wIdx) {
     goals.forEach((goal, gIdx) => {
       const met = isGoalMet(goal, wIdx);
       const progress = goal.target ? countGoalProgress(goal, wIdx) : null;
+      // met → green check. Strikethrough ('done') only once the week has passed.
+      const checkCls = met ? ' met' : '';
+      const textCls = met ? (passed ? ' met done' : ' met ontrack') : (passed ? ' missed' : '');
       const row = document.createElement('div');
       row.className = 'goal-row';
       row.innerHTML = `
-        <div class="goal-check${met?' met':''}">✓</div>
-        <div class="goal-text${met?' met':''}">${goal.text}</div>
+        <div class="goal-check${checkCls}">${met ? '✓' : (passed ? '✕' : '')}</div>
+        <div class="goal-text${textCls}">${goal.text}</div>
         ${goal.target ? `<span class="goal-progress">${progress}/${goal.target}</span>` : ''}
         <span class="goal-edit-btn" data-gidx="${gIdx}">✏️</span>`;
       row.querySelector('.goal-edit-btn').addEventListener('click', e => {
