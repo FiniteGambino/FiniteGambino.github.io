@@ -295,6 +295,45 @@
   .ctx-icon { font-size:.9rem; flex-shrink:0; }
   .ctx-divider { height:1px; background:#edf0f4; margin:4px 0; }
 
+  /* ── Copy Day / Copy Week buttons ── */
+  .copy-row { display:flex; justify-content:center; gap:8px; margin:-4px 0 14px; }
+  .copy-btn { display:flex; align-items:center; gap:6px; padding:7px 16px; border-radius:8px; font-size:.72rem; font-weight:600; border:1px solid #cdd9ef; background:#eef2ff; color:#3149c4; cursor:pointer; transition:background .15s,transform .1s; -webkit-tap-highlight-color:transparent; }
+  .copy-btn:active { transform:scale(.96); }
+  .copy-btn .cb-ic { font-size:.9rem; }
+  body[data-theme="d"] .copy-btn { background:#26242e; border-color:#34313e; color:#d6ff4a; }
+  body[data-theme="a2"] .copy-btn { border-radius:14px; font-family:'Nunito'; font-weight:700; }
+
+  /* ── Copy flow sheet ── */
+  .copy-step-pill { display:inline-flex; align-items:center; gap:6px; font-size:.6rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3d5afe; background:#eef1ff; border-radius:999px; padding:3px 10px; margin-bottom:10px; }
+  .cw-card { border:1.5px solid #dde1e9; border-radius:11px; padding:11px 12px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .14s,border-color .14s; }
+  .cw-card:active { background:#f0f4ff; }
+  .cw-card.selected { border-color:#3d5afe; background:#eef1ff; }
+  .cw-card-top { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .cw-card-label { font-size:.8rem; font-weight:700; color:#2c2f3a; }
+  .cw-card-sub { font-size:.64rem; color:#9098a8; margin-left:auto; }
+  .cw-preview { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .cw-day { border:1px solid #e6e9f0; border-radius:7px; padding:5px 3px; min-height:52px; display:flex; flex-direction:column; gap:3px; background:#fafbff; transition:background .12s,border-color .12s; }
+  .cw-day.cw-toggle { cursor:pointer; }
+  .cw-day.cw-off { opacity:.34; background:#f3f4f7; }
+  .cw-day.cw-sel { border-color:#3d5afe; background:#eef1ff; }
+  .cw-day-h { font-size:.5rem; font-weight:800; letter-spacing:.02em; text-transform:uppercase; color:#8a93a6; text-align:center; }
+  .cw-day-d { font-size:.5rem; color:#b0b8c8; text-align:center; margin-top:-2px; }
+  .cw-chips { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+  .cw-chip { height:5px; border-radius:3px; background:#cdd6e8; }
+  .cw-more { font-size:.46rem; color:#9098a8; text-align:center; line-height:1; }
+  .cw-empty { font-size:.6rem; color:#c4ccd8; text-align:center; }
+  .cw-toggle-mark { font-size:.62rem; font-weight:800; color:#3d5afe; text-align:center; }
+  .copy-warn { background:#fff8ec; border:1.5px solid #f0d68a; border-radius:11px; padding:13px 14px; }
+  .copy-warn b { color:#a07012; }
+  .copy-warn-txt { font-size:.76rem; color:#7a5a18; line-height:1.45; }
+  .copy-opt-toggle { display:flex; align-items:center; gap:10px; padding:11px 12px; border:1.5px solid #dde1e9; border-radius:10px; cursor:pointer; -webkit-tap-highlight-color:transparent; margin-top:4px; }
+  .copy-opt-toggle.on { border-color:#3d5afe; background:#eef1ff; }
+  .copy-opt-box { width:34px; height:20px; border-radius:999px; background:#cfd6e2; flex-shrink:0; position:relative; transition:background .18s; }
+  .copy-opt-toggle.on .copy-opt-box { background:#3d5afe; }
+  .copy-opt-box::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:transform .18s; }
+  .copy-opt-toggle.on .copy-opt-box::after { transform:translateX(14px); }
+  .copy-opt-txt { flex:1; font-size:.76rem; font-weight:600; color:#3a3f52; }
+
   /* ── Tab options modal extras ── */
   .week-count-row { display:flex; align-items:center; gap:12px; margin-top:8px; }
   .week-count-btn { width:34px; height:34px; border-radius:8px; border:1px solid #dde1e9; background:#f0f2f5; font-size:1.1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .1s; }
@@ -345,11 +384,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style id="themeCSS">
   /* ============ THEME SWITCHER BUTTON ============ */
-  #themeSwitch { position:fixed; top:9px; right:11px; z-index:300; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #dde1e9; border-radius:999px; padding:7px 13px 7px 9px; box-shadow:0 3px 16px rgba(0,0,0,.16); cursor:pointer; font:700 .72rem -apple-system,BlinkMacSystemFont,'Nunito',sans-serif; color:#2c2f3a; -webkit-tap-highlight-color:transparent; transition:transform .1s; }
+  #themeSwitch { position:fixed; top:9px; right:11px; z-index:300; display:flex; align-items:center; gap:0; background:#fff; border:1px solid #dde1e9; border-radius:999px; padding:8px; box-shadow:0 3px 16px rgba(0,0,0,.16); cursor:pointer; font:700 .72rem -apple-system,BlinkMacSystemFont,'Nunito',sans-serif; color:#2c2f3a; -webkit-tap-highlight-color:transparent; transition:transform .1s, gap .26s ease, padding .26s ease; }
   #themeSwitch:active { transform:scale(.94); }
-  #themeSwitch .ts-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; background:#ff7a59; box-shadow:inset 0 0 0 2px rgba(0,0,0,.06); }
-  #themeSwitch .ts-label { white-space:nowrap; }
-  #themeSwitch .ts-cycle { font-size:.66rem; color:#b0b8c8; font-weight:700; }
+  #themeSwitch .ts-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; background:#ff7a59; box-shadow:inset 0 0 0 2px rgba(0,0,0,.06); }
+  #themeSwitch .ts-label { white-space:nowrap; max-width:0; overflow:hidden; opacity:0; transition:max-width .28s ease, opacity .2s ease; }
+  #themeSwitch .ts-cycle { font-size:.66rem; color:#b0b8c8; font-weight:700; white-space:nowrap; max-width:0; overflow:hidden; opacity:0; transition:max-width .28s ease, opacity .2s ease; }
+  #themeSwitch.expanded { gap:8px; padding:7px 13px 7px 9px; }
+  #themeSwitch.expanded .ts-label { max-width:140px; opacity:1; }
+  #themeSwitch.expanded .ts-cycle { max-width:20px; opacity:1; }
 
   /* ============ THEME A2 — SOFT BUBBLE ============ */
   body[data-theme="a2"] { background:#fbf6ee; font-family:'Nunito',sans-serif; }
@@ -460,7 +502,7 @@
   body[data-theme="d"] .view-btn { background:#26242e; color:#9a98a8; border-color:#26242e; }
   body[data-theme="d"] .view-btn.active { background:#d6ff4a; color:#141318; border-color:#d6ff4a; }
   body[data-theme="d"] .view-btn:not(.active):hover { background:#2f2d3a; color:#cfcde0; }
-  body[data-theme="d"] .week-label { color:#6a6878; font-family:'Space Grotesk'; }
+  body[data-theme="d"] .week-label { color:#a6a4b8; font-family:'Space Grotesk'; }
   body[data-theme="d"] .goals-card { background:#1f1e26; border-color:#2a2833; }
   body[data-theme="d"] .goals-title { color:#fff; }
   body[data-theme="d"] .day-card { background:#1b1a20; border-color:#2a2833; border-radius:10px; box-shadow:none; }
@@ -601,6 +643,56 @@
   body[data-theme="d"] .color-swatch.selected { box-shadow:0 0 0 3px #d6ff4a; }
   body[data-theme="d"] .palette-panel { background:#1b1a20; border-top-color:#2a2833; color:#eceaf2; }
   body[data-theme="d"] .palette-handle { background:#3a3846; }
+
+  /* —— D Dark: copy sheets, day menu, copy flow —— */
+  body[data-theme="d"] .copy-goals-panel { background:#1b1a20; color:#eceaf2; }
+  body[data-theme="d"] .copy-goals-panel h3 { color:#fff; }
+  body[data-theme="d"] .copy-goals-panel .cg-sub { color:#9a98a8; }
+  body[data-theme="d"] .cg-sub { color:#9a98a8; }
+  body[data-theme="d"] .cg-item,
+  body[data-theme="d"] .cg-goal-item { background:#141318; border-color:#2a2833; }
+  body[data-theme="d"] .cg-item.selected,
+  body[data-theme="d"] .cg-goal-item.selected { border-color:#d6ff4a; background:#26242e; }
+  body[data-theme="d"] .cg-item-label { color:#eceaf2; }
+  body[data-theme="d"] .cg-item-sub { color:#8a8898; }
+  body[data-theme="d"] .cg-check,
+  body[data-theme="d"] .cg-goal-check { border-color:#3a3846; }
+  body[data-theme="d"] .cg-item.selected .cg-check,
+  body[data-theme="d"] .cg-goal-item.selected .cg-goal-check { background:#d6ff4a; border-color:#d6ff4a; color:#141318; }
+  body[data-theme="d"] .cg-cancel { background:#26242e; color:#9a98a8; }
+  body[data-theme="d"] .cg-confirm { background:#d6ff4a; color:#141318; }
+  body[data-theme="d"] .cg-section-title { color:#8a8898; }
+  body[data-theme="d"] .cg-divider,
+  body[data-theme="d"] .week-divider { border-top-color:#2a2833; }
+  body[data-theme="d"] .copy-step-pill { background:#26242e; color:#d6ff4a; }
+  body[data-theme="d"] .cw-card { border-color:#2a2833; background:#141318; }
+  body[data-theme="d"] .cw-card:active { background:#1f1e26; }
+  body[data-theme="d"] .cw-card.selected { border-color:#d6ff4a; background:#26242e; }
+  body[data-theme="d"] .cw-card-label { color:#eceaf2; }
+  body[data-theme="d"] .cw-card-sub { color:#8a8898; }
+  body[data-theme="d"] .cw-day { border-color:#2a2833; background:#1f1e26; }
+  body[data-theme="d"] .cw-day.cw-off { background:#1a191f; }
+  body[data-theme="d"] .cw-day.cw-sel { border-color:#d6ff4a; background:#26242e; }
+  body[data-theme="d"] .cw-day-h { color:#a6a4b8; }
+  body[data-theme="d"] .cw-day-d { color:#6a6878; }
+  body[data-theme="d"] .cw-chip { background:#3a3846; }
+  body[data-theme="d"] .cw-more,
+  body[data-theme="d"] .cw-empty { color:#6a6878; }
+  body[data-theme="d"] .cw-toggle-mark { color:#d6ff4a; }
+  body[data-theme="d"] .copy-warn { background:#2a2410; border-color:#5a4e1a; }
+  body[data-theme="d"] .copy-warn b { color:#e0c84a; }
+  body[data-theme="d"] .copy-warn-txt { color:#d8c98a; }
+  body[data-theme="d"] .copy-opt-toggle { border-color:#2a2833; }
+  body[data-theme="d"] .copy-opt-toggle.on { border-color:#d6ff4a; background:#26242e; }
+  body[data-theme="d"] .copy-opt-txt { color:#eceaf2; }
+  body[data-theme="d"] .copy-opt-box { background:#3a3846; }
+  body[data-theme="d"] .copy-opt-toggle.on .copy-opt-box { background:#d6ff4a; }
+  body[data-theme="d"] .ctx-menu { background:#1f1e26; border-color:#2a2833; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+  body[data-theme="d"] .ctx-item { color:#eceaf2; }
+  body[data-theme="d"] .ctx-item:hover { background:#26242e; }
+  body[data-theme="d"] .ctx-item.danger { color:#e8607e; }
+  body[data-theme="d"] .ctx-item.danger:hover { background:#2e1a20; }
+  body[data-theme="d"] .ctx-divider { background:#2a2833; }
 </style>
 </head>
 <body>
@@ -740,6 +832,11 @@
     <button class="view-btn" id="viewWeek" onclick="setView('week')">⊞ Week</button>
     <button class="view-btn" onclick="openPalette()" style="margin-left:6px;">＋ Add Task</button>
     <button class="view-btn" id="calImportBtn" onclick="handleCalendarImport()" style="margin-left:4px;color:#1a56db;border-color:#c3d4f8;background:#eef2ff;" title="Import events from Google Calendar">📅 Import</button>
+  </div>
+
+  <div class="copy-row">
+    <button class="copy-btn" onclick="openCopyFlow('day')"><span class="cb-ic">⧉</span> Copy Day</button>
+    <button class="copy-btn" onclick="openCopyFlow('week')"><span class="cb-ic">🗓️</span> Copy Week</button>
   </div>
 
   <div class="controls">
@@ -977,6 +1074,28 @@
       <button class="cg-confirm" id="cgConfirmBtn" onclick="confirmCopyGoals()" disabled>Copy</button>
     </div>
   </div>
+</div>
+
+<!-- Copy Day / Copy Week flow sheet -->
+<div class="copy-goals-sheet" id="copySheet">
+  <div class="copy-goals-panel" style="max-width:580px;">
+    <div class="copy-step-pill" id="copyPill">Step 1</div>
+    <h3 id="copyTitle">Copy</h3>
+    <div class="cg-sub" id="copySub"></div>
+    <div class="cg-list" id="copyBody"></div>
+    <div class="cg-footer" id="copyFooter">
+      <button class="cg-cancel" id="copyBackBtn" onclick="copyBack()" style="display:none;">Back</button>
+      <button class="cg-cancel" onclick="closeCopySheet()">Cancel</button>
+      <button class="cg-confirm" id="copyNextBtn" onclick="copyNext()" disabled>Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day context menu -->
+<div class="ctx-menu" id="dayCtxMenu">
+  <div class="ctx-item" onclick="event.stopPropagation();dayCtxCopy()"><span class="ctx-icon">⧉</span>Copy day</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item danger" onclick="event.stopPropagation();dayCtxClear()"><span class="ctx-icon">🧹</span>Clear day</div>
 </div>
 
 <!-- Weekly Goal modal -->
@@ -2086,8 +2205,15 @@ function startDrag(wIdx,dIdx,tIdx,srcEl,cx,cy){
   const computed=getComputedStyle(srcEl);
   ghost.className=`task ${cat}`;
   ghost.removeAttribute('style');
-  ghost.style.background  = srcEl.style.background  || computed.backgroundColor;
+  let _gbg = srcEl.style.background || computed.backgroundColor;
+  if (!_gbg || _gbg === 'transparent' || /rgba?\([^)]*,\s*0\s*\)/.test(_gbg)) {
+    const _card = srcEl.closest('.day-card, .wv-col');
+    _gbg = _card ? getComputedStyle(_card).backgroundColor : getComputedStyle(document.body).backgroundColor;
+  }
+  ghost.style.background  = _gbg;
+  ghost.style.opacity     = '1';
   ghost.style.border      = computed.border;
+  ghost.style.borderLeft  = computed.borderLeftWidth + ' ' + computed.borderLeftStyle + ' ' + computed.borderLeftColor;
   ghost.style.color       = srcEl.style.color       || computed.color;
   ghost.style.width       = rect.width + 'px';
   ghost.style.display     = 'flex';
@@ -3726,7 +3852,8 @@ function renderList(){
       if(isToday(day.date)) card.classList.add('today');
       const hdr=document.createElement('div'); hdr.className='day-header';
       hdr.innerHTML=`<div class="day-left"><span class="day-name">${day.name}</span><span class="day-date">${day.date}</span><span class="day-count">${day.tasks.length}</span></div><span class="day-toggle open">▲</span>`;
-      hdr.addEventListener('click',()=>toggleDay(hdr));
+      hdr.addEventListener('click',()=>{ if(hdr._suppressTap){ hdr._suppressTap=false; return; } toggleDay(hdr); });
+      attachDayMenu(hdr, wIdx, dIdx);
       card.appendChild(hdr);
       const list=document.createElement('div'); list.className='task-list';
       appendTasks(list, day.tasks||[], wIdx, dIdx);
@@ -3759,6 +3886,7 @@ function renderWeek(){
 
       const hdr=document.createElement('div'); hdr.className='wv-header';
       hdr.innerHTML=`<div class="wv-day-name">${day.name.slice(0,3)}</div><div class="wv-day-date">${day.date}</div>`;
+      attachDayMenu(hdr, wIdx, dIdx);
       col.appendChild(hdr);
 
       const taskWrap=document.createElement('div'); taskWrap.className='wv-tasks task-list';
@@ -3894,6 +4022,341 @@ function animatePaste(){
   }
 }
 
+// ── Copy Day / Copy Week ────────────────────────────────────
+const CAT_COLOR={gym:'#1e9a52',study:'#2a72c8',piano:'#7a3fc8',food:'#c2902a',health:'#c23a5e',chore:'#2a7898',burrito:'#c2682a',event:'#9030c8',rest:'#8090a0'};
+
+let copyFlow=null;
+let dayCtx=null;
+
+// Day context menu
+function attachDayMenu(el, wIdx, dIdx){
+  el.addEventListener('contextmenu', e=>{ e.preventDefault(); openDayCtxMenu(wIdx,dIdx,e.clientX,e.clientY); });
+  let lp=null;
+  el.addEventListener('touchstart', e=>{
+    lp=setTimeout(()=>{ const t=e.touches[0]; el._suppressTap=true; openDayCtxMenu(wIdx,dIdx,t.clientX,t.clientY); }, 500);
+  }, {passive:true});
+  el.addEventListener('touchend', ()=>clearTimeout(lp));
+  el.addEventListener('touchmove', ()=>clearTimeout(lp));
+}
+function openDayCtxMenu(wIdx,dIdx,x,y){
+  dayCtx={wIdx,dIdx};
+  const menu=document.getElementById('dayCtxMenu');
+  menu.classList.add('open');
+  const w=menu.offsetWidth, h=menu.offsetHeight;
+  menu.style.left=Math.min(x, window.innerWidth-w-8)+'px';
+  menu.style.top=Math.min(y, window.innerHeight-h-8)+'px';
+}
+function closeDayCtxMenu(){ document.getElementById('dayCtxMenu').classList.remove('open'); }
+document.getElementById('dayCtxMenu').addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click', ()=>closeDayCtxMenu());
+
+function dayCtxCopy(){
+  const c=dayCtx; closeDayCtxMenu(); if(!c) return;
+  openCopyFlow('day', { periodId:activePeriodId, wIdx:c.wIdx, dIdx:c.dIdx, fromPreset:true });
+}
+function dayCtxClear(){
+  const c=dayCtx; closeDayCtxMenu(); if(!c) return;
+  const day=schedule[c.wIdx]&&schedule[c.wIdx].days[c.dIdx]; if(!day) return;
+  const n=(day.tasks||[]).length;
+  appConfirm(`Clear all ${n} task${n===1?'':'s'} from ${day.name} ${day.date||''}? You can undo right after.`, 'Clear day?', 'Clear', true).then(ok=>{
+    if(!ok) return;
+    pushUndo();
+    schedule[c.wIdx].days[c.dIdx].tasks=[];
+    save(); render();
+    showToast('Day cleared');
+  });
+}
+
+// Data helpers
+async function loadPeriodWeeks(periodId){
+  try{
+    if(db&&fsFns){ const {ref,get}=fsFns; const snap=await get(ref(db,`schedule/periods/${periodId}/weeks`)); return snap.val()||[]; }
+    const saved=localStorage.getItem('gs_v9_'+periodId); const data=saved?JSON.parse(saved):null; return data?(data.weeks||data||[]):[];
+  }catch(e){ return []; }
+}
+async function loadAllPeriodsWeeks(){
+  const out=[];
+  for(const p of periods){
+    let weeks;
+    if(p.id===activePeriodId) weeks=JSON.parse(JSON.stringify(schedule));
+    else weeks=await loadPeriodWeeks(p.id);
+    out.push({periodId:p.id, periodLabel:p.label, weeks: weeks||[]});
+  }
+  return out;
+}
+async function applyCopyToPeriod(pid, weeks){
+  if(pid===activePeriodId){
+    schedule=weeks;
+    if(db&&fsFns) await savePeriod(); else localSave();
+  } else {
+    if(db&&fsFns){ const {ref,set}=fsFns; await set(ref(db,`schedule/periods/${pid}/weeks`), weeks); }
+    else { try{ localStorage.setItem('gs_v9_'+pid, JSON.stringify(weeks)); }catch(_){} }
+  }
+}
+async function getPeriodGoals(pid){
+  if(weeklyGoals[pid]) return weeklyGoals[pid];
+  let g={};
+  try{
+    if(db&&fsFns){ const {ref,get}=fsFns; const snap=await get(ref(db,'schedule/goals/'+pid)); g=snap.val()||{}; }
+    else { const raw=localStorage.getItem('gs_goals_'+pid); g=raw?JSON.parse(raw):{}; }
+  }catch(_){ g={}; }
+  weeklyGoals[pid]=g; return g;
+}
+
+// Cache accessors
+function cpPeriod(pid){ return copyFlow.allPeriods.find(p=>p.periodId===pid); }
+function cpWeek(pid,wi){ const p=cpPeriod(pid); return p&&p.weeks[wi]; }
+function cpDay(pid,wi,di){ const w=cpWeek(pid,wi); return w&&w.days&&w.days[di]; }
+
+// Preview builders
+function copyChips(day){
+  const tasks=(day&&day.tasks)||[];
+  if(!tasks.length) return '<div class="cw-empty">·</div>';
+  let h='';
+  tasks.slice(0,4).forEach(t=>{ h+=`<div class="cw-chip" style="background:${t.color||CAT_COLOR[t.cat]||'#cdd6e8'}"></div>`; });
+  if(tasks.length>4) h+=`<div class="cw-more">+${tasks.length-4}</div>`;
+  return h;
+}
+function weekPreview(week){
+  let h='<div class="cw-preview">';
+  (week.days||[]).forEach(d=>{
+    h+=`<div class="cw-day"><div class="cw-day-h">${(d.name||'').slice(0,3)}</div><div class="cw-day-d">${(d.date||'').replace(/^[A-Za-z]+\s/,'')}</div><div class="cw-chips">${copyChips(d)}</div></div>`;
+  });
+  return h+'</div>';
+}
+function dayTaskPills(d){
+  const tasks=(d.tasks||[]);
+  if(!tasks.length) return '<span style="font-size:.66rem;color:#c4ccd8;">No tasks</span>';
+  return tasks.map(t=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.64rem;background:#f0f2f7;border-radius:6px;padding:2px 7px;color:#4a5060;"><span>${t.emoji||''}</span>${t.text}</span>`).join('');
+}
+
+function setCopyFooter(opts){
+  const nb=document.getElementById('copyNextBtn'), bb=document.getElementById('copyBackBtn');
+  if(opts.custom){ nb.style.display='none'; }
+  else { nb.style.display=''; nb.textContent=opts.next||'Next'; nb.disabled=!opts.nextOn; }
+  bb.style.display=opts.back?'':'none';
+}
+function updateCopyNext(){
+  const f=copyFlow; if(!f) return;
+  let on=false;
+  if(f.mode==='day'){ on = f.step==='src' ? (f.srcDIdx!=null) : f.destDays.size>0; }
+  else { on = f.step==='src' ? !!f.srcKey : f.step==='days' ? f.includeDays.size>0 : !!f.destWeek; }
+  document.getElementById('copyNextBtn').disabled=!on;
+}
+
+async function openCopyFlow(mode, preset){
+  const sheet=document.getElementById('copySheet');
+  copyFlow={ mode, allPeriods:[], srcPeriodId:null, srcWIdx:null, srcDIdx:null, srcKey:null,
+             includeDays:new Set(), includeGoals:true, destDays:new Set(), destWeek:null,
+             fromPreset:!!(preset&&preset.fromPreset), step:'src', _daysInit:false };
+  document.getElementById('copyBody').innerHTML='<div style="font-size:.75rem;color:#9098a8;padding:8px;">Loading…</div>';
+  document.getElementById('copyPill').textContent='…';
+  document.getElementById('copyTitle').textContent = mode==='day'?'Copy a Day':'Copy a Week';
+  document.getElementById('copySub').textContent='';
+  setCopyFooter({next:'Next', nextOn:false, back:false});
+  sheet.classList.add('open');
+  copyFlow.allPeriods=await loadAllPeriodsWeeks();
+  if(preset){ copyFlow.srcPeriodId=preset.periodId; copyFlow.srcWIdx=preset.wIdx; copyFlow.srcDIdx=preset.dIdx; copyFlow.step='dest'; }
+  renderCopyStep();
+}
+function closeCopySheet(){ document.getElementById('copySheet').classList.remove('open'); copyFlow=null; }
+document.getElementById('copySheet').addEventListener('click',e=>{ if(e.target.id==='copySheet') closeCopySheet(); });
+
+function renderCopyStep(){
+  const f=copyFlow; if(!f) return;
+  const body=document.getElementById('copyBody');
+  const title=document.getElementById('copyTitle'), sub=document.getElementById('copySub'), pill=document.getElementById('copyPill');
+  body.innerHTML='';
+
+  if(f.mode==='day' && f.step==='src'){
+    pill.textContent='Step 1 of 2'; title.textContent='Copy a Day';
+    sub.textContent='Pick the day you want to copy.';
+    f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=> (wk.days||[]).forEach((d,di)=>{
+      if(!(d.tasks||[]).length) return;
+      const card=document.createElement('div'); card.className='cw-card';
+      const cnt=d.tasks.length, seld=(f.srcPeriodId===p.periodId&&f.srcWIdx===wi&&f.srcDIdx===di);
+      if(seld) card.classList.add('selected');
+      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${d.name} <span style="color:#9098a8;font-weight:600;">${d.date||''}</span></span><span class="cw-card-sub">${p.periodLabel} · ${wk.week} · ${cnt} task${cnt===1?'':'s'}</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;">${dayTaskPills(d)}</div>`;
+      card.onclick=()=>{ f.srcPeriodId=p.periodId; f.srcWIdx=wi; f.srcDIdx=di; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
+      body.appendChild(card);
+    })));
+    if(!body.children.length) body.innerHTML='<div style="font-size:.75rem;color:#9098a8;padding:8px;">No days with tasks to copy.</div>';
+    setCopyFooter({next:'Next', nextOn:f.srcDIdx!=null, back:false});
+    return;
+  }
+
+  if(f.mode==='day' && f.step==='dest'){
+    pill.textContent = f.fromPreset ? 'Paste onto' : 'Step 2 of 2'; title.textContent='Paste Onto Which Days?';
+    const src=cpDay(f.srcPeriodId,f.srcWIdx,f.srcDIdx)||{};
+    sub.innerHTML=`Copying <b>${src.name||''} ${src.date||''}</b> — tick every day to paste it onto. Tick multiple if you like.`;
+    f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=> (wk.days||[]).forEach((d,di)=>{
+      if(p.periodId===f.srcPeriodId && wi===f.srcWIdx && di===f.srcDIdx) return;
+      const key=p.periodId+':'+wi+':'+di, cnt=(d.tasks||[]).length;
+      const card=document.createElement('div'); card.className='cw-card'+(f.destDays.has(key)?' selected':'');
+      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${d.name} <span style="color:#9098a8;font-weight:600;">${d.date||''}</span></span><span class="cw-card-sub">${p.periodLabel} · ${wk.week} · ${cnt} task${cnt===1?'':'s'}</span></div>`;
+      card.onclick=()=>{ if(f.destDays.has(key))f.destDays.delete(key); else f.destDays.add(key); card.classList.toggle('selected'); updateCopyNext(); };
+      body.appendChild(card);
+    })));
+    setCopyFooter({next:'Paste', nextOn:f.destDays.size>0, back:!f.fromPreset});
+    return;
+  }
+
+  if(f.mode==='week' && f.step==='src'){
+    pill.textContent='Step 1 of 3'; title.textContent='Copy a Week';
+    sub.textContent='Pick the week to copy — the preview shows each day’s tasks.';
+    f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=>{
+      const key=p.periodId+':'+wi;
+      const total=(wk.days||[]).reduce((a,d)=>a+((d.tasks||[]).length),0);
+      const card=document.createElement('div'); card.className='cw-card'+(f.srcKey===key?' selected':'');
+      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${wk.week}</span><span class="cw-card-sub">${p.periodLabel} · ${total} task${total===1?'':'s'}</span></div>${weekPreview(wk)}`;
+      card.onclick=()=>{ f.srcKey=key; f.srcPeriodId=p.periodId; f.srcWIdx=wi; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
+      body.appendChild(card);
+    }));
+    setCopyFooter({next:'Next', nextOn:!!f.srcKey, back:false});
+    return;
+  }
+
+  if(f.mode==='week' && f.step==='days'){
+    pill.textContent='Step 2 of 3'; title.textContent='Which Days to Copy?';
+    const wk=cpWeek(f.srcPeriodId,f.srcWIdx)||{days:[]};
+    sub.innerHTML=`From <b>${wk.week||''}</b> — tap a day to include or skip it.`;
+    if(!f._daysInit){ f.includeDays=new Set(); (wk.days||[]).forEach((d,i)=>f.includeDays.add(i)); f._daysInit=true; }
+    const grid=document.createElement('div'); grid.className='cw-preview';
+    (wk.days||[]).forEach((d,i)=>{
+      const inc=f.includeDays.has(i);
+      const cell=document.createElement('div'); cell.className='cw-day cw-toggle'+(inc?' cw-sel':' cw-off');
+      cell.innerHTML=`<div class="cw-toggle-mark">${inc?'✓':'○'}</div><div class="cw-day-h">${(d.name||'').slice(0,3)}</div><div class="cw-day-d">${(d.date||'').replace(/^[A-Za-z]+\s/,'')}</div><div class="cw-chips">${copyChips(d)}</div>`;
+      cell.onclick=()=>{ if(f.includeDays.has(i))f.includeDays.delete(i); else f.includeDays.add(i); renderCopyStep(); };
+      grid.appendChild(cell);
+    });
+    body.appendChild(grid);
+    const gt=document.createElement('div'); gt.className='copy-opt-toggle'+(f.includeGoals?' on':''); gt.style.marginTop='14px';
+    gt.innerHTML=`<div class="copy-opt-box"></div><div class="copy-opt-txt">Also copy this week’s goals</div>`;
+    gt.onclick=()=>{ f.includeGoals=!f.includeGoals; gt.classList.toggle('on'); };
+    body.appendChild(gt);
+    setCopyFooter({next:'Next', nextOn:f.includeDays.size>0, back:true});
+    return;
+  }
+
+  if(f.mode==='week' && f.step==='dest'){
+    pill.textContent='Step 3 of 3'; title.textContent='Paste Onto Which Week?';
+    sub.textContent='Pick the week to paste into — dates stay as the destination’s own dates.';
+    f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=>{
+      const key=p.periodId+':'+wi; if(key===f.srcKey) return;
+      const total=(wk.days||[]).reduce((a,d)=>a+((d.tasks||[]).length),0);
+      const card=document.createElement('div'); card.className='cw-card'+(f.destWeek===key?' selected':'');
+      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${wk.week}</span><span class="cw-card-sub">${p.periodLabel} · ${total} task${total===1?'':'s'}</span></div>${weekPreview(wk)}`;
+      card.onclick=()=>{ f.destWeek=key; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
+      body.appendChild(card);
+    }));
+    setCopyFooter({next:'Paste', nextOn:!!f.destWeek, back:true});
+    return;
+  }
+
+  if(f.step==='warn'){
+    pill.textContent='Heads up'; title.textContent='Overwrite warning';
+    sub.textContent='Some destination days already have tasks.';
+    const warn=document.createElement('div'); warn.className='copy-warn';
+    warn.innerHTML=`<div class="copy-warn-txt">⚠️ <b>${f._conflictCount} day${f._conflictCount===1?'':'s'}</b> at the destination already ${f._conflictCount===1?'has':'have'} tasks.<br><br><b>Replace</b> clears those days first, then pastes. <b>Merge</b> keeps what’s there and adds the copied tasks on top.</div>`;
+    body.appendChild(warn);
+    const btns=document.createElement('div'); btns.style.cssText='display:flex;gap:8px;margin-top:14px;';
+    btns.innerHTML=`<button class="cg-confirm" style="flex:1;background:#c03050;" onclick="copyApply('replace')">Replace</button><button class="cg-confirm" style="flex:1;background:#2e8a5a;" onclick="copyApply('merge')">Merge</button>`;
+    body.appendChild(btns);
+    setCopyFooter({custom:true, back:true});
+    return;
+  }
+}
+
+function copyNext(){
+  const f=copyFlow; if(!f) return;
+  if(f.mode==='day'){
+    if(f.step==='src'){ f.step='dest'; renderCopyStep(); return; }
+    if(f.step==='dest'){ proceedToApply(); return; }
+  } else {
+    if(f.step==='src'){ f.step='days'; f._daysInit=false; renderCopyStep(); return; }
+    if(f.step==='days'){ f.step='dest'; renderCopyStep(); return; }
+    if(f.step==='dest'){ proceedToApply(); return; }
+  }
+}
+function copyBack(){
+  const f=copyFlow; if(!f) return;
+  if(f.mode==='day'){
+    if(f.step==='dest' && !f.fromPreset){ f.step='src'; renderCopyStep(); return; }
+    if(f.step==='warn'){ f.step='dest'; renderCopyStep(); return; }
+  } else {
+    if(f.step==='days'){ f.step='src'; renderCopyStep(); return; }
+    if(f.step==='dest'){ f.step='days'; renderCopyStep(); return; }
+    if(f.step==='warn'){ f.step='dest'; renderCopyStep(); return; }
+  }
+}
+
+function proceedToApply(){
+  const f=copyFlow; let conflict=0;
+  if(f.mode==='day'){
+    f.destDays.forEach(key=>{ const a=key.split(':'); const d=cpDay(a[0],+a[1],+a[2]); if(d&&(d.tasks||[]).length) conflict++; });
+  } else {
+    const a=f.destWeek.split(':'); const wk=cpWeek(a[0],+a[1]);
+    f.includeDays.forEach(i=>{ const d=wk&&wk.days&&wk.days[i]; if(d&&(d.tasks||[]).length) conflict++; });
+  }
+  if(conflict>0){ f._conflictCount=conflict; f.step='warn'; renderCopyStep(); }
+  else copyApply('merge');
+}
+
+async function copyApply(applyMode){
+  const f=copyFlow; if(!f) return;
+  const mode=f.mode;
+  closeCopySheet();
+  const activeSnap=JSON.stringify(schedule);
+  const liveCache={};
+  const touched=new Set();
+  async function getLive(pid){
+    if(liveCache[pid]) return liveCache[pid];
+    liveCache[pid] = (pid===activePeriodId) ? schedule : await loadPeriodWeeks(pid);
+    return liveCache[pid];
+  }
+
+  if(mode==='day'){
+    const srcTasks=JSON.parse(JSON.stringify((cpDay(f.srcPeriodId,f.srcWIdx,f.srcDIdx)||{}).tasks||[]));
+    for(const key of f.destDays){
+      const a=key.split(':'); const pid=a[0], wi=+a[1], di=+a[2];
+      const weeks=await getLive(pid); const day=weeks&&weeks[wi]&&weeks[wi].days&&weeks[wi].days[di]; if(!day) continue;
+      const add=srcTasks.map(t=>({...t}));
+      day.tasks = applyMode==='replace' ? add : [...(day.tasks||[]), ...add];
+      touched.add(pid);
+    }
+  } else {
+    const a=f.destWeek.split(':'); const dpid=a[0], dwi=+a[1];
+    const srcWk=cpWeek(f.srcPeriodId,f.srcWIdx);
+    const weeks=await getLive(dpid); const destWk=weeks&&weeks[dwi];
+    if(destWk){
+      f.includeDays.forEach(i=>{
+        const sd=srcWk&&srcWk.days&&srcWk.days[i]; const dd=destWk.days&&destWk.days[i]; if(!sd||!dd) return;
+        const add=(sd.tasks||[]).map(t=>({...t}));
+        dd.tasks = applyMode==='replace' ? add : [...(dd.tasks||[]), ...add];
+      });
+      touched.add(dpid);
+    }
+    if(f.includeGoals) await copyGoalsWeek(f.srcPeriodId,f.srcWIdx,dpid,dwi,applyMode);
+  }
+
+  if(touched.has(activePeriodId)){ undoStack.push(activeSnap); if(undoStack.length>UNDO_LIMIT) undoStack.shift(); updateUndoBtn(); }
+  for(const pid of touched){ await applyCopyToPeriod(pid, liveCache[pid]); }
+  render();
+  showToast(mode==='day' ? 'Day copied ✓' : 'Week copied ✓');
+}
+
+async function copyGoalsWeek(srcPid,srcWi,dpid,dwi,applyMode){
+  const srcGoals=await getPeriodGoals(srcPid);
+  const sg=((srcGoals[srcWi]||[])).map(g=>({...g, id:Date.now()+Math.random()}));
+  if(!sg.length && applyMode!=='replace') return;
+  const destGoals=await getPeriodGoals(dpid);
+  const existing=destGoals[dwi]||[];
+  destGoals[dwi] = applyMode==='replace' ? sg : [...existing, ...sg.filter(x=>!existing.some(e=>e.text===x.text))];
+  weeklyGoals[dpid]=destGoals;
+  try{ localStorage.setItem('gs_goals_'+dpid, JSON.stringify(destGoals)); }catch(_){}
+  if(db&&fsFns){ const {ref,set}=fsFns; try{ await set(ref(db,'schedule/goals/'+dpid), destGoals); }catch(_){} }
+}
+
 // ── Theme switcher ──────────────────────────────────────────
 const THEMES = [
   { id:'a2', name:'Soft Bubble', dot:'#ff7a59' },
@@ -3910,7 +4373,15 @@ function applyTheme(i) {
   if (b) { b.querySelector('.ts-dot').style.background = t.dot; b.querySelector('.ts-label').textContent = t.name; }
   try { localStorage.setItem('gs_theme', t.id); } catch(_) {}
 }
-function cycleTheme() { applyTheme(themeIdx + 1); }
+function cycleTheme() {
+  applyTheme(themeIdx + 1);
+  const b = document.getElementById('themeSwitch');
+  if (b) {
+    b.classList.add('expanded');
+    clearTimeout(b._collapseT);
+    b._collapseT = setTimeout(() => b.classList.remove('expanded'), 1600);
+  }
+}
 (function initTheme() {
   let saved = 'a2';
   try { saved = localStorage.getItem('gs_theme') || 'a2'; } catch(_) {}
