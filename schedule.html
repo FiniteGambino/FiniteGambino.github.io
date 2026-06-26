@@ -822,7 +822,7 @@
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js");
     const { getDatabase, ref, set, get, onValue, off, child, push } =
       await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js");
-    const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } =
+    const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } =
       await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js");
 
     const firebaseConfig = {
@@ -866,18 +866,36 @@
       }
     });
 
+    // Check for redirect result on page load (mobile sign-in returns here)
+    try {
+      const redirectResult = await getRedirectResult(auth);
+      if (redirectResult) {
+        const credential = GoogleAuthProvider.credentialFromResult(redirectResult);
+        if (credential && credential.accessToken) {
+          window._googleAccessToken = credential.accessToken;
+          localStorage.setItem('gs_google_token', credential.accessToken);
+          showToast('Signed in — calendar access granted');
+        }
+      }
+    } catch(e) { /* no redirect result, that is fine */ }
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     window._signIn = async () => {
       try {
         const provider = new GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
         provider.addScope('https://www.googleapis.com/auth/tasks.readonly');
-        // Force consent screen so Google always grants the calendar scope
         provider.setCustomParameters({ prompt: 'consent', access_type: 'online' });
-        const result = await signInWithPopup(auth, provider);
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        window._googleAccessToken = credential.accessToken;
-        localStorage.setItem('gs_google_token', credential.accessToken);
-        showToast('Signed in — calendar access granted');
+        if (isMobile) {
+          await signInWithRedirect(auth, provider);
+        } else {
+          const result = await signInWithPopup(auth, provider);
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          window._googleAccessToken = credential.accessToken;
+          localStorage.setItem('gs_google_token', credential.accessToken);
+          showToast('Signed in — calendar access granted');
+        }
       } catch(e) {
         if (e.code !== 'auth/popup-closed-by-user') showToast('Sign-in failed: ' + e.message);
       }
