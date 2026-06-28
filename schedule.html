@@ -812,6 +812,7 @@
     body[data-theme="d"] .wv-header { border-right-color:#2a2833; }
   }
 </style>
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
 
@@ -822,7 +823,7 @@
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js");
     const { getDatabase, ref, set, get, onValue, off, child, push } =
       await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js");
-    const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } =
+    const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged } =
       await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js");
 
     const firebaseConfig = {
@@ -868,21 +869,53 @@
           displayName: user.displayName, photoURL: user.photoURL
         }));
         updateAuthUI(user);
+        hideSignInPrompt();
         user.getIdToken().then(token => { window._fbIdToken = token; });
       } else {
-        // No user — sign in silently in background (no lock screen)
+        // No user — trigger Google Identity Services sign-in (works on PWA, no popup)
         localStorage.removeItem('gs_auth_user');
         window._googleAccessToken = null;
         updateAuthUI(null);
-        // Try silent sign-in; if popup is blocked (mobile), show a sign-in button
-        if (window._signIn) {
-          window._signIn().catch(() => { showSignInPrompt(); });
-        }
+        initGoogleSignIn();
       }
     });
 
+    // Handle the credential returned by Google Identity Services
+    window._handleGoogleCredential = async (response) => {
+      try {
+        const credential = GoogleAuthProvider.credential(response.credential);
+        await signInWithCredential(auth, credential);
+        hideSignInPrompt();
+      } catch(e) {
+        showToast('Sign-in failed: ' + (e.message || e));
+        showSignInPrompt();
+      }
+    };
+
+    // Initialize Google Identity Services
+    function initGoogleSignIn() {
+      const CLIENT_ID = '1098701382105-48qhhiak1u2ueb62786i1j507g6w1qpl.apps.googleusercontent.com';
+      // Wait for the GIS library to load
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setTimeout(initGoogleSignIn, 300);
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: window._handleGoogleCredential,
+        auto_select: true,
+        use_fedcm_for_prompt: true
+      });
+      // Try One Tap auto sign-in; if it doesn't show, render a button
+      google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          showSignInPrompt();
+        }
+      });
+    }
+
+    // Legacy popup fallback (desktop, if user clicks the rendered button)
     window._signIn = async () => {
-      // Firebase login only — calendar access comes from the Vercel backend
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       hideSignInPrompt();
@@ -3777,16 +3810,25 @@ function showSignInPrompt() {
   if (document.getElementById('signInPrompt')) return;
   const bar = document.createElement('div');
   bar.id = 'signInPrompt';
-  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#4355f9;color:#fff;padding:14px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:.9rem;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.15);';
+  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#4355f9;color:#fff;padding:14px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:.9rem;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.15);flex-wrap:wrap;';
   bar.innerHTML = '<span>Sign in to load your schedule</span>';
-  const btn = document.createElement('button');
-  btn.textContent = 'Sign in with Google';
-  btn.style.cssText = 'background:#fff;color:#1a1f36;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;';
-  btn.onclick = async () => {
-    try { await window._signIn(); } catch(e) { showToast('Sign-in failed: ' + (e.message||e)); }
-  };
-  bar.appendChild(btn);
+  const btnHost = document.createElement('div');
+  btnHost.id = 'gisButtonHost';
+  bar.appendChild(btnHost);
   document.body.appendChild(bar);
+  // Render the official Google Identity Services button (works in PWA, no popup)
+  try {
+    if (window.google && google.accounts && google.accounts.id) {
+      google.accounts.id.renderButton(btnHost, { theme: 'filled_blue', size: 'large', text: 'signin_with' });
+    } else {
+      // Fallback to popup button if GIS not loaded
+      const btn = document.createElement('button');
+      btn.textContent = 'Sign in with Google';
+      btn.style.cssText = 'background:#fff;color:#1a1f36;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;';
+      btn.onclick = async () => { try { await window._signIn(); } catch(e) { showToast('Sign-in failed: ' + (e.message||e)); } };
+      btnHost.appendChild(btn);
+    }
+  } catch(e) {}
 }
 
 function hideSignInPrompt() {
