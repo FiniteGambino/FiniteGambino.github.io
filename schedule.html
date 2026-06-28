@@ -303,6 +303,21 @@
 
   .clipboard-bar { text-align:center; font-size:.65rem; color:#8a6010; margin-bottom:10px; min-height:16px; }
 
+  /* ── Today preview (pinned at top) ── */
+  .tp-card { background:#f5f7ff; border:1px solid #d6e0ff; border-radius:12px; padding:13px 15px; }
+  .tp-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .tp-pin { font-size:.82rem; }
+  .tp-label { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3d5afe; flex:1; }
+  .tp-count { font-size:.62rem; font-weight:600; color:#3d5afe; background:#e2e9ff; border-radius:10px; padding:1px 8px; }
+  .tp-pills { display:flex; flex-wrap:wrap; gap:6px; }
+  .tp-empty { font-size:.75rem; color:#9098a8; }
+  .tp-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:8px; font-size:.78rem; font-weight:600; background:#fff; border:1px solid #e2e8f4; color:#2c2f3a; }
+  .tp-dot { width:7px; height:7px; border-radius:50%; background:#8090a0; flex-shrink:0; }
+  .tp-pill.gym .tp-dot{background:#2e9a5c} .tp-pill.study .tp-dot{background:#2060a0} .tp-pill.piano .tp-dot{background:#6030a0}
+  .tp-pill.food .tp-dot{background:#8a6010} .tp-pill.health .tp-dot{background:#a02040} .tp-pill.chore .tp-dot{background:#2a5870}
+  .tp-pill.burrito .tp-dot{background:#8a4810} .tp-pill.event .tp-dot{background:#7020a0} .tp-pill.rest .tp-dot{background:#8090a0}
+  .tp-emoji { font-size:.82rem; }
+
   .toast { position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-70px); background:#3d5afe; color:#fff; font-size:.75rem; font-weight:600; padding:8px 18px; border-radius:20px; transition:transform .3s cubic-bezier(.34,1.56,.64,1); z-index:500; white-space:nowrap; pointer-events:none; }
   .toast.show { transform:translateX(-50%) translateY(0); }
 
@@ -491,6 +506,14 @@
   body[data-theme="f"] .day-name { font-family:'Archivo'; font-weight:600; text-transform:none; color:#16171b; font-size:.94rem; }
   body[data-theme="f"] .day-date { font-family:'Space Grotesk'; background:transparent; color:#b0b2ba; padding:0; font-weight:500; }
   body[data-theme="f"] .day-card.today .day-date { background:#16171b; color:#fff; padding:2px 7px; border-radius:5px; }
+  body[data-theme="f"] .day-card.today { background:#16171b; border:none; border-radius:8px; padding:4px 14px 10px; margin-bottom:22px; box-shadow:none; }
+  body[data-theme="f"] .day-card.today .day-header { background:transparent; padding:8px 0 6px; }
+  body[data-theme="f"] .day-card.today .day-name { color:#fff; }
+  body[data-theme="f"] .day-card.today .day-date { background:#fff; color:#16171b; }
+  body[data-theme="f"] .day-card.today .day-count { color:#9a9ca4; }
+  body[data-theme="f"] .day-card.today .day-toggle { color:#9a9ca4; }
+  body[data-theme="f"] .day-card.today .task { border-top-color:rgba(255,255,255,.1) !important; color:#f2f2f4; }
+  body[data-theme="f"] .day-card.today .task-text { color:#f2f2f4; }
   body[data-theme="f"] .day-count { font-family:'Space Grotesk'; background:transparent; color:#c8cace; }
   body[data-theme="f"] .task-list { padding:0 2px; }
   body[data-theme="f"] .task { background:transparent !important; border:none !important; border-top:1px solid #f3f3f5 !important; border-radius:0; padding:11px 0 11px 14px; position:relative; color:#2a2c34; font-family:'Archivo'; font-weight:500; font-size:.9rem; margin-bottom:0; }
@@ -730,10 +753,34 @@
   body[data-theme="c"] .week-count-btn { background:#fbeee9; border-color:#e8c4ba; color:#e0301e; }
   body[data-theme="c"] .week-count-btn:hover { background:#f5ddd5; }
   body[data-theme="d"] .day-card.wv-drag-over { border-color:#d6ff4a !important; box-shadow:0 0 0 2px rgba(214,255,74,.2); }
-  body[data-theme="d"] #todayPreview > div { background:#1b1a20 !important; border-color:#2a2833 !important; }
-  body[data-theme="d"] #todayPreview span[style*="color:#3d5afe"] { color:#d6ff4a !important; }
   body[data-theme="d"] .day-card.wv-drag-over .task-list:empty { border-color:#d6ff4a; background:#26242e; }
   body[data-theme="d"] .palette-handle { background:#3a3846; }
+
+  /* ── Today preview — per theme ── */
+  /* a2 Soft Bubble */
+  body[data-theme="a2"] .tp-card { background:#fffaf3; border:2px solid #ffd9c9; border-radius:20px; box-shadow:0 3px 12px rgba(255,122,89,.1); }
+  body[data-theme="a2"] .tp-label { color:#ff7a59; font-family:'Baloo 2',cursive; text-transform:none; letter-spacing:0; font-size:.82rem; }
+  body[data-theme="a2"] .tp-count { color:#fff; background:#ff7a59; }
+  body[data-theme="a2"] .tp-pill { background:#fff; border-color:#ffe2d6; border-radius:14px; color:#2c2722; font-family:'Nunito',sans-serif; }
+  /* f Minimal */
+  body[data-theme="f"] .tp-card { background:#16171b; border:none; border-radius:10px; padding:14px 16px; }
+  body[data-theme="f"] .tp-label { color:#fff; font-family:'Archivo'; font-weight:600; text-transform:none; letter-spacing:.02em; }
+  body[data-theme="f"] .tp-count { color:#16171b; background:#fff; }
+  body[data-theme="f"] .tp-pin { filter:grayscale(1) brightness(2.2); }
+  body[data-theme="f"] .tp-pill { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); color:#f2f2f4; font-family:'Archivo'; font-weight:500; }
+  body[data-theme="f"] .tp-emoji { opacity:.9; }
+  /* c Editorial */
+  body[data-theme="c"] .tp-card { background:#1a160e; border:none; border-radius:6px; padding:14px 16px; }
+  body[data-theme="c"] .tp-label { color:#f7f4ee; font-family:'Archivo'; font-weight:900; text-transform:uppercase; }
+  body[data-theme="c"] .tp-count { color:#1a160e; background:#e0301e; }
+  body[data-theme="c"] .tp-pin { filter:grayscale(1) brightness(2.2); }
+  body[data-theme="c"] .tp-pill { background:transparent; border:1px solid rgba(247,244,238,.18); color:#f7f4ee; font-family:'Archivo'; font-weight:600; border-radius:4px; }
+  body[data-theme="c"] .tp-emoji { display:none; }
+  /* d Dark */
+  body[data-theme="d"] .tp-card { background:#1b1a20; border:1px solid #2a2833; border-radius:12px; }
+  body[data-theme="d"] .tp-label { color:#d6ff4a; }
+  body[data-theme="d"] .tp-count { color:#141318; background:#d6ff4a; }
+  body[data-theme="d"] .tp-pill { background:#26242e; border-color:#34313e; color:#eceaf2; }
 
   /* —— D Dark: copy sheets, day menu, copy flow —— */
   body[data-theme="d"] .copy-goals-panel { background:#1b1a20; color:#eceaf2; }
@@ -958,7 +1005,7 @@
     <button class="view-btn active" id="viewList" onclick="setView('list')">☰ List</button>
     <button class="view-btn" id="viewWeek" onclick="setView('week')">⊞ Week</button>
     <button class="view-btn" onclick="openPalette()" style="margin-left:6px;">＋ Add Task</button>
-    <button class="view-btn" id="calImportBtn" onclick="handleCalendarImport()" style="margin-left:4px;color:#1a56db;border-color:#c3d4f8;background:#eef2ff;" title="Import events from Google Calendar">📅 Import</button>
+    <button class="view-btn" id="calImportBtn" onclick="handleCalendarImport()" style="margin-left:4px;color:#1a56db;border-color:#c3d4f8;background:#eef2ff;display:inline-flex;align-items:center;gap:6px;" title="Import events from Google Calendar"><svg class="gcal-ico" viewBox="0 0 200 200" width="15" height="15" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M152 47H47v105h105z"/><path fill="#1967d2" d="M152 200l48-48h-48z"/><path fill="#fbbc04" d="M200 47h-48v105h48z"/><path fill="#188038" d="M152 152H47v48h105z"/><path fill="#1967d2" d="M0 152v34a14 14 0 0 0 14 14h33v-48z"/><path fill="#4285f4" d="M200 47V14a14 14 0 0 0-14-14h-34v47z"/><path fill="#4285f4" d="M47 47V0H14A14 14 0 0 0 0 14v33z"/><path fill="#ea4335" d="M200 152l-48 48v-48z"/><path fill="#34a853" d="M47 200v-48H0v34a14 14 0 0 0 14 14z"/><path fill="#1a73e8" d="M73.2 122.2q-4.2-2.9-5.8-8.4l8.1-3.3q.9 3.4 3.1 5.3 2.2 1.9 5.3 1.9 3.2 0 5.5-2 2.3-1.9 2.3-4.9 0-3.1-2.4-5.1t-6-2h-4.7v-8h4.2q3.1 0 5.2-1.7 2.1-1.7 2.1-4.6 0-2.6-1.9-4.2-1.9-1.5-4.8-1.5-2.8 0-4.5 1.5-1.6 1.5-2.5 3.7l-8-3.3q1.4-4 5.2-7.1 3.8-3 9.7-3 4.4 0 7.9 1.7 3.5 1.7 5.5 4.7 2 2.9 2 6.6 0 3.7-1.8 6.3-1.8 2.6-4.4 4v.5q3.5 1.4 5.7 4.4 2.2 2.9 2.2 7 0 4-2.1 7.2-2 3.1-5.6 4.9-3.7 1.8-8.3 1.8-5.3 0-9.8-3z"/><path fill="#1a73e8" d="M115 89.2l-8.9 6.4-4.4-6.7 15.9-11.5h6.1v54.3H115z"/></svg><span class="gcal-label">Import</span></button>
   </div>
 
   <div class="controls">
@@ -2528,8 +2575,8 @@ document.addEventListener('touchend',()=>{ if(drag) onDragEnd(); });
 document.addEventListener('touchcancel',()=>{ if(drag) onDragEnd(); });
 
 // Safety net: if a chip drag ends anywhere, guarantee state is reset on next frame
-document.addEventListener('touchend', ()=>{ if(!chipDrag) return; requestAnimationFrame(()=>{ chipDrag=null; try{hideChipGhost();clearChipDropHL();}catch(_){}; document.querySelectorAll('.dragging-chip').forEach(e=>e.classList.remove('dragging-chip')); }); });
-document.addEventListener('dragend', ()=>{ requestAnimationFrame(()=>{ chipDrag=null; try{hideChipGhost();clearChipDropHL();}catch(_){}; }); });
+document.addEventListener('touchend', ()=>{ if(!chipDrag) return; requestAnimationFrame(()=>{ chipDrag=null; _chipDragActive=false; try{hideChipGhost();clearChipDropHL();}catch(_){}; document.querySelectorAll('.dragging-chip').forEach(e=>e.classList.remove('dragging-chip')); }); });
+document.addEventListener('dragend', ()=>{ requestAnimationFrame(()=>{ chipDrag=null; _chipDragActive=false; try{hideChipGhost();clearChipDropHL();}catch(_){}; }); });
 // If the palette panel is not open, the overlay must not stay interactive
 function syncPaletteOverlay(){ const panel=document.getElementById('palettePanel'); const ov=document.getElementById('paletteOverlay'); if(panel&&ov&&!panel.classList.contains('open')&&ov.classList.contains('open')) ov.classList.remove('open'); }
 setInterval(syncPaletteOverlay, 500);
@@ -2582,6 +2629,7 @@ function savePaletteToStorage() {
 
 let selectedPaletteItem = null; // { text, emoji, cat, isSession }
 let chipDrag = null;
+let _chipDragActive = false;
 
 function buildPaletteChips() {
   buildChipList(document.getElementById('paletteChips'), PALETTE_ITEMS, false);
@@ -2613,12 +2661,15 @@ function buildChipList(wrap, items, isSession) {
       chipDrag = { task: { text:item.text, cat:item.cat, emoji:item.emoji } };
       chip.classList.add('dragging-chip');
       e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.setData('text/plain', item.text); // Firefox needs data set to drag
+      _chipDragActive = true;
       setTimeout(() => closePalette(), 0);
     });
     chip.addEventListener('dragend', () => {
       chip.classList.remove('dragging-chip');
       clearChipDropHL();
       chipDrag = null;
+      _chipDragActive = false;
     });
 
     // Touch drag
@@ -2627,6 +2678,7 @@ function buildChipList(wrap, items, isSession) {
       const t = e.touches[0];
       chipTouchTimer = setTimeout(() => {
         chipDrag = { task: { text:item.text, cat:item.cat, emoji:item.emoji } };
+        _chipDragActive = true;
         chip.classList.add('dragging-chip');
         showChipGhost(t.clientX, t.clientY, chip);
         closePalette();
@@ -2647,6 +2699,7 @@ function buildChipList(wrap, items, isSession) {
       chip.classList.remove('dragging-chip');
       hideChipGhost(); clearChipDropHL();
       chipDrag = null;
+      _chipDragActive = false;
     });
 
     // Tap = select
@@ -2877,9 +2930,12 @@ function openPalette() {
 function closePalette() {
   document.getElementById('paletteOverlay').classList.remove('open');
   document.getElementById('palettePanel').classList.remove('open');
-  // Defensive: ensure no stuck chip-drag state lingers after closing
-  chipDrag = null;
-  try { hideChipGhost(); clearChipDropHL(); } catch(_){}
+  // Defensive: ensure no stuck chip-drag state lingers after closing —
+  // but NOT while a drag is actively in progress (dragstart closes the panel).
+  if (!_chipDragActive) {
+    chipDrag = null;
+    try { hideChipGhost(); clearChipDropHL(); } catch(_){}
+  }
 }
 
 // HTML5 drag-over handlers
@@ -2896,6 +2952,7 @@ document.addEventListener('drop', e => {
   dropChipAtPoint(e.clientX, e.clientY);
   clearChipDropHL();
   chipDrag = null;
+  _chipDragActive = false;
 });
 
 function findChipDropTarget(cx, cy) {
@@ -3817,6 +3874,14 @@ function hideSignInPrompt() {
   if (el) el.remove();
 }
 
+// Update the import button's label text without destroying the Google Calendar SVG icon.
+function setImportBtnLabel(btn, text) {
+  if (!btn) return;
+  const lbl = btn.querySelector('.gcal-label');
+  if (lbl) lbl.textContent = text;
+  else btn.textContent = text; // fallback if structure changed
+}
+
 function updateAuthUI(user) {
   // No lock screen — auth is silent/background
   const btn = document.getElementById('calImportBtn');
@@ -3911,7 +3976,7 @@ async function handleCalendarSync() {
     localStorage.removeItem('gs_google_token');
     return;
   }
-  if (btn) { btn.textContent = '⏳ Reading…'; btn.style.pointerEvents = 'none'; }
+  if (btn) { setImportBtnLabel(btn, 'Reading…'); btn.style.pointerEvents = 'none'; }
 
 
   try {
@@ -3983,14 +4048,14 @@ async function handleCalendarSync() {
         }
       } catch(e) {}
       showToast('Calendar auth failed — try Import again');
-      if (btn) { btn.textContent='📅 Import'; btn.style.pointerEvents='auto'; }
+      if (btn) { setImportBtnLabel(btn, 'Import'); btn.style.pointerEvents='auto'; }
       return;
     }
 
     const data = await res.json();
     if (data.error) {
       showToast(`Calendar error: ${data.error.message}`);
-      if (btn) { btn.textContent = '📅 Import'; btn.style.pointerEvents = 'auto'; }
+      if (btn) { setImportBtnLabel(btn, 'Import'); btn.style.pointerEvents = 'auto'; }
       return;
     }
     const items = data.items || [];
@@ -4080,12 +4145,12 @@ async function handleCalendarSync() {
       });
     });
 
-    if (btn) { btn.textContent = '📅 Import'; btn.style.pointerEvents = 'auto'; }
+    if (btn) { setImportBtnLabel(btn, 'Import'); btn.style.pointerEvents = 'auto'; }
     openCalImport();
 
   } catch(e) {
     showToast('Error: ' + (e?.message || String(e)).slice(0, 60));
-    if (btn) { btn.textContent = '📅 Import'; btn.style.pointerEvents = 'auto'; }
+    if (btn) { setImportBtnLabel(btn, 'Import'); btn.style.pointerEvents = 'auto'; }
   }
 }
 
@@ -4313,20 +4378,19 @@ function renderTodayPreview() {
   const pills = tasks.length
     ? tasks.map(t => {
         let style = '';
-        if (t.color && COLOR_MAP[t.color]) { const c = COLOR_MAP[t.color]; style = `background:${c.bg};border-color:${c.border};color:${c.text};`; }
-        return `<span class="task ${t.cat}" style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;font-size:.78rem;font-weight:500;${style}">
-          <span>${t.emoji}</span><span>${t.text}</span></span>`;
+        if (t.color && COLOR_MAP[t.color]) { const c = COLOR_MAP[t.color]; style = ` style="background:${c.bg};border-color:${c.border};color:${c.text};"`; }
+        return `<span class="tp-pill ${t.cat}"${style}><span class="tp-dot"></span><span class="tp-emoji">${t.emoji}</span><span class="tp-text">${t.text}</span></span>`;
       }).join('')
-    : `<span style="font-size:.75rem;color:#9098a8;">No tasks today.</span>`;
+    : `<span class="tp-empty">No tasks today.</span>`;
   box.style.display = 'block';
   box.innerHTML = `
-    <div style="background:#f5f7ff;border:1px solid #d6e0ff;border-radius:12px;padding:13px 15px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:${tasks.length?'10px':'4px'};">
-        <span style="font-size:.82rem;">📌</span>
-        <span style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#3d5afe;flex:1;">Today · ${found.name} ${found.date||''}</span>
-        <span style="font-size:.62rem;color:#3d5afe;background:#e2e9ff;border-radius:10px;padding:1px 8px;">${tasks.length}</span>
+    <div class="tp-card">
+      <div class="tp-head">
+        <span class="tp-pin">📌</span>
+        <span class="tp-label">Today · ${found.name} ${found.date||''}</span>
+        <span class="tp-count">${tasks.length}</span>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;">${pills}</div>
+      <div class="tp-pills">${pills}</div>
     </div>`;
 }
 
