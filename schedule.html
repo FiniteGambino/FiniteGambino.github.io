@@ -115,10 +115,10 @@
   /* Goals modal */
   .goals-modal { background:#fff; border-radius:14px; padding:20px; width:90%; max-width:340px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
   /* Copy goals sheet */
-  .copy-goals-sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:350; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .copy-goals-sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:350; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
   .copy-goals-sheet.open { opacity:1; pointer-events:auto; }
-  .copy-goals-panel { background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:520px; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); max-height:75vh; display:flex; flex-direction:column; transform:translateY(100%); transition:transform .3s cubic-bezier(.34,1.1,.64,1); }
-  .copy-goals-sheet.open .copy-goals-panel { transform:translateY(0); }
+  .copy-goals-panel { background:#fff; border-radius:16px; width:100%; max-width:520px; padding:20px; max-height:82vh; display:flex; flex-direction:column; transform:translateY(24px) scale(.97); opacity:0; transition:transform .3s cubic-bezier(.34,1.1,.64,1), opacity .25s; }
+  .copy-goals-sheet.open .copy-goals-panel { transform:translateY(0) scale(1); opacity:1; }
   .copy-goals-panel h3 { font-size:.9rem; font-weight:800; color:#1a1c24; margin:0 0 4px; }
   .copy-goals-panel .cg-sub { font-size:.72rem; color:#9098a8; margin-bottom:14px; }
   .cg-list { overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px; }
@@ -730,6 +730,8 @@
   body[data-theme="c"] .week-count-btn { background:#fbeee9; border-color:#e8c4ba; color:#e0301e; }
   body[data-theme="c"] .week-count-btn:hover { background:#f5ddd5; }
   body[data-theme="d"] .day-card.wv-drag-over { border-color:#d6ff4a !important; box-shadow:0 0 0 2px rgba(214,255,74,.2); }
+  body[data-theme="d"] #todayPreview > div { background:#1b1a20 !important; border-color:#2a2833 !important; }
+  body[data-theme="d"] #todayPreview span[style*="color:#3d5afe"] { color:#d6ff4a !important; }
   body[data-theme="d"] .day-card.wv-drag-over .task-list:empty { border-color:#d6ff4a; background:#26242e; }
   body[data-theme="d"] .palette-handle { background:#3a3846; }
 
@@ -964,6 +966,8 @@
     <button class="ctrl-btn" onclick="collapseAll()">Collapse all</button>
     <button class="ctrl-btn" id="undoBtn" onclick="undo()" style="opacity:.35;pointer-events:none;">↩ Undo</button>
   </div>
+
+  <div id="todayPreview" style="display:none;margin-bottom:22px;"></div>
 
   <div id="rareTaskBar" style="display:none;margin-bottom:14px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
 
@@ -2331,7 +2335,7 @@ function getSelectedColor() {
 }
 
 function updateClip(){
-  document.getElementById('clipBar').textContent=clipboard?`📋 ${clipboard.emoji} ${clipboard.text} — tap a task then Paste`:'';
+  document.getElementById('clipBar').textContent='';
 }
 function showToast(msg){
   const t=document.getElementById('toast');
@@ -2897,8 +2901,8 @@ document.addEventListener('drop', e => {
 function findChipDropTarget(cx, cy) {
   const els = document.elementsFromPoint(cx, cy);
   for (const el of els) {
-    if (el.classList.contains('day-card') || el.closest('.day-card')) return el.closest('.day-card');
-    if (el.classList.contains('wv-col')   || el.closest('.wv-col'))   return el.closest('.wv-col');
+    const card = el.closest('.day-card'); if (card) return card;
+    const col  = el.closest('.wv-col');   if (col)  return col;
   }
   return null;
 }
@@ -2909,52 +2913,15 @@ function clearChipDropHL() {
 
 function dropChipAtPoint(cx, cy) {
   if (!chipDrag) return;
-  const els = document.elementsFromPoint(cx, cy);
-  for (const el of els) {
-    const card = el.closest('.day-card');
-    if (card) {
-      const taskEl = card.querySelector('.task[data-key]');
-      if (taskEl) {
-        const [w,d] = taskEl.dataset.key.split('-').map(Number);
-        pushUndo();
-        schedule[w].days[d].tasks.push({ ...chipDrag.task });
-        pendingPasteKey = `${w}-${d}-${schedule[w].days[d].tasks.length-1}`;
-        save(); render();
-        showToast(`Added ${chipDrag.task.emoji} ${chipDrag.task.text}`);
-        return;
-      }
-      const dayName = card.querySelector('.day-name')?.textContent;
-      if (dayName) {
-        for (let w=0;w<schedule.length;w++) for (let d=0;d<schedule[w].days.length;d++) {
-          if (schedule[w].days[d].name === dayName) {
-            pushUndo(); schedule[w].days[d].tasks.push({ ...chipDrag.task }); save(); render();
-            showToast(`Added ${chipDrag.task.emoji} ${chipDrag.task.text}`); return;
-          }
-        }
-      }
-    }
-    const col = el.closest('.wv-col');
-    if (col) {
-      const taskEl = col.querySelector('.task[data-key]');
-      if (taskEl) {
-        const [w,d] = taskEl.dataset.key.split('-').map(Number);
-        pushUndo(); schedule[w].days[d].tasks.push({ ...chipDrag.task });
-        pendingPasteKey = `${w}-${d}-${schedule[w].days[d].tasks.length-1}`;
-        save(); render(); showToast(`Added ${chipDrag.task.emoji} ${chipDrag.task.text}`); return;
-      }
-      const dayName = col.querySelector('.wv-day-name')?.textContent;
-      if (dayName) {
-        const fullDays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const dIdx = fullDays.indexOf(dayName);
-        for (let w=0;w<schedule.length;w++) {
-          if (dIdx >= 0 && schedule[w].days[dIdx]) {
-            pushUndo(); schedule[w].days[dIdx].tasks.push({ ...chipDrag.task }); save(); render();
-            showToast(`Added ${chipDrag.task.emoji} ${chipDrag.task.text}`); return;
-          }
-        }
-      }
-    }
-  }
+  const target = findChipDropTarget(cx, cy);
+  if (!target) return;
+  const w = parseInt(target.dataset.w), d = parseInt(target.dataset.d);
+  if (isNaN(w) || isNaN(d) || !schedule[w] || !schedule[w].days[d]) return;
+  pushUndo();
+  schedule[w].days[d].tasks.push({ ...chipDrag.task });
+  pendingPasteKey = `${w}-${d}-${schedule[w].days[d].tasks.length-1}`;
+  save(); render();
+  showToast(`Added ${chipDrag.task.emoji} ${chipDrag.task.text}`);
 }
 
 const chipGhost = document.createElement('div');
@@ -3284,6 +3251,51 @@ function isGoalMet(goal, wIdx) {
   return countGoalProgress(goal, wIdx) >= goal.target;
 }
 
+// Count goal occurrences ONLY on days that have already happened (date <= today).
+// Used to distinguish "scheduled enough" (on-track, purple) from "actually done" (green).
+function countGoalCompleted(goal, wIdx) {
+  const weeks = schedule;
+  if (!weeks[wIdx]) return 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const explicit = goalMatchTerm(goal);
+  const cat = goal.cat || '';
+  const days = weeks[wIdx].days;
+  const dayDone = day => { const p = parseDayDate(day.date); if (!p) return false; p.setHours(0,0,0,0); return p <= today; };
+
+  if (explicit) {
+    let c = 0;
+    days.forEach(day => { if (!dayDone(day)) return; (day.tasks||[]).forEach(t => { if ((t.text||'').toLowerCase().includes(explicit)) c++; }); });
+    return c;
+  }
+  if (!cat) {
+    const term = goalAutoTerm(goal);
+    if (!term) return 0;
+    let c = 0;
+    days.forEach(day => { if (!dayDone(day)) return; (day.tasks||[]).forEach(t => { if ((t.text||'').toLowerCase().includes(term)) c++; }); });
+    return c;
+  }
+  const term = goalAutoTerm(goal);
+  const catLabel = CAT_LABELS[cat] || '';
+  const termIsSpecific = term && term.length >= 3 && term !== catLabel && !catLabel.includes(term) && !term.includes('gym');
+  if (termIsSpecific) {
+    let specificCount = 0, anyMatch = false;
+    days.forEach(day => (day.tasks||[]).forEach(t => { if ((t.text||'').toLowerCase().includes(term)) anyMatch = true; }));
+    if (anyMatch) {
+      days.forEach(day => { if (!dayDone(day)) return; (day.tasks||[]).forEach(t => { if ((t.text||'').toLowerCase().includes(term)) specificCount++; }); });
+      return specificCount;
+    }
+  }
+  let c = 0;
+  days.forEach(day => { if (!dayDone(day)) return; (day.tasks||[]).forEach(t => { if (t.cat === cat) c++; }); });
+  return c;
+}
+
+// Green check: enough of the target has actually been completed on past days.
+function isGoalCompleted(goal, wIdx) {
+  if (!goal.target || goal.target <= 0) return false;
+  return countGoalCompleted(goal, wIdx) >= goal.target;
+}
+
 // Has the given week fully passed (its last dated day is before today)?
 function weekHasPassed(wIdx) {
   const wk = schedule[wIdx];
@@ -3410,10 +3422,13 @@ function renderGoalsSection(container, wIdx) {
 
     goals.forEach((goal, gIdx) => {
       const met = isGoalMet(goal, wIdx);
+      const completed = isGoalCompleted(goal, wIdx);
       const progress = goal.target ? countGoalProgress(goal, wIdx) : null;
-      // met → green check. Strikethrough ('done') only once the week has passed.
-      const checkCls = met ? ' met' : '';
-      const textCls = met ? (passed ? ' met done' : ' met ontrack') : (passed ? ' missed' : '');
+      // Check colour: green once the target is actually completed (or week passed & met);
+      // purple while only scheduled-enough (on track, days not yet done).
+      const greenCheck = completed || (passed && met);
+      const checkCls = met ? (greenCheck ? ' met' : ' met ontrack') : '';
+      const textCls = met ? (passed ? ' met done' : (greenCheck ? ' met done' : ' met ontrack')) : (passed ? ' missed' : '');
       const row = document.createElement('div');
       row.className = 'goal-row';
       row.innerHTML = `
@@ -4278,8 +4293,41 @@ function isToday(dateStr) {
 
 // ── Render ─────────────────────────────────────────────────────────────────
 function render() {
+  renderTodayPreview();
   renderRareTaskBar();
   viewMode === 'week' ? renderWeek() : renderList();
+}
+
+// Read-only preview of today's tasks, pinned at the top for a quick glance.
+function renderTodayPreview() {
+  const box = document.getElementById('todayPreview');
+  if (!box || !schedule.length) { if (box) box.style.display = 'none'; return; }
+  let found = null;
+  for (let w = 0; w < schedule.length && !found; w++) {
+    for (let d = 0; d < schedule[w].days.length; d++) {
+      if (isToday(schedule[w].days[d].date)) { found = schedule[w].days[d]; break; }
+    }
+  }
+  if (!found) { box.style.display = 'none'; return; }
+  const tasks = found.tasks || [];
+  const pills = tasks.length
+    ? tasks.map(t => {
+        let style = '';
+        if (t.color && COLOR_MAP[t.color]) { const c = COLOR_MAP[t.color]; style = `background:${c.bg};border-color:${c.border};color:${c.text};`; }
+        return `<span class="task ${t.cat}" style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;font-size:.78rem;font-weight:500;${style}">
+          <span>${t.emoji}</span><span>${t.text}</span></span>`;
+      }).join('')
+    : `<span style="font-size:.75rem;color:#9098a8;">No tasks today.</span>`;
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="background:#f5f7ff;border:1px solid #d6e0ff;border-radius:12px;padding:13px 15px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:${tasks.length?'10px':'4px'};">
+        <span style="font-size:.82rem;">📌</span>
+        <span style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#3d5afe;flex:1;">Today · ${found.name} ${found.date||''}</span>
+        <span style="font-size:.62rem;color:#3d5afe;background:#e2e9ff;border-radius:10px;padding:1px 8px;">${tasks.length}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${pills}</div>
+    </div>`;
 }
 
 function renderList(){
@@ -4640,9 +4688,15 @@ function renderCopyStep(){
       const seld=(f.srcPeriodId===e.p.periodId&&f.srcWIdx===e.wi&&f.srcDIdx===e.di);
       if(seld) chip.classList.add('on');
       chip.onclick=()=>{
-        f.srcPeriodId=e.p.periodId; f.srcWIdx=e.wi; f.srcDIdx=e.di;
+        const already=(f.srcPeriodId===e.p.periodId&&f.srcWIdx===e.wi&&f.srcDIdx===e.di);
         document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected'));
         document.querySelectorAll('#copyBody .copy-datechip').forEach(c=>c.classList.remove('on'));
+        if(already){
+          f.srcPeriodId=null; f.srcWIdx=null; f.srcDIdx=null;
+          updateCopyNext();
+          return;
+        }
+        f.srcPeriodId=e.p.periodId; f.srcWIdx=e.wi; f.srcDIdx=e.di;
         chip.classList.add('on');
         const card=document.getElementById(cid);
         if(card){ card.classList.add('selected'); card.scrollIntoView({behavior:'smooth',block:'center'}); card.classList.add('cw-flash'); setTimeout(()=>card.classList.remove('cw-flash'),900); }
