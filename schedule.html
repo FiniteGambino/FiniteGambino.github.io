@@ -844,9 +844,20 @@
     window._auth    = auth;
     window._fbReady = true;
 
-    // Restore Google OAuth token from localStorage (valid ~1 hour after sign-in)
-    const cachedGToken = localStorage.getItem('gs_google_token');
-    if (cachedGToken) window._googleAccessToken = cachedGToken;
+    // Fetch a fresh Google access token from the Vercel backend (never expires)
+    const VERCEL_TOKEN_URL = 'https://schedule-backend-sigma.vercel.app/api/token';
+    async function refreshGoogleToken() {
+      try {
+        const res = await fetch(VERCEL_TOKEN_URL);
+        const data = await res.json();
+        if (data.access_token) {
+          window._googleAccessToken = data.access_token;
+          const refreshIn = ((data.expires_in || 3600) - 300) * 1000;
+          setTimeout(refreshGoogleToken, refreshIn);
+        }
+      } catch(e) { console.warn('Token refresh failed:', e); }
+    }
+    refreshGoogleToken();
 
     // Auth state listener
     onAuthStateChanged(auth, user => {
@@ -3802,22 +3813,27 @@ async function handleLockSignIn() {
   await window._signIn();
 }
 
-// Sync = just refresh the Google token (sign in)
+// Sync = refresh token from backend then sync
 async function handleCalendarAuth() {
-  if (!window._signIn) { showToast('Auth not ready yet'); return; }
-  window._googleAccessToken = null;
-  localStorage.removeItem('gs_google_token');
-  await window._signIn();
-  if (window._googleAccessToken) showToast('Calendar connected ✓');
+  try {
+    const res = await fetch('https://schedule-backend-sigma.vercel.app/api/token');
+    const data = await res.json();
+    if (data.access_token) {
+      window._googleAccessToken = data.access_token;
+      showToast('Calendar connected ✓');
+    } else {
+      showToast('Could not get calendar token');
+    }
+  } catch(e) { showToast('Token fetch failed: ' + e.message); }
 }
 
-// Import = use existing token, sign in silently if needed
+// Import = use existing token (auto-refreshed in background), fetch if missing
 async function handleCalendarImport() {
   if (!window._googleAccessToken) {
-    if (window._signIn) await window._signIn();
+    await handleCalendarAuth();
   }
   if (window._googleAccessToken) handleCalendarSync();
-  else showToast('Sign-in required to import calendar');
+  else showToast('Could not connect to calendar — try again');
 }
 
 async function handleCalendarSyncOrSignIn() {
@@ -3926,7 +3942,17 @@ async function handleCalendarSync() {
     });
 
     if (res.status === 401) {
-      showToast('Session expired — sign in again');
+      // Token expired — fetch a fresh one from backend and retry once
+      try {
+        const tr = await fetch('https://schedule-backend-sigma.vercel.app/api/token');
+        const td = await tr.json();
+        if (td.access_token) {
+          window._googleAccessToken = td.access_token;
+          handleCalendarSync();
+          return;
+        }
+      } catch(e) {}
+      showToast('Calendar auth failed — try Import again');
       if (btn) { btn.textContent='📅 Import'; btn.style.pointerEvents='auto'; }
       return;
     }
