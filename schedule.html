@@ -163,6 +163,15 @@
   .day-card.wv-drag-over .task-list:empty { border-color:#9db4ff; background:#f5f7ff; }
   .task-list.collapsed { display:none; }
 
+  /* ── Week fold ── */
+  .week-label { cursor:pointer; user-select:none; display:flex; align-items:center; gap:7px; }
+  .week-label .wk-fold { font-size:.7rem; color:#c0c6d4; transition:transform .2s; transform:rotate(0deg); flex-shrink:0; }
+  .week-label.wk-collapsed .wk-fold { transform:rotate(-90deg); }
+  .week-label .wk-fold-count { margin-left:auto; font-size:.6rem; font-weight:700; color:#aab2c2; background:#f0f2f7; border-radius:20px; padding:1px 8px; letter-spacing:.06em; }
+  .week-body.wk-collapsed { display:none; }
+  .day-card.tp-flash, .wv-col.tp-flash { animation:cwFlash .9s ease; }
+  body[data-theme="d"] .day-card.tp-flash, body[data-theme="d"] .wv-col.tp-flash { animation:cwFlashD .9s ease; }
+
   /* ── Week view ── */
   .view-toggle-wrap { display:flex; justify-content:center; gap:6px; margin-bottom:14px; }
   .view-btn { display:flex; align-items:center; gap:5px; padding:6px 13px; border-radius:7px; font-size:.72rem; font-weight:600; border:1px solid #dde1e9; background:#fff; color:#8090a0; cursor:pointer; transition:all .15s; -webkit-tap-highlight-color:transparent; }
@@ -305,7 +314,13 @@
   .clipboard-bar { text-align:center; font-size:.65rem; color:#8a6010; margin-bottom:10px; min-height:16px; }
 
   /* ── Today preview (pinned at top) ── */
-  .tp-card { background:#f5f7ff; border:1px solid #d6e0ff; border-radius:12px; padding:13px 15px; }
+  .tp-card { background:#f5f7ff; border:1px solid #d6e0ff; border-radius:12px; padding:13px 15px; cursor:pointer; touch-action:pan-y; }
+  .tp-swipe-dots { display:inline-flex; gap:4px; margin-left:8px; }
+  .tp-dot { width:5px; height:5px; border-radius:50%; background:#c4cfe8; transition:background .2s; }
+  .tp-dot.on { background:#3d5afe; }
+  .tp-fwd-hint, .tp-back-hint { font-size:.6rem; color:#a8b2c8; margin-top:8px; letter-spacing:.04em; }
+  .tp-back-hint { text-align:left; }
+  .tp-fwd-hint { text-align:right; }
   .tp-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .tp-pin { font-size:.82rem; }
   .tp-label { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3d5afe; flex:1; }
@@ -1173,6 +1188,7 @@
     <button class="palette-close" onclick="closeAtw()">✕</button>
   </div>
   <p style="font-size:.72rem;color:#9098a8;margin-bottom:14px;">Adding <b id="atwTaskName"></b> — pick which days.</p>
+  <button id="atwSwitchWeek" onclick="atwPickDifferentWeek()" style="display:none;font-size:.72rem;color:#6030a0;background:#f3eefb;border:1px solid #d8c8ef;border-radius:7px;padding:5px 12px;cursor:pointer;margin-bottom:14px;">← Pick a different week</button>
 
   <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Days in this week</div>
   <div id="atwDayChecks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
@@ -1385,6 +1401,9 @@ let swapFirst   = null, swapMode = false;
 let clipboard   = null, clipboardKey = null;
 let weeklyGoals = {}; // periodId → { wIdx → [{ text, target, cat, id }] }
 let goalsCollapsed = {}; // periodId+wIdx → bool
+let weeksCollapsed = {}; // periodId → { wIdx: bool } — explicit user override of week collapse
+let weekAutoApplied = {}; // periodId → { wIdx: true } — auto-collapse already applied once (so user expand sticks)
+let tpOffset = 0; // 0 = today, 1 = tomorrow. In-memory only — always resets to 0 on page load.
 let modalMode   = null, modalTarget  = null;
 let pendingPasteKey = null;
 let drag = null, dropInfo = null, dragStarted = false;
@@ -1563,6 +1582,8 @@ async function switchPeriod(id) {
   const _rtb = document.getElementById('rareTaskBar'); if (_rtb) _rtb.style.display = 'none';
   loadGoals();
   loadGoalsCollapsed();
+  loadWeeksCollapsed();
+  tpOffset = 0; // always start on Today after any (re)load
 
   // Safety timeout
   const loadingTimeout = setTimeout(() => {
@@ -2027,7 +2048,7 @@ function hideDayToolbar(){
   document.querySelectorAll('.day-card.day-selected,.wv-col.day-selected').forEach(e=>e.classList.remove('day-selected'));
 }
 function dayTbAdd(){ if(!activeDay) return; openModal('add-to-day', activeDay.wIdx, activeDay.dIdx, (schedule[activeDay.wIdx].days[activeDay.dIdx].tasks||[]).length-1); }
-function dayTbPalette(){ openPalette(); }
+function dayTbPalette(){ const w = activeDay ? activeDay.wIdx : null; openPalette(); paletteDayWeekCtx = w; }
 function dayTbClear(){
   if(!activeDay) return;
   const {wIdx,dIdx}=activeDay; const day=schedule[wIdx].days[dIdx];
@@ -2856,7 +2877,16 @@ function paletteDropOnDay(wIdx, dIdx) {
 
 function paletteOpenAtw() {
   if (!selectedPaletteItem) return;
-  if (active !== null) {
+  if (paletteDayWeekCtx !== null && schedule[paletteDayWeekCtx]) {
+    // Opened from a selected day → default straight to that day's week,
+    // skipping the week picker (the day-checkbox panel still lets you choose days,
+    // and offers a "pick a different week" link).
+    const item = { ...selectedPaletteItem };
+    const wIdx = paletteDayWeekCtx;
+    closePalette();
+    clearPaletteSelection();
+    openAtwWithTask(item, wIdx, true);
+  } else if (active !== null) {
     // We know which week from the active task
     closePalette();
     openAtwWithTask({ ...selectedPaletteItem }, active.wIdx);
@@ -2907,6 +2937,7 @@ function saveSessionChipToPalette(item) {
 }
 
 function openPalette() {
+  paletteDayWeekCtx = null; // default: no day context (top Add Task / toolbar palette)
   // Defensive: clear any stuck drag/ghost state that could block interaction
   chipDrag = null;
   try { hideChipGhost(); clearChipDropHL(); } catch(_){}
@@ -2996,6 +3027,7 @@ function openCustomChipModal() {
 let atwTask = null;
 let atwWIdx = null;
 let atwExclusions = [];
+let paletteDayWeekCtx = null; // week idx when palette was opened from a selected day
 
 function openAtwFromToolbar() {
   if (!active) return;
@@ -3003,10 +3035,13 @@ function openAtwFromToolbar() {
   openAtwWithTask({ ...schedule[wIdx].days[dIdx].tasks[tIdx] }, wIdx);
 }
 
-function openAtwWithTask(task, wIdx) {
+function openAtwWithTask(task, wIdx, allowWeekSwitch) {
   atwTask = task;
   atwWIdx = wIdx;
   atwExclusions = [];
+
+  const switchBtn = document.getElementById('atwSwitchWeek');
+  if (switchBtn) switchBtn.style.display = (allowWeekSwitch && schedule.length > 1) ? 'inline-block' : 'none';
 
   document.getElementById('atwTaskName').textContent = `${task.emoji} ${task.text}`;
   document.getElementById('atwTitle').textContent = `Add to ${schedule[wIdx].week}`;
@@ -3047,6 +3082,24 @@ function closeAtw() {
   document.getElementById('atwOverlay').classList.remove('open');
   document.getElementById('atwPanel').classList.remove('open');
   atwTask = null; atwWIdx = null; atwExclusions = [];
+}
+
+// From the day-checkbox panel, let the user switch to a different week
+// (used only when ATW was opened defaulted to a selected day's week).
+function atwPickDifferentWeek() {
+  if (!atwTask) return;
+  const task = { ...atwTask };
+  const wrap = document.getElementById('atwDayChecks');
+  document.getElementById('atwTitle').textContent = 'Pick a week';
+  const sw = document.getElementById('atwSwitchWeek'); if (sw) sw.style.display = 'none';
+  wrap.innerHTML = '';
+  schedule.forEach((w,i)=>{
+    const btn = document.createElement('button');
+    btn.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid #dde1e9;background:#f5f6f8;color:#2c2f3a;cursor:pointer;text-align:left;';
+    btn.textContent = w.week + ((w.days[0]?.date && w.days[0].date!=='—') ? ' · '+w.days[0].date : '');
+    btn.addEventListener('click', ()=>openAtwWithTask({ ...task }, i, true));
+    wrap.appendChild(btn);
+  });
 }
 
 function renderAtwExclusions() {
@@ -3233,6 +3286,58 @@ function loadGoalsCollapsed() {
 
 function saveGoalsCollapsed() {
   try { localStorage.setItem(getGoalsCollapseKey(), JSON.stringify(goalsCollapsed[activePeriodId] || {})); } catch(_) {}
+}
+
+// ── Week collapse (whole-week fold) ────────────────────────────────────────
+function getWeekCollapseKey() { return 'gs_weekcol_' + activePeriodId; }
+function getWeekAutoKey()     { return 'gs_weekauto_' + activePeriodId; }
+
+function loadWeeksCollapsed() {
+  try {
+    const raw = localStorage.getItem(getWeekCollapseKey());
+    weeksCollapsed[activePeriodId] = raw ? JSON.parse(raw) : {};
+  } catch(_) { weeksCollapsed[activePeriodId] = {}; }
+  try {
+    const rawA = localStorage.getItem(getWeekAutoKey());
+    weekAutoApplied[activePeriodId] = rawA ? JSON.parse(rawA) : {};
+  } catch(_) { weekAutoApplied[activePeriodId] = {}; }
+}
+
+function saveWeeksCollapsed() {
+  try { localStorage.setItem(getWeekCollapseKey(), JSON.stringify(weeksCollapsed[activePeriodId] || {})); } catch(_) {}
+  try { localStorage.setItem(getWeekAutoKey(), JSON.stringify(weekAutoApplied[activePeriodId] || {})); } catch(_) {}
+}
+
+// Apply auto-collapse for any week that has fully passed — but only once per
+// week, so that if the user later expands it, that explicit choice sticks.
+function applyWeekAutoCollapse() {
+  const col  = weeksCollapsed[activePeriodId]  || (weeksCollapsed[activePeriodId]  = {});
+  const auto = weekAutoApplied[activePeriodId] || (weekAutoApplied[activePeriodId] = {});
+  let changed = false;
+  schedule.forEach((wk, wIdx) => {
+    if (weekHasPassed(wIdx) && !auto[wIdx]) {
+      col[wIdx] = true;     // collapse it now
+      auto[wIdx] = true;    // remember we've auto-collapsed it once
+      changed = true;
+    }
+  });
+  if (changed) saveWeeksCollapsed();
+}
+
+function isWeekCollapsed(wIdx) {
+  const col = weeksCollapsed[activePeriodId] || {};
+  return col[wIdx] === true;
+}
+
+function toggleWeekCollapsed(wIdx) {
+  const col = weeksCollapsed[activePeriodId] || (weeksCollapsed[activePeriodId] = {});
+  col[wIdx] = !col[wIdx];
+  // Mark auto as applied so a future passed-week pass won't re-collapse an
+  // explicitly expanded week.
+  const auto = weekAutoApplied[activePeriodId] || (weekAutoApplied[activePeriodId] = {});
+  auto[wIdx] = true;
+  saveWeeksCollapsed();
+  render();
 }
 
 // Derive a likely task name from a goal's text, e.g. "Tactu Pump x3" -> "tactu pump"
@@ -4352,16 +4457,36 @@ function render() {
 }
 
 // Read-only preview of today's tasks, pinned at the top for a quick glance.
+// Locate the day at a given offset from today (0=today, 1=tomorrow).
+// Returns { wIdx, dIdx, day } or null.
+function findDayByOffset(offset) {
+  // First locate today.
+  let tw=-1, td=-1;
+  for (let w=0; w<schedule.length && tw<0; w++) {
+    for (let d=0; d<schedule[w].days.length; d++) {
+      if (isToday(schedule[w].days[d].date)) { tw=w; td=d; break; }
+    }
+  }
+  if (tw<0) return null;
+  if (offset===0) return { wIdx:tw, dIdx:td, day:schedule[tw].days[td] };
+  // Walk forward 'offset' positions through the flattened day list.
+  const flat=[];
+  schedule.forEach((wk,w)=>wk.days.forEach((dy,d)=>flat.push({wIdx:w,dIdx:d,day:dy})));
+  const pos=flat.findIndex(x=>x.wIdx===tw&&x.dIdx===td);
+  const target=flat[pos+offset];
+  return target || null;
+}
+
 function renderTodayPreview() {
   const box = document.getElementById('todayPreview');
   if (!box || !schedule.length) { if (box) box.style.display = 'none'; return; }
-  let found = null;
-  for (let w = 0; w < schedule.length && !found; w++) {
-    for (let d = 0; d < schedule[w].days.length; d++) {
-      if (isToday(schedule[w].days[d].date)) { found = schedule[w].days[d]; break; }
-    }
-  }
-  if (!found) { box.style.display = 'none'; return; }
+  const todayRef = findDayByOffset(0);
+  if (!todayRef) { box.style.display = 'none'; return; }
+  // If tomorrow doesn't exist, force back to today.
+  if (tpOffset === 1 && !findDayByOffset(1)) tpOffset = 0;
+  const ref = findDayByOffset(tpOffset) || todayRef;
+  const found = ref.day;
+  const isTomorrow = tpOffset === 1;
   const tasks = found.tasks || [];
   const pills = tasks.length
     ? tasks.map(t => {
@@ -4369,26 +4494,88 @@ function renderTodayPreview() {
         if (t.color && COLOR_MAP[t.color]) { const c = COLOR_MAP[t.color]; style = ` style="background:${c.bg};border-color:${c.border};color:${c.text};"`; }
         return `<span class="tp-pill ${t.cat}"${style}><span class="tp-emoji">${t.emoji}</span><span class="tp-text">${t.text}</span></span>`;
       }).join('')
-    : `<span class="tp-empty">No tasks today.</span>`;
+    : `<span class="tp-empty">No tasks ${isTomorrow?'tomorrow':'today'}.</span>`;
+  const hasTomorrow = !!findDayByOffset(1);
   box.style.display = 'block';
   box.innerHTML = `
-    <div class="tp-card">
+    <div class="tp-card" id="tpCard">
       <div class="tp-head">
-        <span class="tp-pin">📌</span>
-        <span class="tp-label">Today · ${found.name} ${found.date||''}</span>
+        <span class="tp-pin">${isTomorrow?'➡️':'📌'}</span>
+        <span class="tp-label">${isTomorrow?'Tomorrow':'Today'} · ${found.name} ${found.date||''}</span>
         <span class="tp-count">${tasks.length}</span>
+        <span class="tp-swipe-dots">${hasTomorrow?`<span class="tp-dot${!isTomorrow?' on':''}"></span><span class="tp-dot${isTomorrow?' on':''}"></span>`:''}</span>
       </div>
       <div class="tp-pills">${pills}</div>
+      ${isTomorrow?'<div class="tp-back-hint">← swipe right for today</div>':(hasTomorrow?'<div class="tp-fwd-hint">swipe left for tomorrow →</div>':'')}
     </div>`;
+  attachTpGestures(box.querySelector('#tpCard'), ref);
+}
+
+// Swipe (today⇄tomorrow) + tap (scroll to the shown day) on the preview card.
+function attachTpGestures(card, ref) {
+  if (!card) return;
+  let sx=0, sy=0, moved=false, swiped=false;
+  const SWIPE=45, SLOP=12;
+
+  function flip(dir) {
+    // dir: -1 = swipe left (→ tomorrow), +1 = swipe right (→ today)
+    if (dir<0 && tpOffset===0 && findDayByOffset(1)) { tpOffset=1; renderTodayPreview(); }
+    else if (dir>0 && tpOffset===1) { tpOffset=0; renderTodayPreview(); }
+  }
+  function scrollToDay() {
+    // If the target's week is collapsed, expand it first so the scroll lands.
+    if (isWeekCollapsed(ref.wIdx)) {
+      const col = weeksCollapsed[activePeriodId] || (weeksCollapsed[activePeriodId] = {});
+      col[ref.wIdx] = false;
+      const auto = weekAutoApplied[activePeriodId] || (weekAutoApplied[activePeriodId] = {});
+      auto[ref.wIdx] = true;
+      saveWeeksCollapsed();
+      render();
+    }
+    const sel = `.day-card[data-w="${ref.wIdx}"][data-d="${ref.dIdx}"], .wv-col[data-w="${ref.wIdx}"][data-d="${ref.dIdx}"]`;
+    const el = document.querySelector(sel);
+    if (el) {
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+      el.classList.add('tp-flash'); setTimeout(()=>el.classList.remove('tp-flash'),900);
+    }
+  }
+
+  card.addEventListener('touchstart', e=>{
+    const t=e.touches[0]; sx=t.clientX; sy=t.clientY; moved=false; swiped=false;
+  }, {passive:true});
+  card.addEventListener('touchmove', e=>{
+    const t=e.touches[0]; const dx=t.clientX-sx, dy=t.clientY-sy;
+    if (Math.abs(dx)>SLOP || Math.abs(dy)>SLOP) moved=true;
+    if (!swiped && Math.abs(dx)>SWIPE && Math.abs(dx)>Math.abs(dy)*1.3) {
+      swiped=true; flip(dx<0?-1:1);
+    }
+  }, {passive:true});
+  card.addEventListener('touchend', ()=>{ if(!moved && !swiped) scrollToDay(); }, {passive:true});
+
+  // Desktop: click scrolls; horizontal wheel/trackpad flips.
+  card.addEventListener('click', ()=>{ scrollToDay(); });
+  card.addEventListener('wheel', e=>{
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
+      e.preventDefault(); flip(e.deltaX<0?1:-1);
+    }
+  }, {passive:false});
 }
 
 function renderList(){
   const container=document.getElementById('schedule');
   container.innerHTML='';
+  applyWeekAutoCollapse();
   schedule.forEach((week,wIdx)=>{
-    const lbl=document.createElement('div'); lbl.className='week-label'; lbl.textContent=week.week;
+    const collapsed=isWeekCollapsed(wIdx);
+    const taskTotal=week.days.reduce((n,d)=>n+(d.tasks?d.tasks.length:0),0);
+    const lbl=document.createElement('div'); lbl.className='week-label'+(collapsed?' wk-collapsed':'');
+    lbl.innerHTML=`<span class="wk-fold">▼</span><span class="wk-label-text"></span><span class="wk-fold-count">${taskTotal}</span>`;
+    lbl.querySelector('.wk-label-text').textContent=week.week;
+    lbl.addEventListener('click',()=>toggleWeekCollapsed(wIdx));
     container.appendChild(lbl);
-    renderGoalsSection(container, wIdx);
+
+    const body=document.createElement('div'); body.className='week-body'+(collapsed?' wk-collapsed':'');
+    renderGoalsSection(body, wIdx);
     week.days.forEach((day,dIdx)=>{
       const card=document.createElement('div'); card.className='day-card'; card.dataset.w=wIdx; card.dataset.d=dIdx;
       if(isToday(day.date)) card.classList.add('today');
@@ -4405,8 +4592,9 @@ function renderList(){
       if(!(day.tasks||[]).length){ list.addEventListener('click', ()=>showDayToolbar(wIdx,dIdx)); }
       appendTasks(list, day.tasks||[], wIdx, dIdx);
       card.appendChild(list);
-      container.appendChild(card);
+      body.appendChild(card);
     });
+    container.appendChild(body);
     if(wIdx<schedule.length-1){ const hr=document.createElement('hr'); hr.className='week-divider'; container.appendChild(hr); }
   });
   animatePaste();
@@ -4415,14 +4603,22 @@ function renderList(){
 function renderWeek(){
   const container=document.getElementById('schedule');
   container.innerHTML='';
+  applyWeekAutoCollapse();
   schedule.forEach((week,wIdx)=>{
+    const collapsed=isWeekCollapsed(wIdx);
+    const taskTotal=week.days.reduce((n,d)=>n+(d.tasks?d.tasks.length:0),0);
     const days = week.days.filter(d => d.date && d.date !== '—');
     const firstDate = days.length ? days[0].date : '';
     const lastDate  = days.length ? days[days.length-1].date : '';
     const dateRange = firstDate && lastDate ? `  ·  ${firstDate} – ${lastDate}` : '';
-    const lbl=document.createElement('div'); lbl.className='week-label'; lbl.textContent=week.week + dateRange;
+    const lbl=document.createElement('div'); lbl.className='week-label'+(collapsed?' wk-collapsed':'');
+    lbl.innerHTML=`<span class="wk-fold">▼</span><span class="wk-label-text"></span><span class="wk-fold-count">${taskTotal}</span>`;
+    lbl.querySelector('.wk-label-text').textContent=week.week + dateRange;
+    lbl.addEventListener('click',()=>toggleWeekCollapsed(wIdx));
     container.appendChild(lbl);
-    renderGoalsSection(container, wIdx);
+
+    const body=document.createElement('div'); body.className='week-body'+(collapsed?' wk-collapsed':'');
+    renderGoalsSection(body, wIdx);
 
     const scrollWrap=document.createElement('div'); scrollWrap.className='week-view-scroll';
     const grid=document.createElement('div'); grid.className='week-grid';
@@ -4443,7 +4639,8 @@ function renderWeek(){
     });
 
     scrollWrap.appendChild(grid);
-    container.appendChild(scrollWrap);
+    body.appendChild(scrollWrap);
+    container.appendChild(body);
 
     if(wIdx<schedule.length-1){ const hr=document.createElement('hr'); hr.className='week-divider'; container.appendChild(hr); }
   });
