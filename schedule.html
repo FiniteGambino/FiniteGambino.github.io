@@ -874,25 +874,19 @@
         localStorage.removeItem('gs_auth_user');
         window._googleAccessToken = null;
         updateAuthUI(null);
-        // Auto sign-in
-        if (window._signIn) window._signIn().catch(() => {});
+        // Try silent sign-in; if popup is blocked (mobile), show a sign-in button
+        if (window._signIn) {
+          window._signIn().catch(() => { showSignInPrompt(); });
+        }
       }
     });
 
     window._signIn = async () => {
-      try {
-        const provider = new GoogleAuthProvider();
-        provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
-        provider.addScope('https://www.googleapis.com/auth/tasks.readonly');
-        provider.setCustomParameters({ prompt: 'consent', access_type: 'online' });
-        const result = await signInWithPopup(auth, provider);
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        window._googleAccessToken = credential.accessToken;
-        localStorage.setItem('gs_google_token', credential.accessToken);
-        showToast('Signed in — calendar access granted');
-      } catch(e) {
-        if (e.code !== 'auth/popup-closed-by-user') showToast('Sign-in failed: ' + e.message);
-      }
+      // Firebase login only — calendar access comes from the Vercel backend
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      hideSignInPrompt();
+      return result;
     };
 
     window._signOut = async () => {
@@ -3779,6 +3773,27 @@ async function confirmNewPeriod() {
 
 
 // ── Auth UI ────────────────────────────────────────────────────────────────
+function showSignInPrompt() {
+  if (document.getElementById('signInPrompt')) return;
+  const bar = document.createElement('div');
+  bar.id = 'signInPrompt';
+  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#4355f9;color:#fff;padding:14px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:.9rem;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.15);';
+  bar.innerHTML = '<span>Sign in to load your schedule</span>';
+  const btn = document.createElement('button');
+  btn.textContent = 'Sign in with Google';
+  btn.style.cssText = 'background:#fff;color:#1a1f36;border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;';
+  btn.onclick = async () => {
+    try { await window._signIn(); } catch(e) { showToast('Sign-in failed: ' + (e.message||e)); }
+  };
+  bar.appendChild(btn);
+  document.body.appendChild(bar);
+}
+
+function hideSignInPrompt() {
+  const el = document.getElementById('signInPrompt');
+  if (el) el.remove();
+}
+
 function updateAuthUI(user) {
   // No lock screen — auth is silent/background
   const btn = document.getElementById('calImportBtn');
