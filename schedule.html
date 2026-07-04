@@ -1563,7 +1563,28 @@ async function loadPeriods() {
   periods.sort((a,b) => a.order - b.order);
 
   renderTabs();
-  await switchPeriod(periods[0].id);
+  await switchPeriod(pickStartupPeriod(raw) || periods[0].id);
+}
+
+// On app open, prefer the tab whose weeks contain today's date.
+// If no tab contains today, fall back to the tab with the closest date.
+function pickStartupPeriod(raw) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  let containId = null, closestId = null, closestDiff = Infinity;
+  for (const p of periods) {
+    const weeks = (raw[p.id] && raw[p.id].weeks) || [];
+    for (const wk of weeks) {
+      for (const d of (wk.days || [])) {
+        const dt = parseDayDate(d.date);
+        if (!dt) continue;
+        dt.setHours(0,0,0,0);
+        const diff = Math.abs(dt - today);
+        if (diff === 0 && !containId) containId = p.id;
+        if (diff < closestDiff) { closestDiff = diff; closestId = p.id; }
+      }
+    }
+  }
+  return containId || closestId;
 }
 
 async function switchPeriod(id) {
@@ -4824,7 +4845,7 @@ function dayCtxClear(){
 // Data helpers
 async function loadPeriodWeeks(periodId){
   try{
-    if(db&&fsFns){ const {ref,get}=fsFns; const snap=await get(ref(db,`schedule/periods/${periodId}/weeks`)); return snap.val()||[]; }
+    if(db&&fsFns){ const {ref,get}=fsFns; const snap=await get(ref(db,`users/${window._currentUser.uid}/schedule/periods/${periodId}/weeks`)); return snap.val()||[]; }
     const saved=localStorage.getItem('gs_v9_'+periodId); const data=saved?JSON.parse(saved):null; return data?(data.weeks||data||[]):[];
   }catch(e){ return []; }
 }
@@ -4843,7 +4864,7 @@ async function applyCopyToPeriod(pid, weeks){
     schedule=weeks;
     if(db&&fsFns) await savePeriod(); else localSave();
   } else {
-    if(db&&fsFns){ const {ref,set}=fsFns; await set(ref(db,`schedule/periods/${pid}/weeks`), weeks); }
+    if(db&&fsFns){ const {ref,set}=fsFns; await set(ref(db,`users/${window._currentUser.uid}/schedule/periods/${pid}/weeks`), weeks); }
     else { try{ localStorage.setItem('gs_v9_'+pid, JSON.stringify(weeks)); }catch(_){} }
   }
 }
@@ -4851,7 +4872,7 @@ async function getPeriodGoals(pid){
   if(weeklyGoals[pid]) return weeklyGoals[pid];
   let g={};
   try{
-    if(db&&fsFns){ const {ref,get}=fsFns; const snap=await get(ref(db,'schedule/goals/'+pid)); g=snap.val()||{}; }
+    if(db&&fsFns){ const {ref,get}=fsFns; const snap=await get(ref(db,`users/${window._currentUser.uid}/schedule/goals/${pid}`)); g=snap.val()||{}; }
     else { const raw=localStorage.getItem('gs_goals_'+pid); g=raw?JSON.parse(raw):{}; }
   }catch(_){ g={}; }
   weeklyGoals[pid]=g; return g;
@@ -5071,9 +5092,12 @@ function renderCopyStep(){
 
   if(f.step==='warn'){
     pill.textContent='Heads up'; title.textContent='Overwrite warning';
-    sub.textContent='Some destination days already have tasks.';
+    sub.textContent='The destination already has content.';
+    const bits=[];
+    if(f._conflictCount>0) bits.push(`<b>${f._conflictCount} day${f._conflictCount===1?'':'s'}</b> at the destination already ${f._conflictCount===1?'has':'have'} tasks`);
+    if(f._goalConflict) bits.push('the destination week already has <b>goals</b>');
     const warn=document.createElement('div'); warn.className='copy-warn';
-    warn.innerHTML=`<div class="copy-warn-txt">⚠️ <b>${f._conflictCount} day${f._conflictCount===1?'':'s'}</b> at the destination already ${f._conflictCount===1?'has':'have'} tasks.<br><br><b>Replace</b> clears those days first, then pastes. <b>Merge</b> keeps what’s there and adds the copied tasks on top.</div>`;
+    warn.innerHTML=`<div class="copy-warn-txt">⚠️ ${bits.join(', and ')}.<br><br><b>Replace</b> clears the existing content first, then pastes. <b>Merge</b> keeps what’s there and adds the copied content on top.</div>`;
     body.appendChild(warn);
     const btns=document.createElement('div'); btns.style.cssText='display:flex;gap:8px;margin-top:14px;';
     btns.innerHTML=`<button class="cg-confirm" style="flex:1;background:#c03050;" onclick="copyApply('replace')">Replace</button><button class="cg-confirm" style="flex:1;background:#2e8a5a;" onclick="copyApply('merge')">Merge</button>`;
@@ -5106,15 +5130,21 @@ function copyBack(){
   }
 }
 
-function proceedToApply(){
-  const f=copyFlow; let conflict=0;
+async function proceedToApply(){
+  const f=copyFlow; let conflict=0, goalConflict=false;
   if(f.mode==='day'){
     f.destDays.forEach(key=>{ const a=key.split(':'); const d=cpDay(a[0],+a[1],+a[2]); if(d&&(d.tasks||[]).length) conflict++; });
   } else {
     const a=f.destWeek.split(':'); const wk=cpWeek(a[0],+a[1]);
     f.includeDays.forEach(i=>{ const d=wk&&wk.days&&wk.days[i]; if(d&&(d.tasks||[]).length) conflict++; });
+    if(f.includeGoals){
+      try{
+        const dg=await getPeriodGoals(a[0]);
+        if(((dg[+a[1]])||[]).length) goalConflict=true;
+      }catch(_){}
+    }
   }
-  if(conflict>0){ f._conflictCount=conflict; f.step='warn'; renderCopyStep(); }
+  if(conflict>0 || goalConflict){ f._conflictCount=conflict; f._goalConflict=goalConflict; f.step='warn'; renderCopyStep(); }
   else copyApply('merge');
 }
 
@@ -5170,7 +5200,7 @@ async function copyGoalsWeek(srcPid,srcWi,dpid,dwi,applyMode){
   destGoals[dwi] = applyMode==='replace' ? sg : [...existing, ...sg.filter(x=>!existing.some(e=>e.text===x.text))];
   weeklyGoals[dpid]=destGoals;
   try{ localStorage.setItem('gs_goals_'+dpid, JSON.stringify(destGoals)); }catch(_){}
-  if(db&&fsFns){ const {ref,set}=fsFns; try{ await set(ref(db,'schedule/goals/'+dpid), destGoals); }catch(_){} }
+  if(db&&fsFns){ const {ref,set}=fsFns; try{ await set(ref(db,`users/${window._currentUser.uid}/schedule/goals/${dpid}`), destGoals); }catch(_){} }
 }
 
 // ── Theme switcher ──────────────────────────────────────────
@@ -5189,9 +5219,24 @@ function applyTheme(i) {
   if (b) { b.querySelector('.ts-dot').style.background = t.dot; b.querySelector('.ts-label').textContent = t.name; }
   try { localStorage.setItem('gs_theme', t.id); } catch(_) {}
 }
+// Apply theme visuals WITHOUT saving — used by auto dark/night overrides
+function applyThemeNoSave(i) {
+  themeIdx = (i % THEMES.length + THEMES.length) % THEMES.length;
+  const t = THEMES[themeIdx];
+  document.body.setAttribute('data-theme', t.id);
+  const b = document.getElementById('themeSwitch');
+  if (b) { b.querySelector('.ts-dot').style.background = t.dot; b.querySelector('.ts-label').textContent = t.name; }
+}
 function cycleTheme() {
-  _autoDark = false; // a manual choice disables auto-dark for this session
-  applyTheme(themeIdx + 1);
+  const next = (themeIdx + 1) % THEMES.length;
+  if (isNightTime()) {
+    // A pick at night is an override for TONIGHT ONLY — the saved daytime
+    // theme is untouched, so mornings always revert correctly.
+    try { localStorage.setItem('gs_theme_night', JSON.stringify({ theme: THEMES[next].id, night: nightKey() })); } catch(_) {}
+    applyThemeNoSave(next);
+  } else {
+    applyTheme(next); // daytime pick = new saved preference
+  }
   const b = document.getElementById('themeSwitch');
   if (b) {
     b.classList.add('expanded');
@@ -5199,39 +5244,45 @@ function cycleTheme() {
     b._collapseT = setTimeout(() => b.classList.remove('expanded'), 1600);
   }
 }
-// Auto dark mode: between 10pm and 6am, switch to Dark automatically unless
-// the user has manually picked a theme this session.
-let _autoDark = false;
+// ── Auto dark mode ──
+// 10pm–6am: Dark automatically (or tonight's manual override).
+// 6am–10pm: ALWAYS the saved theme — this runs on load AND every minute,
+// so a stale Dark can never survive into the afternoon.
 function isNightTime() { const h = new Date().getHours(); return h >= 22 || h < 6; }
+// Identifies "which night" — pre-midnight and post-midnight hours of the
+// same night share a key, and the key changes each night so overrides expire.
+function nightKey() {
+  const d = new Date();
+  if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+function getNightOverride() {
+  try {
+    const raw = localStorage.getItem('gs_theme_night');
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (o.night !== nightKey()) { localStorage.removeItem('gs_theme_night'); return null; }
+    return o.theme;
+  } catch(_) { return null; }
+}
 function maybeAutoDark() {
-  const darkIdx = THEMES.findIndex(t => t.id === 'd');
+  let wantId;
   if (isNightTime()) {
-    // Apply dark unless the user manually picked a theme this session.
-    if (themeIdx !== darkIdx && !_manualTheme) {
-      _autoDark = true;
-      themeIdx = darkIdx;
-      const t = THEMES[darkIdx];
-      document.body.setAttribute('data-theme', t.id);
-      const b = document.getElementById('themeSwitch');
-      if (b) { b.querySelector('.ts-dot').style.background = t.dot; b.querySelector('.ts-label').textContent = t.name; }
-    }
-  } else if (_autoDark) {
-    // Morning: revert to the user's saved theme.
-    _autoDark = false;
-    let saved = 'a2';
-    try { saved = localStorage.getItem('gs_theme') || 'a2'; } catch(_) {}
-    const idx = THEMES.findIndex(t => t.id === saved);
-    applyTheme(idx < 0 ? 0 : idx);
+    wantId = getNightOverride() || 'd';
+  } else {
+    try { localStorage.removeItem('gs_theme_night'); } catch(_) {}
+    try { wantId = localStorage.getItem('gs_theme') || 'a2'; } catch(_) { wantId = 'a2'; }
+  }
+  if (document.body.getAttribute('data-theme') !== wantId) {
+    const idx = THEMES.findIndex(t => t.id === wantId);
+    applyThemeNoSave(idx < 0 ? 0 : idx);
   }
 }
-let _manualTheme = false;
 (function initTheme() {
-  let saved = 'a2';
-  try { saved = localStorage.getItem('gs_theme') || 'a2'; } catch(_) {}
-  const idx = THEMES.findIndex(t => t.id === saved);
-  applyTheme(idx < 0 ? 0 : idx);
-  maybeAutoDark();
+  maybeAutoDark(); // decides day vs night theme immediately on load
   setInterval(maybeAutoDark, 60000); // re-check every minute
+  // Also re-check the moment the app returns from background (iOS suspends timers)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) maybeAutoDark(); });
 })();
 </script>
 </body>
