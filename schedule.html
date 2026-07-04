@@ -50,6 +50,10 @@
   .toolbar-day-actions { display:none; }
   .toolbar.day-mode .toolbar-actions:not(.toolbar-day-actions) { display:none; }
   .toolbar.day-mode .toolbar-day-actions { display:flex; }
+  .toolbar-goals-actions { display:none; }
+  .toolbar.goals-mode .toolbar-actions:not(.toolbar-goals-actions) { display:none; }
+  .toolbar.goals-mode .toolbar-goals-actions { display:flex; }
+  .goals-toggle-tap { padding:6px 8px; display:inline-flex; align-items:center; -webkit-tap-highlight-color:transparent; cursor:pointer; }
   .day-card.day-selected { box-shadow:0 0 0 2px rgba(61,90,254,.4); border-color:#3d5afe !important; }
   .wv-col.day-selected { box-shadow:0 0 0 2px rgba(61,90,254,.4); }
   body[data-theme="d"] .day-card.day-selected { box-shadow:0 0 0 2px rgba(214,255,74,.45); border-color:#d6ff4a !important; }
@@ -115,13 +119,13 @@
   /* Goals modal */
   .goals-modal { background:#fff; border-radius:14px; padding:20px; width:90%; max-width:340px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
   /* Copy goals sheet */
-  .copy-goals-sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:350; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .copy-goals-sheet { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:350; display:flex; align-items:center; justify-content:center; padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); opacity:0; pointer-events:none; transition:opacity .2s; }
   .copy-goals-sheet.open { opacity:1; pointer-events:auto; }
-  .copy-goals-panel { background:#fff; border-radius:16px; width:100%; max-width:520px; padding:20px; max-height:82vh; display:flex; flex-direction:column; transform:translateY(24px) scale(.97); opacity:0; transition:transform .3s cubic-bezier(.34,1.1,.64,1), opacity .25s; }
+  .copy-goals-panel { background:#fff; border-radius:16px; width:100%; max-width:520px; padding:20px; max-height:82vh; max-height:82dvh; display:flex; flex-direction:column; transform:translateY(24px) scale(.97); opacity:0; transition:transform .3s cubic-bezier(.34,1.1,.64,1), opacity .25s; }
   .copy-goals-sheet.open .copy-goals-panel { transform:translateY(0) scale(1); opacity:1; }
   .copy-goals-panel h3 { font-size:.9rem; font-weight:800; color:#1a1c24; margin:0 0 4px; }
   .copy-goals-panel .cg-sub { font-size:.72rem; color:#9098a8; margin-bottom:14px; }
-  .cg-list { overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px; }
+  .cg-list { overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; flex:1; min-height:0; display:flex; flex-direction:column; gap:6px; }
   .cg-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1.5px solid #dde1e9; border-radius:9px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s,border-color .15s; }
   .cg-item:active { background:#f0f4ff; }
   .cg-item.selected { border-color:#3d5afe; background:#eef1ff; }
@@ -378,6 +382,10 @@
   .copy-datechip.on .cdc-date { color:#fff; }
   .copy-daylist { display:flex; flex-direction:column; gap:8px; }
   .copy-week-divider { display:flex; align-items:center; gap:8px; margin:8px 0 2px; font-size:.6rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#9098a8; }
+  .copy-tab-divider { display:flex; align-items:center; gap:8px; margin:16px 0 8px; padding-top:12px; border-top:2px solid #e2e7f2; font-size:.68rem; font-weight:800; letter-spacing:.04em; color:#3d5afe; }
+  .copy-tab-divider:first-child { margin-top:2px; padding-top:0; border-top:none; }
+  .copy-tab-divider .ctd-ic { font-size:.8rem; }
+  body[data-theme="d"] .copy-tab-divider { color:#d6ff4a; border-top-color:#34313e; }
   .copy-week-divider span { flex-shrink:0; }
   .copy-week-divider::after { content:''; flex:1; height:1px; background:#e6e9f0; }
   .cw-card.cw-flash { animation:cwFlash .9s ease; }
@@ -1051,6 +1059,15 @@
     <button class="tb-btn tb-delete" onclick="dayTbClear()"><span class="tb-icon">🧹</span>Clear Day</button>
     <button class="tb-btn tb-close" onclick="closeToolbar()"><span class="tb-icon">↓</span>Close</button>
   </div>
+  <div class="toolbar-actions toolbar-goals-actions">
+    <button class="tb-btn tb-add" onclick="goalTbAdd()"><span class="tb-icon">＋</span>Add Goal</button>
+    <button class="tb-btn tb-delete" onclick="goalTbDelete()"><span class="tb-icon">🗑</span>Delete Goal</button>
+    <button class="tb-btn tb-delete" onclick="goalTbClear()"><span class="tb-icon">🧹</span>Clear Goals</button>
+    <button class="tb-btn tb-copy" onclick="goalTbCopy()"><span class="tb-icon">⧉</span>Copy Goals</button>
+    <button class="tb-btn tb-paste" id="goalTbPasteBtn" onclick="goalTbPaste()" style="display:none;"><span class="tb-icon">📋</span>Paste</button>
+    <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="goalTbCopyToWeek()"><span class="tb-icon">📅</span>Copy to<br>Week</button>
+    <button class="tb-btn tb-close" onclick="closeToolbar()"><span class="tb-icon">↓</span>Close</button>
+  </div>
 </div>
 
 <div class="swap-confirm" id="swapConfirm">
@@ -1345,6 +1362,29 @@
   </div>
 </div>
 
+<!-- Replace / Merge choice (goals paste) -->
+<div class="modal-overlay hidden" id="mergeOverlay">
+  <div class="modal">
+    <h3 id="mergeTitle">Overwrite warning</h3>
+    <p id="mergeMsg" style="font-size:.82rem;color:#6b7280;margin-top:6px;line-height:1.5;"></p>
+    <div style="display:flex;gap:8px;margin-top:20px;">
+      <button class="btn-confirm" style="flex:1;background:#c03050;" onclick="mergeResolve('replace')">Replace</button>
+      <button class="btn-confirm" style="flex:1;background:#2e8a5a;" onclick="mergeResolve('merge')">Merge</button>
+    </div>
+    <button class="btn-cancel" style="width:100%;margin-top:8px;" onclick="mergeResolve(null)">Cancel</button>
+  </div>
+</div>
+
+<!-- Pick a goal to delete -->
+<div class="copy-goals-sheet" id="goalDeleteSheet">
+  <div class="copy-goals-panel">
+    <h3>Delete a Goal</h3>
+    <p class="cg-sub">Tap the goal you want to remove.</p>
+    <div class="cg-list" id="goalDeleteList"></div>
+    <div class="cg-footer"><button class="cg-cancel" onclick="closeGoalDeleteSheet()">Cancel</button></div>
+  </div>
+</div>
+
 <!-- Delete task modal (toolbar only) -->
 <div class="modal-overlay hidden" id="deleteTaskOverlay">
   <div class="modal">
@@ -1566,25 +1606,32 @@ async function loadPeriods() {
   await switchPeriod(pickStartupPeriod(raw) || periods[0].id);
 }
 
-// On app open, prefer the tab whose weeks contain today's date.
-// If no tab contains today, fall back to the tab with the closest date.
+// On app open, prefer the tab whose date RANGE spans today (today falls between
+// the tab's earliest and latest dated day). If no tab spans today, fall back to
+// the tab whose nearest date is closest to today.
 function pickStartupPeriod(raw) {
   const today = new Date(); today.setHours(0,0,0,0);
-  let containId = null, closestId = null, closestDiff = Infinity;
+  const t = today.getTime();
+  let spanId = null, closestId = null, closestDiff = Infinity;
   for (const p of periods) {
     const weeks = (raw[p.id] && raw[p.id].weeks) || [];
+    let min = Infinity, max = -Infinity;
     for (const wk of weeks) {
       for (const d of (wk.days || [])) {
         const dt = parseDayDate(d.date);
         if (!dt) continue;
         dt.setHours(0,0,0,0);
-        const diff = Math.abs(dt - today);
-        if (diff === 0 && !containId) containId = p.id;
+        const ms = dt.getTime();
+        if (ms < min) min = ms;
+        if (ms > max) max = ms;
+        const diff = Math.abs(ms - t);
         if (diff < closestDiff) { closestDiff = diff; closestId = p.id; }
       }
     }
+    // today within [min, max] of this tab → it's the containing tab
+    if (min !== Infinity && t >= min && t <= max && !spanId) spanId = p.id;
   }
-  return containId || closestId;
+  return spanId || closestId;
 }
 
 async function switchPeriod(id) {
@@ -2033,6 +2080,7 @@ function taskEl(ref){ return ref ? document.querySelector(`[data-key="${ref.wIdx
 // ── Toolbar ────────────────────────────────────────────────────────────────
 function showToolbar(wIdx,dIdx,tIdx){
   if(activeDay) hideDayToolbar();
+  hideGoalsToolbar();
   document.getElementById('toolbar').classList.remove('day-mode');
   const t=schedule[wIdx].days[dIdx].tasks[tIdx];
   document.getElementById('tbName').textContent=`${t.emoji} ${t.text}`;
@@ -2050,7 +2098,106 @@ function hideSwapConfirm(){
   document.getElementById('swapConfirm').classList.remove('visible');
   document.querySelectorAll('.task.selected-2').forEach(e=>e.classList.remove('selected-2'));
 }
-function closeToolbar(){ hideToolbar(); hideDayToolbar(); }
+function closeToolbar(){ hideToolbar(); hideDayToolbar(); hideGoalsToolbar(); }
+
+// ── Weekly-goals toolbar ──────────────────────────────────────────────────
+let activeGoalsWIdx = null;
+let goalsClipboard = null; // array of goal objects
+function showGoalsToolbar(wIdx){
+  // clear any task/day selection
+  const prev=taskEl(active); if(prev) prev.classList.remove('selected-1');
+  active=null; swapMode=false; swapFirst=null; hideDayToolbar();
+  activeGoalsWIdx = wIdx;
+  const tb=document.getElementById('toolbar');
+  tb.classList.remove('day-mode');
+  tb.classList.add('goals-mode');
+  const wk = schedule[wIdx];
+  document.getElementById('tbName').textContent = `${wk?.week || 'Week'} · goals`;
+  const pb=document.getElementById('goalTbPasteBtn');
+  if(pb) pb.style.display = (goalsClipboard && goalsClipboard.length) ? '' : 'none';
+  tb.classList.add('visible');
+}
+function hideGoalsToolbar(){
+  activeGoalsWIdx = null;
+  document.getElementById('toolbar').classList.remove('goals-mode');
+}
+function goalsFor(wIdx){ const pg = weeklyGoals[activePeriodId] || (weeklyGoals[activePeriodId]={}); return pg[wIdx] || (pg[wIdx]=[]); }
+
+function goalTbAdd(){ if(activeGoalsWIdx==null) return; openGoalModal(activeGoalsWIdx, null); }
+
+function goalTbClear(){
+  if(activeGoalsWIdx==null) return;
+  const wIdx=activeGoalsWIdx;
+  const goals=(weeklyGoals[activePeriodId]||{})[wIdx]||[];
+  if(!goals.length){ showToast('No goals to clear'); return; }
+  appConfirm(`Clear all ${goals.length} goal${goals.length===1?'':'s'} from ${schedule[wIdx]?.week||'this week'}? You can’t undo this.`, 'Clear goals?', 'Clear', true).then(ok=>{
+    if(!ok) return;
+    (weeklyGoals[activePeriodId]||{})[wIdx]=[];
+    saveGoals(); render();
+    showToast('Goals cleared');
+  });
+}
+
+function goalTbCopy(){
+  if(activeGoalsWIdx==null) return;
+  const goals=(weeklyGoals[activePeriodId]||{})[activeGoalsWIdx]||[];
+  if(!goals.length){ showToast('No goals to copy'); return; }
+  goalsClipboard = goals.map(g=>({...g}));
+  const pb=document.getElementById('goalTbPasteBtn'); if(pb) pb.style.display='';
+  showToast(`Copied ${goals.length} goal${goals.length===1?'':'s'}`);
+}
+
+async function goalTbPaste(){
+  if(activeGoalsWIdx==null || !goalsClipboard || !goalsClipboard.length) return;
+  const wIdx=activeGoalsWIdx;
+  const existing=(weeklyGoals[activePeriodId]||{})[wIdx]||[];
+  let mode='merge';
+  if(existing.length){
+    mode = await mergeChoice(
+      `${schedule[wIdx]?.week||'This week'} already has ${existing.length} goal${existing.length===1?'':'s'}.\n\nReplace clears them first, then pastes. Merge keeps them and adds the copied goals on top.`,
+      'Paste goals');
+    if(!mode) return; // cancelled
+  }
+  const copies = goalsClipboard.map(g=>({...g, id: Date.now()+Math.random()}));
+  const target = goalsFor(wIdx);
+  if(mode==='replace'){ weeklyGoals[activePeriodId][wIdx] = copies; }
+  else { const seen=new Set(existing.map(g=>g.text)); weeklyGoals[activePeriodId][wIdx] = [...existing, ...copies.filter(g=>!seen.has(g.text))]; }
+  saveGoals(); render();
+  showToast(mode==='replace'?'Goals replaced':'Goals merged');
+}
+
+function goalTbCopyToWeek(){
+  if(activeGoalsWIdx==null) return;
+  openCopyGoalsSheet(activeGoalsWIdx);
+}
+
+// Delete-a-goal picker
+function goalTbDelete(){
+  if(activeGoalsWIdx==null) return;
+  const wIdx=activeGoalsWIdx;
+  const goals=(weeklyGoals[activePeriodId]||{})[wIdx]||[];
+  if(!goals.length){ showToast('No goals to delete'); return; }
+  const list=document.getElementById('goalDeleteList');
+  list.innerHTML='';
+  goals.forEach((goal, gIdx)=>{
+    const row=document.createElement('div');
+    row.className='cg-goal-item';
+    row.innerHTML=`<div style="flex:1;font-size:.8rem;color:#3a4060;">${goal.text}${goal.target?` <span style="font-size:.65rem;color:#9098a8;">×${goal.target}</span>`:''}</div><span style="color:#c03050;font-size:.9rem;">🗑</span>`;
+    row.addEventListener('click', ()=>{
+      appConfirm(`Delete goal “${goal.text}”?`, 'Delete goal?', 'Delete', true).then(ok=>{
+        if(!ok) return;
+        const arr=(weeklyGoals[activePeriodId]||{})[wIdx]||[];
+        arr.splice(gIdx,1);
+        saveGoals(); closeGoalDeleteSheet(); render();
+        showToast('Goal deleted');
+      });
+    });
+    list.appendChild(row);
+  });
+  document.getElementById('goalDeleteSheet').classList.add('open');
+}
+function closeGoalDeleteSheet(){ document.getElementById('goalDeleteSheet').classList.remove('open'); }
+document.getElementById('goalDeleteSheet').addEventListener('click', e=>{ if(e.target.id==='goalDeleteSheet') closeGoalDeleteSheet(); });
 
 // ── Day-level selection (tap a day to act on the whole day) ──
 function showDayToolbar(wIdx,dIdx){
@@ -2058,6 +2205,7 @@ function showDayToolbar(wIdx,dIdx){
   const prev=taskEl(active); if(prev) prev.classList.remove('selected-1');
   active=null; swapMode=false; swapFirst=null;
   activeDay={wIdx,dIdx};
+  hideGoalsToolbar();
   const day=schedule[wIdx].days[dIdx];
   const tb=document.getElementById('toolbar');
   tb.classList.add('day-mode');
@@ -2466,6 +2614,24 @@ function confirmResolve(val) {
 }
 document.getElementById('confirmOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('confirmOverlay')) confirmResolve(false);
+});
+
+// ── Replace / Merge / Cancel choice → resolves 'replace' | 'merge' | null ──
+let _mergeResolveInternal = null;
+function mergeChoice(msg, title='Overwrite warning') {
+  return new Promise(resolve => {
+    _mergeResolveInternal = resolve;
+    document.getElementById('mergeTitle').textContent = title;
+    document.getElementById('mergeMsg').textContent = msg;
+    document.getElementById('mergeOverlay').classList.remove('hidden');
+  });
+}
+function mergeResolve(val) {
+  document.getElementById('mergeOverlay').classList.add('hidden');
+  if (_mergeResolveInternal) { _mergeResolveInternal(val); _mergeResolveInternal = null; }
+}
+document.getElementById('mergeOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('mergeOverlay')) mergeResolve(null);
 });
 
 // ── Drag ──────────────────────────────────────────────────────────────────
@@ -3578,20 +3744,20 @@ function renderGoalsSection(container, wIdx) {
     <span style="font-size:.9rem;">🎯</span>
     <span class="goals-title">Weekly Goals</span>
     ${goals.length ? badgeHTML : ''}
-    ${goals.length ? `<button class="goals-copy-btn" id="goalsCopyBtn_${wIdx}">⧉ Copy</button>` : ''}
     ${wIdx===0 ? `<button class="goals-copy-btn" id="goalsStatsBtn" title="Goal stats">📊</button>` : ''}
-    <span class="goals-toggle${isCollapsed?'':' open'}">▲</span>`;
+    <span class="goals-toggle-tap" title="Expand / collapse"><span class="goals-toggle${isCollapsed?'':' open'}">▲</span></span>`;
   const statsBtnEl = hdr.querySelector('#goalsStatsBtn');
   if (statsBtnEl) statsBtnEl.addEventListener('click', e => { e.stopPropagation(); showGoalStats(); });
-  const copyBtnEl = hdr.querySelector(`#goalsCopyBtn_${wIdx}`);
-  if (copyBtnEl) copyBtnEl.addEventListener('click', e => { e.stopPropagation(); openCopyGoalsSheet(wIdx); });
-  hdr.addEventListener('click', () => {
+  // Arrow toggles collapse; rest of the header opens the goals toolbar.
+  hdr.querySelector('.goals-toggle-tap').addEventListener('click', e => {
+    e.stopPropagation();
     const colMap2 = goalsCollapsed[activePeriodId] || {};
     colMap2[wIdx] = !colMap2[wIdx];
     goalsCollapsed[activePeriodId] = colMap2;
     saveGoalsCollapsed();
     render();
   });
+  hdr.addEventListener('click', () => showGoalsToolbar(wIdx));
   card.appendChild(hdr);
 
   if (!isCollapsed) {
@@ -3749,7 +3915,12 @@ async function openCopyGoalsSheet(sourceWIdx) {
     empty.textContent = 'No other weeks found.';
     list.appendChild(empty);
   } else {
+    let lastPeriod = null;
     items.forEach(item => {
+      if (item.periodId !== lastPeriod) {
+        lastPeriod = item.periodId;
+        list.appendChild(tabDivider(item.periodLabel));
+      }
       const key = item.periodId + ':' + item.wIdx;
       const div = document.createElement('div');
       div.className = 'cg-item';
@@ -3758,7 +3929,6 @@ async function openCopyGoalsSheet(sourceWIdx) {
         <div class="cg-check">✓</div>
         <div style="flex:1;">
           <div class="cg-item-label">${item.weekLabel}${item.dateRange ? ' · ' + item.dateRange : ''}</div>
-          <div class="cg-item-sub">${item.periodLabel !== (periods.find(p=>p.id===activePeriodId)?.label||'') ? item.periodLabel : 'Current tab'}</div>
         </div>`;
       div.addEventListener('click', () => {
         if (_cgSelected.has(key)) { _cgSelected.delete(key); div.classList.remove('selected'); }
@@ -4906,6 +5076,12 @@ function dayTaskPills(d){
   if(!tasks.length) return '<span style="font-size:.66rem;color:#c4ccd8;">No tasks</span>';
   return tasks.map(t=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.64rem;background:#f0f2f7;border-radius:6px;padding:2px 7px;color:#4a5060;"><span>${t.emoji||''}</span>${t.text}</span>`).join('');
 }
+// A prominent per-tab heading for copy/paste lists
+function tabDivider(label){
+  const d=document.createElement('div'); d.className='copy-tab-divider';
+  d.innerHTML=`<span class="ctd-ic">🗂️</span><span>${label||'Untitled tab'}</span>`;
+  return d;
+}
 
 function setCopyFooter(opts){
   const nb=document.getElementById('copyNextBtn'), bb=document.getElementById('copyBackBtn');
@@ -4988,13 +5164,14 @@ function renderCopyStep(){
 
     // ── Scrollable list of day cards, grouped by week with dividers ──
     const listWrap=document.createElement('div'); listWrap.className='copy-daylist';
-    let lastGroup=null;
+    let lastGroup=null, lastPeriod=null;
     entries.forEach(e=>{
+      if(e.p.periodId!==lastPeriod){ lastPeriod=e.p.periodId; lastGroup=null; listWrap.appendChild(tabDivider(e.p.periodLabel)); }
       const groupKey=e.p.periodId+':'+e.wi;
       if(groupKey!==lastGroup){
         lastGroup=groupKey;
         const div=document.createElement('div'); div.className='copy-week-divider';
-        div.innerHTML=`<span>${e.p.periodLabel} · ${e.wk.week}</span>`;
+        div.innerHTML=`<span>${e.wk.week}</span>`;
         listWrap.appendChild(div);
       }
       const cid='cpsrc-'+e.p.periodId+'-'+e.wi+'-'+e.di;
@@ -5023,11 +5200,12 @@ function renderCopyStep(){
     pill.textContent = f.fromPreset ? 'Paste onto' : 'Step 2 of 2'; title.textContent='Paste Onto Which Days?';
     const src=cpDay(f.srcPeriodId,f.srcWIdx,f.srcDIdx)||{};
     sub.innerHTML=`Copying <b>${src.name||''} ${src.date||''}</b> — tick every day to paste it onto. Tick multiple if you like.`;
-    let lastG=null;
+    let lastG=null, lastP=null;
     f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=> (wk.days||[]).forEach((d,di)=>{
       if(p.periodId===f.srcPeriodId && wi===f.srcWIdx && di===f.srcDIdx) return;
+      if(p.periodId!==lastP){ lastP=p.periodId; lastG=null; body.appendChild(tabDivider(p.periodLabel)); }
       const gKey=p.periodId+':'+wi;
-      if(gKey!==lastG){ lastG=gKey; const dv=document.createElement('div'); dv.className='copy-week-divider'; dv.innerHTML=`<span>${p.periodLabel} · ${wk.week}</span>`; body.appendChild(dv); }
+      if(gKey!==lastG){ lastG=gKey; const dv=document.createElement('div'); dv.className='copy-week-divider'; dv.innerHTML=`<span>${wk.week}</span>`; body.appendChild(dv); }
       const key=p.periodId+':'+wi+':'+di, cnt=(d.tasks||[]).length;
       const card=document.createElement('div'); card.className='cw-card'+(f.destDays.has(key)?' selected':'');
       card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${d.name} <span style="color:#9098a8;font-weight:600;">${d.date||''}</span></span><span class="cw-card-sub">${cnt} task${cnt===1?'':'s'}</span></div>`;
@@ -5041,14 +5219,17 @@ function renderCopyStep(){
   if(f.mode==='week' && f.step==='src'){
     pill.textContent='Step 1 of 3'; title.textContent='Copy a Week';
     sub.textContent='Pick the week to copy — the preview shows each day’s tasks.';
-    f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=>{
-      const key=p.periodId+':'+wi;
-      const total=(wk.days||[]).reduce((a,d)=>a+((d.tasks||[]).length),0);
-      const card=document.createElement('div'); card.className='cw-card'+(f.srcKey===key?' selected':'');
-      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${wk.week}</span><span class="cw-card-sub">${p.periodLabel} · ${total} task${total===1?'':'s'}</span></div>${weekPreview(wk)}`;
-      card.onclick=()=>{ f.srcKey=key; f.srcPeriodId=p.periodId; f.srcWIdx=wi; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
-      body.appendChild(card);
-    }));
+    f.allPeriods.forEach(p=>{
+      body.appendChild(tabDivider(p.periodLabel));
+      p.weeks.forEach((wk,wi)=>{
+        const key=p.periodId+':'+wi;
+        const total=(wk.days||[]).reduce((a,d)=>a+((d.tasks||[]).length),0);
+        const card=document.createElement('div'); card.className='cw-card'+(f.srcKey===key?' selected':'');
+        card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${wk.week}</span><span class="cw-card-sub">${total} task${total===1?'':'s'}</span></div>${weekPreview(wk)}`;
+        card.onclick=()=>{ f.srcKey=key; f.srcPeriodId=p.periodId; f.srcWIdx=wi; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
+        body.appendChild(card);
+      });
+    });
     setCopyFooter({next:'Next', nextOn:!!f.srcKey, back:false});
     return;
   }
@@ -5078,14 +5259,19 @@ function renderCopyStep(){
   if(f.mode==='week' && f.step==='dest'){
     pill.textContent='Step 3 of 3'; title.textContent='Paste Onto Which Week?';
     sub.textContent='Pick the week to paste into — dates stay as the destination’s own dates.';
-    f.allPeriods.forEach(p=> p.weeks.forEach((wk,wi)=>{
-      const key=p.periodId+':'+wi; if(key===f.srcKey) return;
-      const total=(wk.days||[]).reduce((a,d)=>a+((d.tasks||[]).length),0);
-      const card=document.createElement('div'); card.className='cw-card'+(f.destWeek===key?' selected':'');
-      card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${wk.week}</span><span class="cw-card-sub">${p.periodLabel} · ${total} task${total===1?'':'s'}</span></div>${weekPreview(wk)}`;
-      card.onclick=()=>{ f.destWeek=key; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
-      body.appendChild(card);
-    }));
+    f.allPeriods.forEach(p=>{
+      const rows=p.weeks.map((wk,wi)=>({wk,wi})).filter(({wi})=> (p.periodId+':'+wi)!==f.srcKey);
+      if(!rows.length) return;
+      body.appendChild(tabDivider(p.periodLabel));
+      rows.forEach(({wk,wi})=>{
+        const key=p.periodId+':'+wi;
+        const total=(wk.days||[]).reduce((a,d)=>a+((d.tasks||[]).length),0);
+        const card=document.createElement('div'); card.className='cw-card'+(f.destWeek===key?' selected':'');
+        card.innerHTML=`<div class="cw-card-top"><span class="cw-card-label">${wk.week}</span><span class="cw-card-sub">${total} task${total===1?'':'s'}</span></div>${weekPreview(wk)}`;
+        card.onclick=()=>{ f.destWeek=key; document.querySelectorAll('#copyBody .cw-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); updateCopyNext(); };
+        body.appendChild(card);
+      });
+    });
     setCopyFooter({next:'Paste', nextOn:!!f.destWeek, back:true});
     return;
   }
