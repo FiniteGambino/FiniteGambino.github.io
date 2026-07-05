@@ -178,6 +178,113 @@ Final solution: **Firebase custom token via Vercel backend**
 
 ---
 
+## June 28, 2026 — Themes v2 + Today Preview
+
+### Theme Lineup Replaced
+- Old themes (Light/Olive/Koral/Aster/Slate) replaced with four: **Soft Bubble** (`a2`), **Minimal** (`f`), **Editorial** (`c`), **Dark** (`d`)
+- Minimal's border radii sharpened to match Editorial (4–6px range)
+- Editorial-style all-black today cards applied to Minimal
+
+### Today Preview Card
+- Read-only today preview pinned above the rare-tasks bar, tasks stacked vertically
+- Per-task color dots, category legend row, and "tap to manage" subtitle removed for a cleaner look
+
+### Fixes & Polish
+- Palette chip drag-and-drop onto empty days fixed (`closePalette()` was nulling `chipDrag`; added `_chipDragActive` flag)
+- Purple/green goal checkmarks based on scheduled vs. actually-completed days
+- Copy modal centered; copy-day source chips made toggleable
+- "Tap a task then paste" copy banner removed
+- Import button emoji replaced with the real Google Calendar SVG (consistent Google colors across all themes)
+
+---
+
+## June 28, 2026 — Collapsible Weeks + Today Card Gestures
+
+- **Collapsible weeks** with auto-collapse for past weeks; user overrides sticky in localStorage
+- **Today card swipe**: left swipe previews tomorrow, right swipe returns to today (in-memory only, resets to Today on reload)
+- **Tap the Today card** → smooth-scrolls to that day in the schedule, auto-expanding a collapsed week first
+- **Context-aware Add to Week**: opening the palette from a selected day skips the week picker and defaults to that day's week (with "← Pick a different week" escape hatch); top Add Task button still asks
+
+---
+
+## June 29, 2026 — Undo Fix + Auto-Dark
+
+- **Undo fixed (root cause)**: Firebase `onValue` listener was wiping the undo stack on every snapshot echo of the user's own saves; now only clears on the first snapshot per period load (`_firstSnap` flag)
+- **Today⇄tomorrow slide animation** (0.26s, direction-aware)
+- **Auto-dark mode**: switches to Dark between 10pm–6am, reverts to saved theme in the morning; manual theme choice wins for the session
+- **Week view** converted from a 7-column grid to full-width vertically stacked day cards
+- Spacing added above the rare-tasks section
+
+---
+
+## July 4, 2026 — Boot Tab + Goals Toolbar + Cross-Tab Copy/Paste
+
+### Auto-Open Correct Tab on Boot
+- App opens the tab whose date range contains today; falls back to parsing the tab label ("Jun 21 – Jul 4") when day date fields fail to parse
+
+### Weekly Goals Toolbar
+- Inline copy button removed; goals header now opens a bottom toolbar (matching the task/day toolbar pattern): Add Goal, Delete Goal (picker sheet), Clear Goals, Copy Goals, Paste, Copy to Week
+
+### Cross-Tab Copy/Paste Overhaul
+- Fixed Firebase path bugs (missing `users/{uid}/` prefix) that made other tabs load as empty in copy sheets
+- Replace/Merge/Cancel prompt on paste conflicts — skipped automatically when the destination is empty
+- All copy/paste list screens (Copy Week/Day, Paste destinations, Copy Goals) restructured with **tab pills** styled like the main tab bar; sheet defaults to the currently viewed tab
+
+### iOS Viewport Fixes
+- Copy sheets use `dvh` units + safe-area padding so panels no longer spill off-screen under Safari's browser chrome
+
+---
+
+## July 4, 2026 — Copy Bug Root-Cause + Custom Categories + Multi-Week Add
+
+### Copy Actually Works Now (root cause found)
+- `copyApply()` called `closeCopySheet()` — which nulls `copyFlow` — *before* reading source data via `cpDay`/`cpWeek` (which dereference `copyFlow`). The null-deref threw and aborted silently, so tasks never pasted
+- Fixed by snapshotting all source/destination data before closing the sheet; added a "Nothing to copy" toast for genuinely empty sources
+
+### Custom Categories (dynamic registry)
+- New `CATEGORIES` registry (built-ins + user-added), persisted in localStorage
+- "＋ Add new category…" option in the task modal **and** goal modal category dropdowns → inline mini-form (name, emoji, 12-color swatch picker)
+- New categories appear everywhere instantly: task colors, goal counting, previews (`CAT_COLOR` and `CAT_LABELS` are live proxies over the registry)
+
+### "Add to Weeks" (multi-week)
+- Add to Week panel gained a **One week / Multiple weeks** toggle
+- Multi mode: tick any combination of weeks (Select all / Clear all) + pick weekday(s) to apply across all of them; exclusions still respected
+- Toolbar/palette buttons relabelled "Add to Weeks"
+
+### Collapse/Expand All — Comprehensive
+- Expand all / Collapse all now also fold/unfold **Weekly Goals cards** and the **Rare Tasks bar**, and persist week collapse state (not just DOM classes)
+
+### Spacing
+- More breathing room under the Today card and around the Rare Tasks bar
+
+---
+
+## July 4, 2026 (later) — Today Everywhere + Bottom-Append + Polish Batch
+
+### Today Card in Every Tab
+- If the active tab doesn't contain today, the card loads today's tasks from whichever period does (cached), shows an "in [period] →" badge, and **tapping it switches to that tab**
+- Cache invalidated on saves/copies so the preview stays fresh
+
+### Paste Defaults to Today's Tab
+- The copy flow's destination step (including copy-from-day presets) auto-switches its tab to the period containing today's date
+
+### New Tasks Append to the Bottom
+- All add paths now push to the end of the day's list: task modal, palette Add to Day, and Add to Weeks (single & multi). Drag-to-reorder still works
+
+### Palette Add-to-Day Shortcut
+- With a day selected → Add from Palette → Add to Day adds straight to that day (no week/day picker). Top Add Task button (no context) still shows the picker
+
+### Delete Across the Whole Tab
+- Delete dialog now offers: Delete this one / Delete all in this week / **Delete all in this tab** / Cancel, with a count toast
+
+### UI Polish
+- Overwrite-warning Replace/Merge buttons restyled to match the app's rounded button treatment (they were rendering as flat bars)
+- New-category emoji field: faint placeholder that disappears on focus (caret no longer slices through the emoji)
+- More space between the Today card and Rare Tasks bar
+- Calendar-import edit dialog's category dropdown made dynamic (custom categories appear there too)
+
+---
+
 ## Current Stack Summary
 
 | Layer | Technology |
