@@ -23,6 +23,7 @@ Vercel serverless backend (`schedule-backend-sigma.vercel.app`) for Google OAuth
 - Paste expand-in animation
 - Pulsing golden shimmer border on clipboard-copied tasks
 - Clipboard indicator bar
+- Undo/redo with Ctrl+Z
 - Keyboard Delete/Backspace to remove selected tasks
 
 ### Drag System
@@ -72,6 +73,33 @@ Vercel serverless backend (`schedule-backend-sigma.vercel.app`) for Google OAuth
 - Palette item deletion with confirmation dialog
 - Reset button removed
 
+### Rare Tasks Bar (first version)
+- Notification bar showing tasks appearing fewer than 3 times per period (gym category excluded)
+- Follow-up fix: tapping a rare-task chip no longer instantly dismisses the toolbar (`#rareTaskBar` added to the document-click exclusion list)
+
+### iOS Timezone Fix
+- Dates shifting one day earlier traced to `new Date('YYYY-MM-DD')` parsing as UTC midnight on iOS Safari
+- Fixed throughout with `parseLocalDate()` passing year/month/day as integers to the `Date` constructor
+
+---
+
+## June 12, 2026 — Sync Fixes + Theme System v1 + Colour Picker
+
+### Sync/Auth Fixes
+- Import/sync button dead after login — root cause was a removed `calSyncBtn` element still referenced in JS
+- App now auto-syncs after sign-in via a one-time `onAuthStateChanged` listener (instead of calling `loadPeriods()` immediately)
+- Period modal's hardcoded "4 weeks" hint replaced with a dynamic label (`pmUpdateLabel()`) reacting to +/− clicks and start-date changes
+
+### Theme System v1 (original five themes)
+- CSS-custom-property theme system: **Light** (default), **Olive** (organic, left accent bars, italic serif header), **Koral** (dark purple, flat rectangular cards), **Aster** (warm linen, borderless editorial), **Slate** (near-black, frosted glass, cyan glow)
+- Each theme structurally distinct (border-radius, typography, shadows, backgrounds), not just recolored
+- Prototyped in a standalone demo file with mock data before committing to the real app
+- Week-view task borders forced to match list view across themes (CSS specificity battle with Olive's `border-left` override)
+
+### Per-Task Colour Picker
+- Colour swatches in the task edit modal to override category colour per task
+- Optional "apply to all tasks with the same name" prompt on colour change
+
 ---
 
 ## June 23, 2026 — UI Polish + Weekly Goals
@@ -104,13 +132,19 @@ Vercel serverless backend (`schedule-backend-sigma.vercel.app`) for Google OAuth
 - Tap empty day area → day-mode toolbar: Add Task / Add from Palette / Copy Day / Clear Day
 - Paste button added to day toolbar after copying a task
 
+### PWA / Home Screen Support
+- Apple/mobile web-app meta tags added (`apple-mobile-web-app-capable`, status-bar style, app title, theme-color, `viewport-fit=cover`)
+- App installable to the iOS Home Screen as a standalone web app
+
+### Drag Fix
+- Drag-to-empty-day didn't register in list view (drop detection only knew week-view `wv-col` classes); `.day-card`/`.task-list` tagged with `data-w`/`data-d` and drop logic extended to handle both views
+
 ---
 
-## June 24, 2026 — Themes + Styling
+## June 24, 2026 — Theme Refinements + Styling
 
-### Multi-Theme System
-- Light, Olive, Koral, Aster, Slate themes
-- Per-theme styling for control buttons and +/− buttons
+### Per-Theme Styling Pass
+- Per-theme styling for control buttons and +/− buttons across the five June 12 themes (Light, Olive, Koral, Aster, Slate)
 - Task cards styled per theme
 
 ### Other
