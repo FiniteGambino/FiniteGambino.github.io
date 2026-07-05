@@ -1052,7 +1052,7 @@
     <button class="ctrl-btn" id="undoBtn" onclick="undo()" style="opacity:.35;pointer-events:none;">↩ Undo</button>
   </div>
 
-  <div id="todayPreview" style="display:none;margin-bottom:38px;"></div>
+  <div id="todayPreview" style="display:none;margin-top:34px;margin-bottom:38px;"></div>
 
   <div id="rareTaskBar" style="display:none;margin-top:44px;margin-bottom:32px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
 
@@ -1506,6 +1506,7 @@ let goalsCollapsed = {}; // periodId+wIdx → bool
 let weeksCollapsed = {}; // periodId → { wIdx: bool } — explicit user override of week collapse
 let weekAutoApplied = {}; // periodId → { wIdx: true } — auto-collapse already applied once (so user expand sticks)
 let tpOffset = 0; // 0 = today, 1 = tomorrow. In-memory only — always resets to 0 on page load.
+let _tpTodayH = 0; // measured height of the "today" card; used as a min-height floor so a shorter "tomorrow" doesn't yank the layout up
 let _todayPeriodCache = {}; // periodId -> weeks[]; lets the Today card render in any tab
 let modalMode   = null, modalTarget  = null;
 let pendingPasteKey = null;
@@ -5123,9 +5124,11 @@ async function resolveTodayPeriod() {
   return null;
 }
 
+let _tpGen = 0; // bumped on every renderTodayPreview; stale async callbacks bail
 function renderTodayPreview(slideDir) {
   const box = document.getElementById('todayPreview');
   if (!box) return;
+  const myGen = ++_tpGen;
   // Active-period path renders synchronously (no flicker on normal use).
   if (schedule.length && findDayByOffset(0)) {
     renderTodayPreviewActive(slideDir);
@@ -5133,21 +5136,27 @@ function renderTodayPreview(slideDir) {
   }
   // Otherwise look across other periods (async) and render a read-only card.
   resolveTodayPeriod().then(res => {
+    // A newer render (e.g. the real schedule snapshot arriving) superseded us —
+    // don't clobber whatever it painted.
+    if (myGen !== _tpGen) return;
+    // The active period now has today (schedule snapshot landed mid-flight).
+    if (schedule.length && findDayByOffset(0)) { renderTodayPreviewActive(); return; }
     if (!res || res.isActive) {
       // No period has today, or it became active mid-flight.
-      if (!res) { box.style.display = 'none'; return; }
+      if (!res) { box.style.display = 'none'; box.style.minHeight = ''; return; }
       renderTodayPreviewActive();
       return;
     }
     renderTodayPreviewForeign(res.periodId, res.weeks);
-  }).catch(() => { box.style.display = 'none'; });
+  }).catch(() => { if (myGen === _tpGen) { box.style.display = 'none'; box.style.minHeight = ''; } });
 }
 
 // Read-only Today card for a period that is NOT the active tab.
 function renderTodayPreviewForeign(periodId, weeks) {
   const box = document.getElementById('todayPreview');
   const ref = findDayByOffsetIn(weeks, 0);
-  if (!ref) { box.style.display = 'none'; return; }
+  if (!ref) { box.style.display = 'none'; box.style.minHeight = ''; return; }
+  box.style.minHeight = ''; // foreign card is read-only (no today⇄tomorrow swipe), so no floor needed
   const found = ref.day;
   const tasks = found.tasks || [];
   const label = (periods.find(p=>p.id===periodId)||{}).label || '';
@@ -5176,9 +5185,9 @@ function renderTodayPreviewForeign(periodId, weeks) {
 
 function renderTodayPreviewActive(slideDir) {
   const box = document.getElementById('todayPreview');
-  if (!box || !schedule.length) { if (box) box.style.display = 'none'; return; }
+  if (!box || !schedule.length) { if (box) { box.style.display = 'none'; box.style.minHeight = ''; } return; }
   const todayRef = findDayByOffset(0);
-  if (!todayRef) { box.style.display = 'none'; return; }
+  if (!todayRef) { box.style.display = 'none'; box.style.minHeight = ''; return; }
   // If tomorrow doesn't exist, force back to today.
   if (tpOffset === 1 && !findDayByOffset(1)) tpOffset = 0;
   const ref = findDayByOffset(tpOffset) || todayRef;
@@ -5208,7 +5217,14 @@ function renderTodayPreviewActive(slideDir) {
       <div class="tp-pills">${pills}</div>
       ${isTomorrow?'<div class="tp-back-hint">← swipe right for today</div>':(hasTomorrow?'<div class="tp-fwd-hint">swipe left for tomorrow →</div>':'')}
     </div>`;
-  attachTpGestures(box.querySelector('#tpCard'), ref);
+  const cardEl = box.querySelector('#tpCard');
+  attachTpGestures(cardEl, ref);
+  // Height floor: remember today's card height, and never let the container
+  // shrink below it. When "tomorrow" has fewer tasks (shorter card), the
+  // leftover space sits as an invisible buffer above the rare-tasks bar instead
+  // of yanking the whole page up. A taller tomorrow still grows past the floor.
+  if (!isTomorrow && cardEl) _tpTodayH = cardEl.offsetHeight;
+  box.style.minHeight = _tpTodayH ? _tpTodayH + 'px' : '';
 }
 
 // Swipe (today⇄tomorrow) + tap (scroll to the shown day) on the preview card.
