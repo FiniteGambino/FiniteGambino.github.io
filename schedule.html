@@ -449,6 +449,14 @@
   .palette-overlay { position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:250; opacity:0; pointer-events:none; transition:opacity .2s; }
   .palette-overlay.open { opacity:1; pointer-events:auto; }
   .palette-panel { position:fixed; bottom:0; left:0; right:0; background:#fff; border-radius:16px 16px 0 0; border-top:1px solid #dde1e9; padding:16px 20px 32px; z-index:251; transform:translateY(100%); transition:transform .3s cubic-bezier(.34,1.1,.64,1); max-height:70vh; overflow-y:auto; }
+  .atw-mode-btn { border:1px solid #dde1e9; background:#f5f6f8; color:#6b7280; }
+  .atw-mode-btn.atw-mode-on { background:#eef1ff; border-color:#b0c4ff; color:#3d5afe; }
+  .atw-wchip { display:inline-flex; flex-direction:column; align-items:flex-start; gap:1px; padding:7px 11px; border-radius:9px; border:1.5px solid #dde1e9; background:#f5f6f8; cursor:pointer; font-size:.72rem; color:#2c2f3a; }
+  .atw-wchip.on { background:#eef1ff; border-color:#3d5afe; color:#1a3ad8; }
+  .atw-wchip .atw-wchip-date { font-size:.6rem; color:#9098a8; font-weight:600; }
+  .atw-wchip.on .atw-wchip-date { color:#6a86e8; }
+  .atw-dchip { display:inline-flex; align-items:center; gap:5px; padding:7px 12px; border-radius:20px; border:1.5px solid #dde1e9; background:#f5f6f8; cursor:pointer; font-size:.74rem; font-weight:600; color:#2c2f3a; }
+  .atw-dchip.on { background:#eef1ff; border-color:#3d5afe; color:#1a3ad8; }
   .palette-panel.open { transform:translateY(0); }
   .palette-handle { width:36px; height:4px; background:#dde1e9; border-radius:2px; margin:0 auto 14px; }
   .palette-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
@@ -1040,9 +1048,9 @@
     <button class="ctrl-btn" id="undoBtn" onclick="undo()" style="opacity:.35;pointer-events:none;">↩ Undo</button>
   </div>
 
-  <div id="todayPreview" style="display:none;margin-bottom:22px;"></div>
+  <div id="todayPreview" style="display:none;margin-bottom:38px;"></div>
 
-  <div id="rareTaskBar" style="display:none;margin-top:18px;margin-bottom:14px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
+  <div id="rareTaskBar" style="display:none;margin-top:26px;margin-bottom:32px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
 
   <div id="schedule"><div class="loading-screen"><div class="spinner"></div>Loading…</div></div>
 </div><!-- /.page-wrap -->
@@ -1059,7 +1067,7 @@
     <button class="tb-btn tb-copy" onclick="handleCopyBtn()"><span class="tb-icon">⧉</span>Copy</button>
     <button class="tb-btn tb-cut" onclick="handleCutBtn()"><span class="tb-icon">✂️</span>Cut</button>
     <button class="tb-btn tb-paste" id="tbPaste" onclick="handlePasteBtn()"><span class="tb-icon">📋</span>Paste</button>
-    <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="openAtwFromToolbar()"><span class="tb-icon">📅</span>Add to<br>Week</button>
+    <button class="tb-btn" style="color:#6030a0;border-color:#d8c8ef;background:#f3eefb;" onclick="openAtwFromToolbar()"><span class="tb-icon">📅</span>Add to<br>Weeks</button>
     <button class="tb-btn" id="tbGoNext" style="color:#1a56db;border-color:#c3d4f8;background:#eef2ff;" onclick="handleGoNext()"><span class="tb-icon">↓</span>Go to<br>next</button>
     <button class="tb-btn tb-close" onclick="closeToolbar()"><span class="tb-icon">↓</span>Close</button>
   </div>
@@ -1094,13 +1102,19 @@
     <label>Task name</label><input type="text" id="mText" />
     <label>Emoji</label><input type="text" id="mEmoji" maxlength="4" />
     <label>Category</label>
-    <select id="mCat">
-      <option value="gym">&#x1F3CB;&#xFE0F; Gym</option><option value="study">&#x1F4D6; Study</option>
-      <option value="piano">&#x1F3B9; Piano</option><option value="food">&#x1F357; Meal Prep</option>
-      <option value="health">&#x1F489; Health</option><option value="chore">&#x1F9BA; Chores</option>
-      <option value="burrito">&#x1F32F; Batch Cook</option><option value="event">&#x1F389; Event</option>
-      <option value="rest">&#x1F634; Rest</option>
-    </select>
+    <select id="mCat" onchange="onCatSelectChange(this,'mCat')"></select>
+    <div id="mNewCatWrap" style="display:none;margin-top:8px;padding:10px;border:1.5px dashed #b0c4ff;border-radius:8px;background:#f7f9ff;">
+      <div style="font-size:.68rem;font-weight:700;color:#3d5afe;margin-bottom:7px;">New category</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <input type="text" id="mNewCatName" placeholder="Name (e.g. Reading)" style="flex:1;min-width:0;box-sizing:border-box;padding:8px 10px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin:0;" />
+        <input type="text" id="mNewCatEmoji" maxlength="4" placeholder="📚" style="width:56px;box-sizing:border-box;padding:8px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;text-align:center;margin:0;" />
+      </div>
+      <div id="mNewCatColors" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:6px;">
+        <button type="button" onclick="cancelNewCat('mCat')" style="flex:1;padding:7px;border:1px solid #dde1e9;border-radius:7px;background:#fff;font-size:.72rem;color:#6b7280;cursor:pointer;">Cancel</button>
+        <button type="button" onclick="commitNewCat('mCat')" style="flex:2;padding:7px;border:none;border-radius:7px;background:#3d5afe;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">Create category</button>
+      </div>
+    </div>
     <label style="margin-top:12px;">Colour <span style="font-size:.65rem;color:#9098a8;font-weight:400;">(overrides category colour)</span></label>
     <div id="mColorRow" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;align-items:center;"></div>
     <div class="modal-btns">
@@ -1202,7 +1216,7 @@
     <div style="font-size:.7rem;color:#9098a8;margin-bottom:10px;">Selected: <b id="paletteSelLabel"></b></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn-confirm" style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;" onclick="paletteAddToDay()">＋ Add to Day</button>
-      <button style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;background:#f3eefb;color:#6030a0;" onclick="paletteOpenAtw()">📅 Add to Week</button>
+      <button style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;background:#f3eefb;color:#6030a0;" onclick="paletteOpenAtw()">📅 Add to Weeks</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button onclick="deletePaletteItem()" style="flex:1;padding:8px;border-radius:8px;font-size:.75rem;font-weight:500;border:1px solid #f0c0c8;background:#fdeef1;color:#c03050;cursor:pointer;">🗑 Remove from palette</button>
@@ -1219,11 +1233,36 @@
     <span class="palette-title" id="atwTitle">Add to Week</span>
     <button class="palette-close" onclick="closeAtw()">✕</button>
   </div>
-  <p style="font-size:.72rem;color:#9098a8;margin-bottom:14px;">Adding <b id="atwTaskName"></b> — pick which days.</p>
+  <p style="font-size:.72rem;color:#9098a8;margin-bottom:12px;">Adding <b id="atwTaskName"></b> — pick weeks and days.</p>
+
+  <!-- Mode switch: single week vs multi-week -->
+  <div id="atwModeRow" style="display:flex;gap:6px;margin-bottom:14px;">
+    <button id="atwModeSingle" onclick="atwSetMode('single')" class="atw-mode-btn atw-mode-on" style="flex:1;padding:7px;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;">One week</button>
+    <button id="atwModeMulti" onclick="atwSetMode('multi')" class="atw-mode-btn" style="flex:1;padding:7px;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;">Multiple weeks</button>
+  </div>
+
   <button id="atwSwitchWeek" onclick="atwPickDifferentWeek()" style="display:none;font-size:.72rem;color:#6030a0;background:#f3eefb;border:1px solid #d8c8ef;border-radius:7px;padding:5px 12px;cursor:pointer;margin-bottom:14px;">← Pick a different week</button>
 
-  <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Days in this week</div>
-  <div id="atwDayChecks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
+  <!-- MULTI-WEEK: which weeks -->
+  <div id="atwWeekSection" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;">Weeks to add to</span>
+      <button onclick="atwToggleAllWeeks()" id="atwAllWeeksBtn" style="font-size:.66rem;color:#3d5afe;background:none;border:none;cursor:pointer;font-weight:700;">Select all</button>
+    </div>
+    <div id="atwWeekChecks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;"></div>
+  </div>
+
+  <!-- SINGLE-WEEK: list of the week's actual days -->
+  <div id="atwSingleSection">
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Days in this week</div>
+    <div id="atwDayChecks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
+  </div>
+
+  <!-- MULTI-WEEK: weekday picker applied across selected weeks -->
+  <div id="atwWeekdaySection" style="display:none;">
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Which day(s) each week</div>
+    <div id="atwWeekdayChecks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;"></div>
+  </div>
 
   <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Skip days that already have…</div>
   <div id="atwExclusions" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:10px;"></div>
@@ -1231,7 +1270,7 @@
 
   <div class="modal-btns" style="margin-top:20px;">
     <button class="btn-cancel" onclick="closeAtw()">Cancel</button>
-    <button class="btn-confirm" onclick="confirmAtw()">Add to Selected Days</button>
+    <button class="btn-confirm" id="atwConfirmBtn" onclick="confirmAtw()">Add to Selected Days</button>
   </div>
 </div>
 
@@ -1339,18 +1378,19 @@
     <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Count a specific task <span style="font-weight:400;color:#9098a8;">(optional — exact task name)</span></label>
     <input type="text" id="gmMatch" placeholder="e.g. Tactu Pump" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin-bottom:12px;" />
     <label style="font-size:.72rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Category to count <span style="font-weight:400;color:#9098a8;">(optional — used only if no specific task above)</span></label>
-    <select id="gmCat" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin-bottom:16px;background:#fff;">
-      <option value="">— any / manual —</option>
-      <option value="gym">🏋️ Gym</option>
-      <option value="study">📖 Study</option>
-      <option value="piano">🎹 Piano</option>
-      <option value="food">🍗 Meal Prep</option>
-      <option value="health">💉 Health</option>
-      <option value="chore">🧺 Chores</option>
-      <option value="burrito">🌯 Batch Cook</option>
-      <option value="event">🎉 Event</option>
-      <option value="rest">😴 Rest</option>
-    </select>
+    <select id="gmCat" onchange="onCatSelectChange(this,'gmCat')" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin-bottom:16px;background:#fff;"></select>
+    <div id="gmNewCatWrap" style="display:none;margin:-8px 0 16px;padding:10px;border:1.5px dashed #b0c4ff;border-radius:8px;background:#f7f9ff;">
+      <div style="font-size:.68rem;font-weight:700;color:#3d5afe;margin-bottom:7px;">New category</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <input type="text" id="gmNewCatName" placeholder="Name (e.g. Reading)" style="flex:1;min-width:0;box-sizing:border-box;padding:8px 10px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;margin:0;" />
+        <input type="text" id="gmNewCatEmoji" maxlength="4" placeholder="📚" style="width:56px;box-sizing:border-box;padding:8px;border:1.5px solid #dde1e9;border-radius:8px;font-size:16px;text-align:center;margin:0;" />
+      </div>
+      <div id="gmNewCatColors" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:6px;">
+        <button type="button" onclick="cancelNewCat('gmCat')" style="flex:1;padding:7px;border:1px solid #dde1e9;border-radius:7px;background:#fff;font-size:.72rem;color:#6b7280;cursor:pointer;">Cancel</button>
+        <button type="button" onclick="commitNewCat('gmCat')" style="flex:2;padding:7px;border:none;border-radius:7px;background:#3d5afe;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">Create category</button>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;">
       <button onclick="closeGoalModal()" style="flex:1;padding:10px;border:1px solid #dde1e9;border-radius:8px;background:#f5f6f8;font-size:.8rem;color:#6b7280;cursor:pointer;">Cancel</button>
       <button onclick="saveGoalModal()" style="flex:2;padding:10px;border:none;border-radius:8px;background:#3d5afe;color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;">Save</button>
@@ -2099,8 +2139,34 @@ async function fixDates() {
   const fixBtn = document.getElementById('fixDatesBtn');
   if (fixBtn) fixBtn.style.display = 'none';
 }
-function expandAll(){ document.querySelectorAll('.task-list').forEach(e=>e.classList.remove('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.add('open')); }
-function collapseAll(){ document.querySelectorAll('.task-list').forEach(e=>e.classList.add('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.remove('open')); }
+function expandAll(){
+  // Weeks
+  const wc = weeksCollapsed[activePeriodId] || (weeksCollapsed[activePeriodId] = {});
+  const auto = weekAutoApplied[activePeriodId] || (weekAutoApplied[activePeriodId] = {});
+  schedule.forEach((_,wIdx)=>{ wc[wIdx]=false; auto[wIdx]=true; });
+  saveWeeksCollapsed();
+  // Goals
+  const gc = goalsCollapsed[activePeriodId] || (goalsCollapsed[activePeriodId] = {});
+  schedule.forEach((_,wIdx)=>{ gc[wIdx]=false; });
+  saveGoalsCollapsed();
+  // Rare tasks bar
+  setRareCollapsed(false);
+  render();
+  // Day task-lists (post-render DOM)
+  requestAnimationFrame(()=>{ document.querySelectorAll('.task-list').forEach(e=>e.classList.remove('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.add('open')); });
+}
+function collapseAll(){
+  const wc = weeksCollapsed[activePeriodId] || (weeksCollapsed[activePeriodId] = {});
+  const auto = weekAutoApplied[activePeriodId] || (weekAutoApplied[activePeriodId] = {});
+  schedule.forEach((_,wIdx)=>{ wc[wIdx]=true; auto[wIdx]=true; });
+  saveWeeksCollapsed();
+  const gc = goalsCollapsed[activePeriodId] || (goalsCollapsed[activePeriodId] = {});
+  schedule.forEach((_,wIdx)=>{ gc[wIdx]=true; });
+  saveGoalsCollapsed();
+  setRareCollapsed(true);
+  render();
+  requestAnimationFrame(()=>{ document.querySelectorAll('.task-list').forEach(e=>e.classList.add('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.remove('open')); });
+}
 function toggleDay(h){ h.nextElementSibling.classList.toggle('collapsed'); h.querySelector('.day-toggle').classList.toggle('open'); }
 function taskEl(ref){ return ref ? document.querySelector(`[data-key="${ref.wIdx}-${ref.dIdx}-${ref.tIdx}"]`) : null; }
 
@@ -2443,12 +2509,17 @@ function openModal(mode,wIdx,dIdx,tIdx){
   document.getElementById('mSavePalette').checked = false;
   document.getElementById('mEditPalette').checked = false;
   document.getElementById('mEditPaletteWrap').style.display='none';
+  refreshCatSelect('mCat');
+  document.getElementById('mNewCatWrap').style.display='none';
   if(mode==='edit'){
     const t=schedule[wIdx].days[dIdx].tasks[tIdx];
     document.getElementById('modalTitle').textContent='Edit Task';
     document.getElementById('mText').value=t.text;
     document.getElementById('mEmoji').value=t.emoji;
-    document.getElementById('mCat').value=t.cat;
+    // Task may reference a category that no longer exists — fall back gracefully.
+    if(!getCategory(t.cat) && t.cat) { refreshCatSelect('mCat'); }
+    document.getElementById('mCat').value = getCategory(t.cat) ? t.cat : (CATEGORIES[0]?.id||'');
+    _catSelectPrev['mCat']=document.getElementById('mCat').value;
     buildColorSwatches(t.color||'');
     document.getElementById('mConfirm').textContent='Save';
     document.getElementById('mSavePaletteWrap').style.display='none';
@@ -2464,6 +2535,7 @@ function openModal(mode,wIdx,dIdx,tIdx){
     document.getElementById('mText').value='';
     document.getElementById('mEmoji').value='';
     document.getElementById('mCat').value='gym';
+    _catSelectPrev['mCat']='gym';
     buildColorSwatches('');
     document.getElementById('mConfirm').textContent='Add';
     document.getElementById('mSavePaletteWrap').style.display='block';
@@ -2555,7 +2627,73 @@ function confirmModal(){
   }
   closeModal(); hideToolbar(); save(); render();
 }
-function emojiFor(cat){ return{gym:'🏋️',study:'📖',piano:'🎹',food:'🍗',health:'💉',chore:'🧺',burrito:'🌯',event:'🎉',rest:'😴'}[cat]||'📌'; }
+function emojiFor(cat){ const c=getCategory(cat); return c?c.emoji:'📌'; }
+
+// ── Dynamic category selects (task modal = mCat, goal modal = gmCat) ──────────
+const _CAT_ADD_SENTINEL = '__add_new_cat__';
+// Refresh a category <select>, keep the current value, append the "add new" row.
+function refreshCatSelect(id) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const isGoal = (id === 'gmCat');
+  populateCategorySelect(sel, isGoal, '— any / manual —');
+  const add = document.createElement('option');
+  add.value = _CAT_ADD_SENTINEL;
+  add.textContent = '＋ Add new category…';
+  sel.appendChild(add);
+}
+// Remember what was selected before "add new" so Cancel can restore it.
+let _catSelectPrev = {};
+function onCatSelectChange(sel, id) {
+  if (sel.value === _CAT_ADD_SENTINEL) {
+    openNewCatForm(id);
+  } else {
+    _catSelectPrev[id] = sel.value;
+  }
+}
+function newCatColorRowId(id){ return id === 'gmCat' ? 'gmNewCatColors' : 'mNewCatColors'; }
+function newCatWrapId(id){ return id === 'gmCat' ? 'gmNewCatWrap' : 'mNewCatWrap'; }
+function newCatNameId(id){ return id === 'gmCat' ? 'gmNewCatName' : 'mNewCatName'; }
+function newCatEmojiId(id){ return id === 'gmCat' ? 'gmNewCatEmoji' : 'mNewCatEmoji'; }
+let _pendingCatColor = {};
+function openNewCatForm(id) {
+  const wrap = document.getElementById(newCatWrapId(id));
+  const colRow = document.getElementById(newCatColorRowId(id));
+  document.getElementById(newCatNameId(id)).value = '';
+  document.getElementById(newCatEmojiId(id)).value = '';
+  _pendingCatColor[id] = CAT_COLOR_CHOICES[0];
+  colRow.innerHTML = '';
+  CAT_COLOR_CHOICES.forEach((col, i) => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.style.cssText = `width:24px;height:24px;border-radius:50%;background:${col};cursor:pointer;border:2px solid ${i===0?'#1a1c24':'transparent'};`;
+    dot.onclick = () => {
+      _pendingCatColor[id] = col;
+      colRow.querySelectorAll('button').forEach(b => b.style.borderColor = 'transparent');
+      dot.style.borderColor = '#1a1c24';
+    };
+    colRow.appendChild(dot);
+  });
+  wrap.style.display = 'block';
+  setTimeout(() => document.getElementById(newCatNameId(id)).focus(), 40);
+}
+function cancelNewCat(id) {
+  document.getElementById(newCatWrapId(id)).style.display = 'none';
+  const sel = document.getElementById(id);
+  sel.value = _catSelectPrev[id] || (id === 'gmCat' ? '' : (CATEGORIES[0] && CATEGORIES[0].id) || '');
+}
+function commitNewCat(id) {
+  const name = document.getElementById(newCatNameId(id)).value.trim();
+  const emoji = document.getElementById(newCatEmojiId(id)).value.trim();
+  if (!name) { document.getElementById(newCatNameId(id)).focus(); return; }
+  const cat = addCategory(name, emoji, _pendingCatColor[id] || '#6b7280');
+  // Rebuild BOTH selects so the new category is available everywhere.
+  refreshCatSelect('mCat'); refreshCatSelect('gmCat');
+  const sel = document.getElementById(id);
+  sel.value = cat.id; _catSelectPrev[id] = cat.id;
+  document.getElementById(newCatWrapId(id)).style.display = 'none';
+  showToast(`Category ${cat.emoji} ${cat.label} added`);
+}
 
 // ── Task custom colours ──────────────────────────────────────────────────────
 const COLOR_MAP = {
@@ -2839,6 +2977,73 @@ const PALETTE_ITEMS = [
   { text:'Event',         cat:'event',   emoji:'🎉' },
 ];
 
+// ── Category registry (built-in + user-added, persisted) ────────────────────
+// Each: { id, label, emoji, color }.  Built-ins keep their original ids so old
+// tasks/goals referencing them keep working.
+const BUILTIN_CATEGORIES = [
+  { id:'gym',     label:'Gym',        emoji:'🏋️', color:'#1e9a52' },
+  { id:'study',   label:'Study',      emoji:'📖', color:'#2a72c8' },
+  { id:'piano',   label:'Piano',      emoji:'🎹', color:'#7a3fc8' },
+  { id:'food',    label:'Meal Prep',  emoji:'🍗', color:'#c2902a' },
+  { id:'health',  label:'Health',     emoji:'💉', color:'#c23a5e' },
+  { id:'chore',   label:'Chores',     emoji:'🧺', color:'#2a7898' },
+  { id:'burrito', label:'Batch Cook', emoji:'🌯', color:'#c2682a' },
+  { id:'event',   label:'Event',      emoji:'🎉', color:'#9030c8' },
+  { id:'rest',    label:'Rest',       emoji:'😴', color:'#8090a0' },
+];
+let CATEGORIES = BUILTIN_CATEGORIES.map(c => ({ ...c }));
+
+// Palette of colours offered when creating a new category.
+const CAT_COLOR_CHOICES = ['#1e9a52','#2a72c8','#7a3fc8','#c2902a','#c23a5e','#2a7898','#c2682a','#9030c8','#e0591e','#0f9e8e','#6b7280','#c0392b'];
+
+function loadCategories() {
+  try {
+    const raw = localStorage.getItem('gs_categories_custom');
+    const extras = raw ? JSON.parse(raw) : [];
+    extras.forEach(c => { if (c && c.id && !CATEGORIES.find(x => x.id === c.id)) CATEGORIES.push(c); });
+  } catch(_) {}
+}
+function saveCategories() {
+  const builtinIds = BUILTIN_CATEGORIES.map(c => c.id);
+  const extras = CATEGORIES.filter(c => !builtinIds.includes(c.id));
+  try { localStorage.setItem('gs_categories_custom', JSON.stringify(extras)); } catch(_) {}
+}
+function getCategory(id) { return CATEGORIES.find(c => c.id === id) || null; }
+function addCategory(label, emoji, color) {
+  const clean = (label||'').trim();
+  if (!clean) return null;
+  // Reuse an existing category if the label matches (case-insensitive).
+  const existing = CATEGORIES.find(c => c.label.toLowerCase() === clean.toLowerCase());
+  if (existing) return existing;
+  const base = clean.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'cat';
+  let id = base, n = 2;
+  while (CATEGORIES.find(c => c.id === id)) id = base + '-' + (n++);
+  const cat = { id, label:clean, emoji:(emoji||'📌').trim()||'📌', color:color||'#6b7280' };
+  CATEGORIES.push(cat);
+  saveCategories();
+  return cat;
+}
+// Rebuild any <select> of categories, preserving selection where possible.
+function populateCategorySelect(sel, includeBlank, blankLabel) {
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '';
+  if (includeBlank) {
+    const o = document.createElement('option');
+    o.value = ''; o.textContent = blankLabel || '— any / manual —';
+    sel.appendChild(o);
+  }
+  CATEGORIES.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = `${c.emoji} ${c.label}`;
+    sel.appendChild(o);
+  });
+  // The "add new" sentinel is appended by the caller when wanted.
+  if (prev && CATEGORIES.find(c => c.id === prev)) sel.value = prev;
+}
+
+loadCategories();
+
 // Session-only custom chips (cleared on page close, unless saved to palette)
 let SESSION_CHIPS = [];
 
@@ -2952,7 +3157,7 @@ function paletteActionBarDefaultHTML() {
     <div style="font-size:.7rem;color:#9098a8;margin-bottom:10px;">Selected: <b id="paletteSelLabel">${selectedPaletteItem ? selectedPaletteItem.emoji+' '+selectedPaletteItem.text : ''}</b></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn-confirm" style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;" onclick="paletteAddToDay()">＋ Add to Day</button>
-      <button style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;background:#f3eefb;color:#6030a0;" onclick="paletteOpenAtw()">📅 Add to Week</button>
+      <button style="flex:1;padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;border:none;cursor:pointer;background:#f3eefb;color:#6030a0;" onclick="paletteOpenAtw()">📅 Add to Weeks</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button onclick="deletePaletteItem()" style="flex:1;padding:8px;border-radius:8px;font-size:.75rem;font-weight:500;border:1px solid #f0c0c8;background:#fdeef1;color:#c03050;cursor:pointer;">🗑 Remove from palette</button>
@@ -3235,7 +3440,10 @@ function openCustomChipModal() {
   document.getElementById('modalTitle').textContent = 'New Custom Task';
   document.getElementById('mText').value = '';
   document.getElementById('mEmoji').value = '';
+  refreshCatSelect('mCat');
+  document.getElementById('mNewCatWrap').style.display='none';
   document.getElementById('mCat').value = 'gym';
+  _catSelectPrev['mCat']='gym';
   buildColorSwatches('');
   document.getElementById('mConfirm').textContent = 'Add (session only)';
   document.getElementById('mSavePaletteWrap').style.display = 'block';
@@ -3256,21 +3464,66 @@ function openAtwFromToolbar() {
   openAtwWithTask({ ...schedule[wIdx].days[dIdx].tasks[tIdx] }, wIdx);
 }
 
+let atwMode = 'single';          // 'single' | 'multi'
+let atwSelectedWeeks = new Set(); // week indices, multi-mode
+let atwSelectedWeekdays = new Set(); // weekday indices 0..6, multi-mode
+
 function openAtwWithTask(task, wIdx, allowWeekSwitch) {
   atwTask = task;
   atwWIdx = wIdx;
   atwExclusions = [];
+  atwMode = 'single';
+  atwSelectedWeeks = new Set([wIdx]);
+  atwSelectedWeekdays = new Set();
 
   const switchBtn = document.getElementById('atwSwitchWeek');
   if (switchBtn) switchBtn.style.display = (allowWeekSwitch && schedule.length > 1) ? 'inline-block' : 'none';
 
   document.getElementById('atwTaskName').textContent = `${task.emoji} ${task.text}`;
-  document.getElementById('atwTitle').textContent = `Add to ${schedule[wIdx].week}`;
+  // Hide the multi-week mode switch entirely if there's only one week.
+  document.getElementById('atwModeRow').style.display = schedule.length > 1 ? 'flex' : 'none';
 
+  atwSetMode('single');
+  renderAtwExclusions();
+  document.getElementById('atwOverlay').classList.add('open');
+  document.getElementById('atwPanel').classList.add('open');
+}
+
+function atwSetMode(mode) {
+  atwMode = mode;
+  const single = document.getElementById('atwSingleSection');
+  const weekSec = document.getElementById('atwWeekSection');
+  const wdSec = document.getElementById('atwWeekdaySection');
+  const bSingle = document.getElementById('atwModeSingle');
+  const bMulti = document.getElementById('atwModeMulti');
+  const confirmBtn = document.getElementById('atwConfirmBtn');
+  const switchBtn = document.getElementById('atwSwitchWeek');
+
+  bSingle.classList.toggle('atw-mode-on', mode==='single');
+  bMulti.classList.toggle('atw-mode-on', mode==='multi');
+
+  if (mode === 'single') {
+    single.style.display = ''; weekSec.style.display = 'none'; wdSec.style.display = 'none';
+    if (switchBtn && schedule.length > 1) switchBtn.style.display = 'inline-block';
+    document.getElementById('atwTitle').textContent = `Add to ${schedule[atwWIdx].week}`;
+    buildAtwSingleDays();
+    confirmBtn.textContent = 'Add to Selected Days';
+  } else {
+    single.style.display = 'none'; weekSec.style.display = ''; wdSec.style.display = '';
+    if (switchBtn) switchBtn.style.display = 'none';
+    document.getElementById('atwTitle').textContent = 'Add across weeks';
+    buildAtwWeekChecks();
+    buildAtwWeekdayChecks();
+    confirmBtn.textContent = 'Add to Selected';
+  }
+}
+
+// ── Single-week: real day list for the active week ──
+function buildAtwSingleDays() {
   const wrap = document.getElementById('atwDayChecks');
   wrap.innerHTML = '';
-  schedule[wIdx].days.forEach((day, dIdx2) => {
-    const alreadyHas = day.tasks.some(t => t.text === task.text);
+  schedule[atwWIdx].days.forEach((day, dIdx2) => {
+    const alreadyHas = day.tasks.some(t => t.text === atwTask.text);
     const row = document.createElement('label');
     row.style.cssText = 'display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0;';
     const cb = document.createElement('input');
@@ -3293,16 +3546,62 @@ function openAtwWithTask(task, wIdx, allowWeekSwitch) {
     row.appendChild(cb); row.appendChild(lbl);
     wrap.appendChild(row);
   });
+}
 
-  renderAtwExclusions();
-  document.getElementById('atwOverlay').classList.add('open');
-  document.getElementById('atwPanel').classList.add('open');
+// ── Multi-week: pick weeks ──
+function buildAtwWeekChecks() {
+  const wrap = document.getElementById('atwWeekChecks');
+  wrap.innerHTML = '';
+  schedule.forEach((wk, wi) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'atw-wchip' + (atwSelectedWeeks.has(wi) ? ' on' : '');
+    const firstDate = (wk.days.find(d => d.date && d.date !== '—')||{}).date || '';
+    chip.innerHTML = `<span>${wk.week}</span>${firstDate?`<span class="atw-wchip-date">${firstDate}</span>`:''}`;
+    chip.onclick = () => {
+      if (atwSelectedWeeks.has(wi)) atwSelectedWeeks.delete(wi); else atwSelectedWeeks.add(wi);
+      chip.classList.toggle('on');
+      updateAtwAllWeeksBtn();
+    };
+    wrap.appendChild(chip);
+  });
+  updateAtwAllWeeksBtn();
+}
+function updateAtwAllWeeksBtn() {
+  const btn = document.getElementById('atwAllWeeksBtn');
+  if (btn) btn.textContent = atwSelectedWeeks.size === schedule.length ? 'Clear all' : 'Select all';
+}
+function atwToggleAllWeeks() {
+  if (atwSelectedWeeks.size === schedule.length) atwSelectedWeeks = new Set();
+  else atwSelectedWeeks = new Set(schedule.map((_,i)=>i));
+  buildAtwWeekChecks();
+}
+
+// ── Multi-week: pick weekdays (applied to each selected week) ──
+function buildAtwWeekdayChecks() {
+  const wrap = document.getElementById('atwWeekdayChecks');
+  wrap.innerHTML = '';
+  // Derive the weekday labels from the first week's day names for consistency.
+  const names = (schedule[0]?.days || []).map(d => d.name);
+  const labels = names.length ? names : ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  labels.forEach((name, i) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'atw-dchip' + (atwSelectedWeekdays.has(i) ? ' on' : '');
+    chip.textContent = (name||'').slice(0,3);
+    chip.onclick = () => {
+      if (atwSelectedWeekdays.has(i)) atwSelectedWeekdays.delete(i); else atwSelectedWeekdays.add(i);
+      chip.classList.toggle('on');
+    };
+    wrap.appendChild(chip);
+  });
 }
 
 function closeAtw() {
   document.getElementById('atwOverlay').classList.remove('open');
   document.getElementById('atwPanel').classList.remove('open');
   atwTask = null; atwWIdx = null; atwExclusions = [];
+  atwMode = 'single'; atwSelectedWeeks = new Set(); atwSelectedWeekdays = new Set();
 }
 
 // From the day-checkbox panel, let the user switch to a different week
@@ -3337,7 +3636,31 @@ function renderAtwExclusions() {
 function removeExclusion(i) { atwExclusions.splice(i,1); renderAtwExclusions(); }
 
 function confirmAtw() {
-  if (!atwTask || atwWIdx === null) return;
+  if (!atwTask) return;
+
+  if (atwMode === 'multi') {
+    if (!atwSelectedWeeks.size) { showToast('Pick at least one week'); return; }
+    if (!atwSelectedWeekdays.size) { showToast('Pick at least one day'); return; }
+    let addedCount = 0;
+    pushUndo();
+    atwSelectedWeeks.forEach(wi => {
+      const wk = schedule[wi]; if (!wk) return;
+      atwSelectedWeekdays.forEach(di => {
+        const day = wk.days[di]; if (!day) return;
+        if (atwExclusions.some(exText => day.tasks.some(t => t.text === exText))) return;
+        if (day.tasks.some(t => t.text === atwTask.text)) return;
+        day.tasks.push({ ...atwTask });
+        addedCount++;
+      });
+    });
+    closeAtw();
+    save(); render();
+    showToast(addedCount > 0 ? `Added to ${addedCount} day${addedCount>1?'s':''} across ${atwSelectedWeeks.size} week${atwSelectedWeeks.size>1?'s':''}` : 'Nothing new to add');
+    return;
+  }
+
+  // Single-week mode
+  if (atwWIdx === null) return;
   const week = schedule[atwWIdx];
   const checkboxes = document.querySelectorAll('#atwDayChecks input[type=checkbox]');
   let addedCount = 0;
@@ -3575,8 +3898,9 @@ function goalAutoTerm(goal) {
        .trim();
   return s;
 }
-// Category display names — used to detect when a goal text is just a category label
-const CAT_LABELS = { gym:'gym', study:'study', piano:'piano', food:'meal prep', health:'health', chore:'chores', burrito:'batch cook', event:'event', rest:'rest' };
+// Category display names — used to detect when a goal text is just a category label.
+// Backed live by the CATEGORIES registry so custom categories work too.
+const CAT_LABELS = new Proxy({}, { get(_,k){ const c=getCategory(k); return c?c.label.toLowerCase():undefined; }, has(_,k){ return !!getCategory(k); } });
 
 function countGoalProgress(goal, wIdx) {
   const weeks = schedule;
@@ -3839,10 +4163,13 @@ function openGoalModal(wIdx, gIdx) {
   const goal = gIdx !== null ? goals[gIdx] : null;
 
   const overlay = document.getElementById('goalModalOverlay');
+  refreshCatSelect('gmCat');
+  document.getElementById('gmNewCatWrap').style.display='none';
   document.getElementById('gmText').value = goal?.text || '';
   document.getElementById('gmTarget').value = goal?.target || '';
   document.getElementById('gmMatch').value = goal?.match || '';
-  document.getElementById('gmCat').value = goal?.cat || '';
+  document.getElementById('gmCat').value = (goal?.cat && getCategory(goal.cat)) ? goal.cat : '';
+  _catSelectPrev['gmCat']=document.getElementById('gmCat').value;
   document.getElementById('goalModalTitle').textContent = gIdx !== null ? 'Edit Goal' : 'Add Goal';
   document.getElementById('gmDeleteWrap').style.display = gIdx !== null ? 'block' : 'none';
   overlay.classList.remove('hidden');
@@ -5018,7 +5345,8 @@ function animatePaste(){
 }
 
 // ── Copy Day / Copy Week ────────────────────────────────────
-const CAT_COLOR={gym:'#1e9a52',study:'#2a72c8',piano:'#7a3fc8',food:'#c2902a',health:'#c23a5e',chore:'#2a7898',burrito:'#c2682a',event:'#9030c8',rest:'#8090a0'};
+// Live category→colour lookup backed by the CATEGORIES registry.
+const CAT_COLOR = new Proxy({}, { get(_,k){ const c=getCategory(k); return c?c.color:undefined; }, has(_,k){ return !!getCategory(k); } });
 
 let copyFlow=null;
 let dayCtx=null;
@@ -5405,6 +5733,20 @@ async function proceedToApply(){
 async function copyApply(applyMode){
   const f=copyFlow; if(!f) return;
   const mode=f.mode;
+  // IMPORTANT: read all source/dest data from the flow *before* closing the
+  // sheet, because closeCopySheet() nulls copyFlow (and cpDay/cpWeek depend on it).
+  const srcTasksSnapshot = mode==='day'
+    ? JSON.parse(JSON.stringify((cpDay(f.srcPeriodId,f.srcWIdx,f.srcDIdx)||{}).tasks||[]))
+    : null;
+  const srcWkSnapshot = mode==='week'
+    ? JSON.parse(JSON.stringify(cpWeek(f.srcPeriodId,f.srcWIdx)||{days:[]}))
+    : null;
+  const destDays = mode==='day' ? Array.from(f.destDays) : null;
+  const destWeekKey = mode==='week' ? f.destWeek : null;
+  const includeDays = mode==='week' ? Array.from(f.includeDays) : null;
+  const includeGoals = f.includeGoals;
+  const srcPeriodId=f.srcPeriodId, srcWIdx=f.srcWIdx;
+
   closeCopySheet();
   const activeSnap=JSON.stringify(schedule);
   const liveCache={};
@@ -5415,34 +5757,35 @@ async function copyApply(applyMode){
     return liveCache[pid];
   }
 
+  let pasted=0;
   if(mode==='day'){
-    const srcTasks=JSON.parse(JSON.stringify((cpDay(f.srcPeriodId,f.srcWIdx,f.srcDIdx)||{}).tasks||[]));
-    for(const key of f.destDays){
+    for(const key of destDays){
       const a=key.split(':'); const pid=a[0], wi=+a[1], di=+a[2];
       const weeks=await getLive(pid); const day=weeks&&weeks[wi]&&weeks[wi].days&&weeks[wi].days[di]; if(!day) continue;
-      const add=srcTasks.map(t=>({...t}));
+      const add=srcTasksSnapshot.map(t=>({...t}));
       day.tasks = applyMode==='replace' ? add : [...(day.tasks||[]), ...add];
+      pasted++;
       touched.add(pid);
     }
   } else {
-    const a=f.destWeek.split(':'); const dpid=a[0], dwi=+a[1];
-    const srcWk=cpWeek(f.srcPeriodId,f.srcWIdx);
+    const a=destWeekKey.split(':'); const dpid=a[0], dwi=+a[1];
     const weeks=await getLive(dpid); const destWk=weeks&&weeks[dwi];
     if(destWk){
-      f.includeDays.forEach(i=>{
-        const sd=srcWk&&srcWk.days&&srcWk.days[i]; const dd=destWk.days&&destWk.days[i]; if(!sd||!dd) return;
+      includeDays.forEach(i=>{
+        const sd=srcWkSnapshot&&srcWkSnapshot.days&&srcWkSnapshot.days[i]; const dd=destWk.days&&destWk.days[i]; if(!sd||!dd) return;
         const add=(sd.tasks||[]).map(t=>({...t}));
         dd.tasks = applyMode==='replace' ? add : [...(dd.tasks||[]), ...add];
       });
+      pasted++;
       touched.add(dpid);
     }
-    if(f.includeGoals) await copyGoalsWeek(f.srcPeriodId,f.srcWIdx,dpid,dwi,applyMode);
+    if(includeGoals) await copyGoalsWeek(srcPeriodId,srcWIdx,dpid,dwi,applyMode);
   }
 
   if(touched.has(activePeriodId)){ undoStack.push(activeSnap); if(undoStack.length>UNDO_LIMIT) undoStack.shift(); updateUndoBtn(); }
   for(const pid of touched){ await applyCopyToPeriod(pid, liveCache[pid]); }
   render();
-  showToast(mode==='day' ? 'Day copied ✓' : 'Week copied ✓');
+  showToast(pasted>0 ? (mode==='day' ? 'Day copied ✓' : 'Week copied ✓') : 'Nothing to copy');
 }
 
 async function copyGoalsWeek(srcPid,srcWi,dpid,dwi,applyMode){
