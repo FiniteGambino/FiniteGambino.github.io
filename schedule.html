@@ -2982,6 +2982,7 @@ setInterval(syncPaletteOverlay, 500);
 
 document.addEventListener('click',e=>{
   if(e.target.closest('.task')||e.target.closest('.toolbar')||e.target.closest('.swap-confirm')||e.target.closest('.modal')||e.target.closest('.ctrl-btn')||e.target.closest('.tab-bar-wrap')||e.target.closest('#rareTaskBar')) return;
+  if(e.target.closest('.palette-panel')) return; // keep task selection alive while palette / add-across-weeks / import panels are open
   if(e.target.closest('.day-header')||e.target.closest('.day-card')||e.target.closest('.wv-col')) return;
   if(active&&!swapMode) hideToolbar();
   if(activeDay) hideDayToolbar();
