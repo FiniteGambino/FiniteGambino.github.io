@@ -3252,17 +3252,18 @@ function paletteAddToDay() {
     closePalette();
     return;
   }
-  // 2. A task is selected → add to the bottom of that task's day.
+  // 2. A task is selected → insert the new task directly below it.
   if (active) {
     pushUndo();
-    const { wIdx, dIdx } = active;
+    const { wIdx, dIdx, tIdx } = active;
     const dayTasks = schedule[wIdx].days[dIdx].tasks;
-    dayTasks.push({
+    const insertAt = (typeof tIdx === 'number' ? tIdx : dayTasks.length - 1) + 1;
+    dayTasks.splice(insertAt, 0, {
       text: selectedPaletteItem.text,
       emoji: selectedPaletteItem.emoji,
       cat: selectedPaletteItem.cat
     });
-    pendingPasteKey = `${wIdx}-${dIdx}-${dayTasks.length-1}`;
+    pendingPasteKey = `${wIdx}-${dIdx}-${insertAt}`;
     save(); render();
     showToast(`Added ${selectedPaletteItem.emoji} ${selectedPaletteItem.text}`);
     clearPaletteSelection();
@@ -4720,27 +4721,45 @@ async function handleLockSignIn() {
   await window._signIn();
 }
 
-// Sync = refresh token from backend then sync
+// Sync = refresh token from backend then sync.
+// Returns a status object so the caller can show a precise reason on failure.
 async function handleCalendarAuth() {
   try {
-    const res = await fetch('https://schedule-backend-sigma.vercel.app/api/token');
-    const data = await res.json();
+    const res = await fetch('https://schedule-backend-sigma.vercel.app/api/token', { cache: 'no-store' });
+    let data = {};
+    try { data = await res.json(); } catch(_) { data = {}; }
+    if (!res.ok) {
+      // Backend reachable but returned an error (e.g. expired/revoked refresh token)
+      const detail = (data && (data.error_description || data.error || data.message)) || `HTTP ${res.status}`;
+      return { ok: false, reason: 'backend', detail };
+    }
     if (data.access_token) {
       window._googleAccessToken = data.access_token;
-      showToast('Calendar connected ✓');
-    } else {
-      showToast('Could not get calendar token');
+      return { ok: true };
     }
-  } catch(e) { showToast('Token fetch failed: ' + e.message); }
+    return { ok: false, reason: 'notoken', detail: (data && (data.error || 'no access_token in response')) };
+  } catch(e) {
+    // Network/DNS/CORS — couldn't reach the backend at all
+    return { ok: false, reason: 'network', detail: e.message };
+  }
 }
 
 // Import = use existing token (auto-refreshed in background), fetch if missing
 async function handleCalendarImport() {
   if (!window._googleAccessToken) {
-    await handleCalendarAuth();
+    const r = await handleCalendarAuth();
+    if (!window._googleAccessToken) {
+      const msg = {
+        network: 'Calendar backend unreachable — check connection, then try again',
+        backend: 'Calendar access expired — re-authorize the backend (Google refresh token)',
+        notoken: 'Backend returned no calendar token — try again shortly'
+      }[r && r.reason] || 'Could not connect to calendar — try again';
+      showToast(msg);
+      if (r && r.detail) console.warn('[calendar]', r.reason, '—', r.detail);
+      return;
+    }
   }
   if (window._googleAccessToken) handleCalendarSync();
-  else showToast('Could not connect to calendar — try again');
 }
 
 async function handleCalendarSyncOrSignIn() {
