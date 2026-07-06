@@ -319,7 +319,25 @@ Final solution: **Firebase custom token via Vercel backend**
 
 ---
 
-## Current Stack Summary
+## July 6, 2026 — Per-Week Days + Palette Insert-Below + Calendar Diagnostics
+
+### Add Across Weeks — Different Days Per Week
+- Multi-week mode now has a **"Same days for all"** toggle (on by default = original behaviour, one shared weekday row applied to every selected week)
+- Toggle **off** to give each selected week its own weekday picker — e.g. Week 1 on Friday, Week 2 on Thursday
+- Each per-week picker is seeded from the shared row, so you only edit the exceptions; adding/removing weeks live-updates the list
+- Confirm toast counts only the weeks actually touched
+
+### Palette Add Inserts Below the Selected Task
+- With a **task** selected → Add from Palette → Add to Day now inserts the new task **directly below the selected task** (via splice) instead of appending to the bottom of the day
+- Fixed a first-open race: a global click-to-dismiss handler was nulling the task selection when tapping inside the palette panel, so the first attempt fell back to the day picker and only worked on the second open. The palette/add-across-weeks/import panels are now excluded from that handler, so task selection survives
+- Day-selected and no-context (top Add Task) paths are unchanged: day-selected still adds straight to that day; no-context still shows the week/day picker
+
+### Calendar Connection — Diagnostic Errors
+- The generic "Could not connect to calendar — try again" now reports the actual cause: **backend unreachable** (network), **access expired — re-authorize the backend** (Google refresh token revoked/expired), or **no token returned** (transient)
+- Exact backend error detail logged to the console for debugging
+- Note: an expired/revoked Google refresh token is a **backend** fix (re-mint the token and update the Vercel env var), not a client change
+
+---
 
 | Layer | Technology |
 |-------|-----------|
