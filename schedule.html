@@ -1263,10 +1263,19 @@
     <div id="atwDayChecks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
   </div>
 
-  <!-- MULTI-WEEK: weekday picker applied across selected weeks -->
+  <!-- MULTI-WEEK: weekday picker (uniform or per-week) -->
   <div id="atwWeekdaySection" style="display:none;">
-    <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Which day(s) each week</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;">Which day(s) each week</span>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:.66rem;font-weight:700;color:#3d5afe;cursor:pointer;">
+        <input type="checkbox" id="atwUniformToggle" checked onchange="atwToggleUniform()" style="width:auto;accent-color:#3d5afe;">
+        Same days for all
+      </label>
+    </div>
+    <!-- uniform: one shared row of weekday chips -->
     <div id="atwWeekdayChecks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;"></div>
+    <!-- per-week: one block per selected week -->
+    <div id="atwPerWeek" style="display:none;flex-direction:column;gap:12px;margin-bottom:18px;"></div>
   </div>
 
   <div style="font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#b0b8c8;margin-bottom:8px;">Skip days that already have…</div>
@@ -3505,7 +3514,9 @@ function openAtwFromToolbar() {
 
 let atwMode = 'single';          // 'single' | 'multi'
 let atwSelectedWeeks = new Set(); // week indices, multi-mode
-let atwSelectedWeekdays = new Set(); // weekday indices 0..6, multi-mode
+let atwSelectedWeekdays = new Set(); // weekday indices 0..6 — "same days for all" template
+let atwWeekDays = new Map();      // weekIdx -> Set(dayIdx), per-week day selection (multi-mode)
+let atwUniformDays = true;        // when true, all selected weeks share atwSelectedWeekdays
 
 function openAtwWithTask(task, wIdx, allowWeekSwitch) {
   atwTask = task;
@@ -3514,6 +3525,8 @@ function openAtwWithTask(task, wIdx, allowWeekSwitch) {
   atwMode = 'single';
   atwSelectedWeeks = new Set([wIdx]);
   atwSelectedWeekdays = new Set();
+  atwWeekDays = new Map();
+  atwUniformDays = true;
 
   const switchBtn = document.getElementById('atwSwitchWeek');
   if (switchBtn) switchBtn.style.display = (allowWeekSwitch && schedule.length > 1) ? 'inline-block' : 'none';
@@ -3553,6 +3566,10 @@ function atwSetMode(mode) {
     document.getElementById('atwTitle').textContent = 'Add across weeks';
     buildAtwWeekChecks();
     buildAtwWeekdayChecks();
+    buildAtwPerWeek();
+    const uniCb = document.getElementById('atwUniformToggle');
+    if (uniCb) uniCb.checked = atwUniformDays;
+    applyAtwUniformVisibility();
     confirmBtn.textContent = 'Add to Selected';
   }
 }
@@ -3598,9 +3615,11 @@ function buildAtwWeekChecks() {
     const firstDate = (wk.days.find(d => d.date && d.date !== '—')||{}).date || '';
     chip.innerHTML = `<span>${wk.week}</span>${firstDate?`<span class="atw-wchip-date">${firstDate}</span>`:''}`;
     chip.onclick = () => {
-      if (atwSelectedWeeks.has(wi)) atwSelectedWeeks.delete(wi); else atwSelectedWeeks.add(wi);
+      if (atwSelectedWeeks.has(wi)) { atwSelectedWeeks.delete(wi); atwWeekDays.delete(wi); }
+      else atwSelectedWeeks.add(wi);
       chip.classList.toggle('on');
       updateAtwAllWeeksBtn();
+      buildAtwPerWeek();
     };
     wrap.appendChild(chip);
   });
@@ -3611,19 +3630,23 @@ function updateAtwAllWeeksBtn() {
   if (btn) btn.textContent = atwSelectedWeeks.size === schedule.length ? 'Clear all' : 'Select all';
 }
 function atwToggleAllWeeks() {
-  if (atwSelectedWeeks.size === schedule.length) atwSelectedWeeks = new Set();
+  if (atwSelectedWeeks.size === schedule.length) { atwSelectedWeeks = new Set(); atwWeekDays = new Map(); }
   else atwSelectedWeeks = new Set(schedule.map((_,i)=>i));
   buildAtwWeekChecks();
+  buildAtwPerWeek();
 }
 
-// ── Multi-week: pick weekdays (applied to each selected week) ──
+// Weekday labels, derived from the first week's day names for consistency.
+function atwWeekdayLabels() {
+  const names = (schedule[0]?.days || []).map(d => d.name);
+  return names.length ? names : ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+}
+
+// ── Multi-week, UNIFORM: one shared weekday row applied to every selected week ──
 function buildAtwWeekdayChecks() {
   const wrap = document.getElementById('atwWeekdayChecks');
   wrap.innerHTML = '';
-  // Derive the weekday labels from the first week's day names for consistency.
-  const names = (schedule[0]?.days || []).map(d => d.name);
-  const labels = names.length ? names : ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  labels.forEach((name, i) => {
+  atwWeekdayLabels().forEach((name, i) => {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'atw-dchip' + (atwSelectedWeekdays.has(i) ? ' on' : '');
@@ -3636,11 +3659,79 @@ function buildAtwWeekdayChecks() {
   });
 }
 
+// ── Multi-week, PER-WEEK: one weekday row per selected week ──
+function buildAtwPerWeek() {
+  const wrap = document.getElementById('atwPerWeek');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const labels = atwWeekdayLabels();
+  const weeks = [...atwSelectedWeeks].sort((a,b)=>a-b);
+  if (!weeks.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:.72rem;color:#9098a8;';
+    empty.textContent = 'Pick at least one week above.';
+    wrap.appendChild(empty);
+    return;
+  }
+  weeks.forEach(wi => {
+    if (!atwWeekDays.has(wi)) atwWeekDays.set(wi, new Set(atwSelectedWeekdays));
+    const daySet = atwWeekDays.get(wi);
+    const wk = schedule[wi];
+    const block = document.createElement('div');
+
+    const head = document.createElement('div');
+    head.style.cssText = 'font-size:.68rem;font-weight:700;color:#3a3f52;margin-bottom:6px;';
+    const firstDate = wk ? (wk.days.find(d => d.date && d.date !== '—')||{}).date || '' : '';
+    head.textContent = (wk ? wk.week : `Week ${wi+1}`) + (firstDate ? ` · ${firstDate}` : '');
+    block.appendChild(head);
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+    labels.forEach((name, i) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'atw-dchip' + (daySet.has(i) ? ' on' : '');
+      chip.textContent = (name||'').slice(0,3);
+      chip.onclick = () => {
+        if (daySet.has(i)) daySet.delete(i); else daySet.add(i);
+        chip.classList.toggle('on');
+      };
+      row.appendChild(chip);
+    });
+    block.appendChild(row);
+    wrap.appendChild(block);
+  });
+}
+
+// Toggle between "same days for all" and per-week day pickers.
+function atwToggleUniform() {
+  const cb = document.getElementById('atwUniformToggle');
+  atwUniformDays = cb ? cb.checked : true;
+  if (atwUniformDays) {
+    // Collapsing back to uniform: keep the shared template as-is.
+    atwWeekDays = new Map();
+  } else {
+    // Expanding to per-week: seed each selected week from the shared template.
+    atwWeekDays = new Map();
+    atwSelectedWeeks.forEach(wi => atwWeekDays.set(wi, new Set(atwSelectedWeekdays)));
+    buildAtwPerWeek();
+  }
+  applyAtwUniformVisibility();
+}
+
+function applyAtwUniformVisibility() {
+  const uni = document.getElementById('atwWeekdayChecks');
+  const per = document.getElementById('atwPerWeek');
+  if (uni) uni.style.display = atwUniformDays ? 'flex' : 'none';
+  if (per) per.style.display = atwUniformDays ? 'none' : 'flex';
+}
+
 function closeAtw() {
   document.getElementById('atwOverlay').classList.remove('open');
   document.getElementById('atwPanel').classList.remove('open');
   atwTask = null; atwWIdx = null; atwExclusions = [];
   atwMode = 'single'; atwSelectedWeeks = new Set(); atwSelectedWeekdays = new Set();
+  atwWeekDays = new Map(); atwUniformDays = true;
 }
 
 // From the day-checkbox panel, let the user switch to a different week
@@ -3679,22 +3770,36 @@ function confirmAtw() {
 
   if (atwMode === 'multi') {
     if (!atwSelectedWeeks.size) { showToast('Pick at least one week'); return; }
-    if (!atwSelectedWeekdays.size) { showToast('Pick at least one day'); return; }
+    // Build the effective week -> days plan for either mode.
+    const plan = new Map(); // weekIdx -> Set(dayIdx)
+    if (atwUniformDays) {
+      if (!atwSelectedWeekdays.size) { showToast('Pick at least one day'); return; }
+      atwSelectedWeeks.forEach(wi => plan.set(wi, new Set(atwSelectedWeekdays)));
+    } else {
+      atwSelectedWeeks.forEach(wi => {
+        const s = atwWeekDays.get(wi);
+        if (s && s.size) plan.set(wi, s);
+      });
+      if (!plan.size) { showToast('Pick at least one day for a week'); return; }
+    }
     let addedCount = 0;
+    const weeksTouched = new Set();
     pushUndo();
-    atwSelectedWeeks.forEach(wi => {
+    plan.forEach((daySet, wi) => {
       const wk = schedule[wi]; if (!wk) return;
-      atwSelectedWeekdays.forEach(di => {
+      daySet.forEach(di => {
         const day = wk.days[di]; if (!day) return;
         if (atwExclusions.some(exText => day.tasks.some(t => t.text === exText))) return;
         if (day.tasks.some(t => t.text === atwTask.text)) return;
         day.tasks.push({ ...atwTask });
         addedCount++;
+        weeksTouched.add(wi);
       });
     });
+    const wc = weeksTouched.size;
     closeAtw();
     save(); render();
-    showToast(addedCount > 0 ? `Added to ${addedCount} day${addedCount>1?'s':''} across ${atwSelectedWeeks.size} week${atwSelectedWeeks.size>1?'s':''}` : 'Nothing new to add');
+    showToast(addedCount > 0 ? `Added to ${addedCount} day${addedCount>1?'s':''} across ${wc} week${wc>1?'s':''}` : 'Nothing new to add');
     return;
   }
 
