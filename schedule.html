@@ -3326,40 +3326,31 @@ function deletePaletteItem() {
 
 function paletteAddToDay() {
   if (!selectedPaletteItem) return;
-  // 1. A specific day is selected (palette opened from that day's toolbar) →
-  //    add straight to the bottom of that day, no picker.
-  if (paletteDayCtx && schedule[paletteDayCtx.wIdx] && schedule[paletteDayCtx.wIdx].days[paletteDayCtx.dIdx]) {
+  // 0. Prefer the snapshot captured when the palette opened — immune to any
+  //    selection state that got cleared while the overlay was open.
+  const tgt = paletteTarget || (paletteDayCtx ? {kind:'day', ...paletteDayCtx} : (active ? {kind:'task', ...active} : null));
+  if (tgt && schedule[tgt.wIdx] && schedule[tgt.wIdx].days[tgt.dIdx]) {
     pushUndo();
-    const { wIdx, dIdx } = paletteDayCtx;
+    const { wIdx, dIdx } = tgt;
     const dayTasks = schedule[wIdx].days[dIdx].tasks;
-    dayTasks.push({ text: selectedPaletteItem.text, emoji: selectedPaletteItem.emoji, cat: selectedPaletteItem.cat });
-    pendingPasteKey = `${wIdx}-${dIdx}-${dayTasks.length-1}`;
+    const item = { text: selectedPaletteItem.text, emoji: selectedPaletteItem.emoji, cat: selectedPaletteItem.cat };
+    let atIdx;
+    if (tgt.kind === 'task' && typeof tgt.tIdx === 'number') {
+      atIdx = tgt.tIdx + 1;
+      dayTasks.splice(atIdx, 0, item);
+    } else {
+      dayTasks.push(item);
+      atIdx = dayTasks.length - 1;
+    }
+    pendingPasteKey = `${wIdx}-${dIdx}-${atIdx}`;
     save(); render();
     showToast(`Added ${selectedPaletteItem.emoji} ${selectedPaletteItem.text}`);
     clearPaletteSelection();
     closePalette();
     return;
   }
-  // 2. A task is selected → insert the new task directly below it.
-  if (active) {
-    pushUndo();
-    const { wIdx, dIdx, tIdx } = active;
-    const dayTasks = schedule[wIdx].days[dIdx].tasks;
-    const insertAt = (typeof tIdx === 'number' ? tIdx : dayTasks.length - 1) + 1;
-    dayTasks.splice(insertAt, 0, {
-      text: selectedPaletteItem.text,
-      emoji: selectedPaletteItem.emoji,
-      cat: selectedPaletteItem.cat
-    });
-    pendingPasteKey = `${wIdx}-${dIdx}-${insertAt}`;
-    save(); render();
-    showToast(`Added ${selectedPaletteItem.emoji} ${selectedPaletteItem.text}`);
-    clearPaletteSelection();
-    closePalette();
-  } else {
-    // 3. No context — show week/day picker inline.
-    showDayPickerForPalette();
-  }
+  // No context at all — show week/day picker inline.
+  showDayPickerForPalette();
 }
 
 function showDayPickerForPalette(wIdx) {
@@ -3500,6 +3491,16 @@ function saveSessionChipToPalette(item) {
 function openPalette() {
   paletteDayWeekCtx = null; // default: no day context (top Add Task / toolbar palette)
   paletteDayCtx = null;     // full {wIdx,dIdx} when opened from a selected day
+  // Snapshot the current selection target NOW, so it survives any state
+  // clearing that happens while the palette overlay is open (the source of
+  // the "pick a week" bug when adding to a selected task/day).
+  if (active) {
+    paletteTarget = { kind:'task', wIdx:active.wIdx, dIdx:active.dIdx, tIdx:active.tIdx };
+  } else if (activeDay) {
+    paletteTarget = { kind:'day', wIdx:activeDay.wIdx, dIdx:activeDay.dIdx };
+  } else {
+    paletteTarget = null;
+  }
   // Defensive: clear any stuck drag/ghost state that could block interaction
   chipDrag = null;
   try { hideChipGhost(); clearChipDropHL(); } catch(_){}
@@ -3511,6 +3512,7 @@ function openPalette() {
 function closePalette() {
   document.getElementById('paletteOverlay').classList.remove('open');
   document.getElementById('palettePanel').classList.remove('open');
+  paletteTarget = null; // drop the snapshot so it can't leak into a later open
   // Defensive: ensure no stuck chip-drag state lingers after closing —
   // but NOT while a drag is actively in progress (dragstart closes the panel).
   if (!_chipDragActive) {
@@ -3598,6 +3600,7 @@ let atwWIdx = null;
 let atwExclusions = [];
 let paletteDayWeekCtx = null; // week idx when palette was opened from a selected day
 let paletteDayCtx = null; // {wIdx,dIdx} when palette was opened from a specific selected day
+let paletteTarget = null; // snapshot {kind:'task'|'day', wIdx,dIdx,[tIdx]} taken when palette opens
 
 function openAtwFromToolbar() {
   if (!active) return;
