@@ -6341,6 +6341,70 @@ function maybeAutoDark() {
   // Also re-check the moment the app returns from background (iOS suspends timers)
   document.addEventListener('visibilitychange', () => { if (!document.hidden) maybeAutoDark(); });
 })();
+
+// ── Keyboard / modal reposition (iOS Safari) ───────────────────────────────
+// On mobile Safari, focusing an input inside a fixed overlay makes the browser
+// scroll the page up to reveal the field above the keyboard — and it often does
+// NOT scroll back when the keyboard closes, leaving the modal stuck upward.
+// We keep any visible modal centred within the *visible* viewport while the
+// keyboard is open, then reset cleanly when it closes.
+(function initKeyboardModalFix() {
+  const vv = window.visualViewport;
+  if (!vv) return; // older browsers: nothing to do
+
+  function visibleOverlay() {
+    const overlays = document.querySelectorAll('.modal-overlay:not(.hidden)');
+    for (const o of overlays) {
+      // Only reposition overlays that actually center a .modal (skip bottom sheets)
+      if (o.querySelector('.modal')) return o;
+    }
+    return null;
+  }
+
+  let raf = null;
+  function reposition() {
+    raf = null;
+    const overlay = visibleOverlay();
+    if (!overlay) return;
+    const modal = overlay.querySelector('.modal');
+    if (!modal) return;
+    // Height the keyboard is covering (0 when closed).
+    const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    if (kb > 60) {
+      // Keyboard open: pin overlay to the visible region so flex-centering
+      // lands the modal above the keyboard.
+      overlay.style.top = vv.offsetTop + 'px';
+      overlay.style.height = vv.height + 'px';
+      overlay.style.bottom = 'auto';
+      // If the modal is still taller than the space, nudge it to the top.
+      overlay.style.alignItems = (modal.offsetHeight > vv.height - 24) ? 'flex-start' : 'center';
+    } else {
+      // Keyboard closed: clear our overrides so CSS (inset:0) takes back over.
+      overlay.style.top = '';
+      overlay.style.height = '';
+      overlay.style.bottom = '';
+      overlay.style.alignItems = '';
+    }
+  }
+  function schedule() { if (raf == null) raf = requestAnimationFrame(reposition); }
+
+  vv.addEventListener('resize', schedule);
+  vv.addEventListener('scroll', schedule);
+
+  // When a field inside a modal loses focus (keyboard dismissed via Done/tap-away),
+  // force the page back to the top so nothing stays scrolled up, and clear overrides.
+  document.addEventListener('focusout', e => {
+    if (!e.target.closest || !e.target.closest('.modal-overlay')) return;
+    setTimeout(() => {
+      // Only reset if focus didn't move to another field in the modal.
+      const a = document.activeElement;
+      if (a && a.closest && a.closest('.modal-overlay')) return;
+      const overlay = visibleOverlay();
+      if (overlay) { overlay.style.top=''; overlay.style.height=''; overlay.style.bottom=''; overlay.style.alignItems=''; }
+      try { window.scrollTo(0, 0); } catch(_) {}
+    }, 60);
+  });
+})();
 </script>
 </body>
 </html>
