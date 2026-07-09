@@ -3960,6 +3960,12 @@ function buildExclusionList(filter) {
 // ── Rare task notification bar ─────────────────────────────────────────────
 function getRareCollapsed() { try { return localStorage.getItem('gs_rare_collapsed') === '1'; } catch(_) { return false; } }
 function setRareCollapsed(v) { try { localStorage.setItem('gs_rare_collapsed', v ? '1' : '0'); } catch(_) {} }
+// Dismissed rare chips, scoped to the active period. Keyed as `${text}@${count}`
+// so a chip re-appears automatically once its occurrence count changes.
+function _rareDismKey() { return 'gs_rare_dism_' + activePeriodId; }
+function getRareDismissed() { try { return new Set(JSON.parse(localStorage.getItem(_rareDismKey()) || '[]')); } catch(_) { return new Set(); } }
+function setRareDismissed(set) { try { localStorage.setItem(_rareDismKey(), JSON.stringify([...set])); } catch(_) {} }
+function dismissRareTask(text, count) { const s = getRareDismissed(); s.add(`${text}@${count}`); setRareDismissed(s); renderRareTaskBar(); }
 
 function renderRareTaskBar() {
   const bar = document.getElementById('rareTaskBar');
@@ -3984,8 +3990,10 @@ function renderRareTaskBar() {
 
   const weekCount = schedule.length;
   const rareThreshold = weekCount <= 2 ? 2 : 3;
+  const dismissed = getRareDismissed();
   const rare = Object.entries(counts)
     .filter(([, count]) => count < rareThreshold)
+    .filter(([text, count]) => !dismissed.has(`${text}@${count}`))
     .sort((a, b) => a[1] - b[1]);
 
   if (!rare.length) { bar.style.display='none'; return; }
@@ -4012,13 +4020,86 @@ function renderRareTaskBar() {
     </div>`;
 
   bar.querySelectorAll('[data-rare-idx]').forEach(el => {
+    const idx = parseInt(el.getAttribute('data-rare-idx'));
+    const entry = bar._rareList[idx];
+    const text = entry?.[0];
+    const count = entry?.[1];
+
     el.addEventListener('click', e => {
       e.stopPropagation();
-      const idx = parseInt(el.getAttribute('data-rare-idx'));
-      const text = bar._rareList[idx]?.[0];
+      if (el._rareSuppressClick) { el._rareSuppressClick = false; return; }
       if (text) selectRareTask(text);
     });
+
+    // Right-click (desktop) → remove menu
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      showRareRemoveMenu(e.clientX, e.clientY, text, count);
+    });
+
+    // Long-press (touch) → remove menu
+    let lpTimer = null;
+    el.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      const x = t.clientX, y = t.clientY;
+      lpTimer = setTimeout(() => {
+        lpTimer = null;
+        el._rareSuppressClick = true; // don't fire the add-on-tap after the menu
+        try { navigator.vibrate && navigator.vibrate(30); } catch(_){}
+        showRareRemoveMenu(x, y, text, count);
+      }, 500);
+    }, { passive: true });
+    const cancelLp = () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } };
+    el.addEventListener('touchmove', cancelLp, { passive: true });
+    el.addEventListener('touchend', cancelLp, { passive: true });
+    el.addEventListener('touchcancel', cancelLp, { passive: true });
   });
+}
+
+// Small popover offering to remove a rare chip from the bar.
+function showRareRemoveMenu(x, y, text, count) {
+  closeRareRemoveMenu();
+  const menu = document.createElement('div');
+  menu.id = 'rareRemoveMenu';
+  menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #e2d6a8;border-radius:10px;box-shadow:0 8px 28px rgba(80,60,10,.22);padding:6px;font-family:inherit;min-width:180px;';
+  menu.innerHTML = `
+    <div style="padding:6px 10px 8px;font-size:.66rem;color:#a07820;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">${text} ×${count}</div>
+    <button id="rareRemoveBtn" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 10px;border:none;background:#fff;border-radius:7px;font-size:.82rem;font-weight:600;color:#c03050;cursor:pointer;text-align:left;">
+      <span>✕</span> Remove from rare tasks
+    </button>`;
+  document.body.appendChild(menu);
+  // Position, keeping it on-screen
+  const r = menu.getBoundingClientRect();
+  let px = x, py = y;
+  if (px + r.width > window.innerWidth - 8) px = window.innerWidth - r.width - 8;
+  if (py + r.height > window.innerHeight - 8) py = window.innerHeight - r.height - 8;
+  menu.style.left = Math.max(8, px) + 'px';
+  menu.style.top = Math.max(8, py) + 'px';
+  const btn = menu.querySelector('#rareRemoveBtn');
+  btn.addEventListener('mouseenter', () => btn.style.background = '#fdeef1');
+  btn.addEventListener('mouseleave', () => btn.style.background = '#fff');
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    dismissRareTask(text, count);
+    closeRareRemoveMenu();
+    showToast(`Removed ${text} from rare tasks`);
+  });
+  // Dismiss on any outside interaction
+  setTimeout(() => {
+    document.addEventListener('click', _rareMenuOutside);
+    document.addEventListener('touchstart', _rareMenuOutside, { passive: true });
+  }, 0);
+}
+function _rareMenuOutside(e) {
+  const menu = document.getElementById('rareRemoveMenu');
+  if (menu && !menu.contains(e.target)) closeRareRemoveMenu();
+}
+function closeRareRemoveMenu() {
+  const menu = document.getElementById('rareRemoveMenu');
+  if (menu) menu.remove();
+  document.removeEventListener('click', _rareMenuOutside);
+  document.removeEventListener('touchstart', _rareMenuOutside);
 }
 
 function toggleRareBar() {
