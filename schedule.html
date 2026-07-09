@@ -6391,17 +6391,29 @@ function maybeAutoDark() {
   vv.addEventListener('resize', schedule);
   vv.addEventListener('scroll', schedule);
 
-  // When a field inside a modal loses focus (keyboard dismissed via Done/tap-away),
-  // force the page back to the top so nothing stays scrolled up, and clear overrides.
+  // Remember where the page was scrolled the moment a modal field is first
+  // focused, so we can put it back — rather than forcing the top, which yanked
+  // the user away from the task they were editing mid-page.
+  let savedScrollY = null;
+  document.addEventListener('focusin', e => {
+    if (!e.target.closest || !e.target.closest('.modal-overlay')) return;
+    if (savedScrollY == null) savedScrollY = window.scrollY || window.pageYOffset || 0;
+  });
+
+  // When a field inside a modal loses focus (keyboard dismissed via Done/tap-away
+  // or the modal closing), clear our overrides and restore the saved scroll.
   document.addEventListener('focusout', e => {
     if (!e.target.closest || !e.target.closest('.modal-overlay')) return;
     setTimeout(() => {
-      // Only reset if focus didn't move to another field in the modal.
+      // Bail if focus just moved to another field in the same modal.
       const a = document.activeElement;
       if (a && a.closest && a.closest('.modal-overlay')) return;
       const overlay = visibleOverlay();
       if (overlay) { overlay.style.top=''; overlay.style.height=''; overlay.style.bottom=''; overlay.style.alignItems=''; }
-      try { window.scrollTo(0, 0); } catch(_) {}
+      if (savedScrollY != null) {
+        const y = savedScrollY; savedScrollY = null;
+        try { window.scrollTo(0, y); } catch(_) {}
+      }
     }, 60);
   });
 })();
