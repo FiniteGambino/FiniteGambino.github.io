@@ -1065,6 +1065,7 @@
   <div class="toolbar-label">Selected: <span id="tbName">—</span></div>
   <div class="toolbar-actions">
     <button class="tb-btn tb-swap" id="tbSwapBtn" onclick="handleSwapBtn()"><span class="tb-icon">⇄</span>Swap</button>
+    <button class="tb-btn" id="tbMoveTop" style="color:#0a7d5a;border-color:#b6e5d2;background:#e9f9f2;" onclick="handleMoveTopBtn()"><span class="tb-icon">⤒</span>Move to<br>top</button>
     <button class="tb-btn tb-delete" onclick="handleDeleteBtn()"><span class="tb-icon">✕</span>Delete</button>
     <button class="tb-btn tb-add" onclick="handleAddBtn()"><span class="tb-icon">＋</span>Add</button>
     <button class="tb-btn tb-palette" onclick="openPalette()"><span class="tb-icon">✦</span>Add from<br>Palette</button>
@@ -2464,6 +2465,20 @@ function handleDeleteBtn(){
     }
     hideToolbar(); save(); render();
   });
+}
+
+function handleMoveTopBtn(){
+  if(!active) return;
+  const {wIdx,dIdx,tIdx}=active;
+  const tasks=schedule[wIdx].days[dIdx].tasks||[];
+  if(tIdx<=0){ showToast('Already at top'); return; }
+  pushUndo();
+  const [t]=tasks.splice(tIdx,1);
+  tasks.unshift(t);
+  active={wIdx,dIdx,tIdx:0};
+  save(); render();
+  showToolbar(wIdx,dIdx,0);
+  showToast('Moved to top');
 }
 
 // ── FLIP swap ─────────────────────────────────────────────────────────────
@@ -5250,6 +5265,17 @@ async function resolveTodayPeriod() {
   return null;
 }
 
+// Scroll an element so its top sits just below the sticky tab bar
+// (block:'center' pushes tall day cards' headers up out of view).
+function scrollElBelowBar(el, extra){
+  if(!el) return;
+  const bar = document.querySelector('.tab-bar-wrap');
+  const barH = bar ? bar.getBoundingClientRect().height : 0;
+  const pad = (extra==null ? 12 : extra);
+  const y = el.getBoundingClientRect().top + window.pageYOffset - barH - pad;
+  window.scrollTo({ top: Math.max(0, y), behavior:'smooth' });
+}
+
 let _tpGen = 0; // bumped on every renderTodayPreview; stale async callbacks bail
 function renderTodayPreview(slideDir) {
   const box = document.getElementById('todayPreview');
@@ -5377,7 +5403,7 @@ function attachTpGestures(card, ref) {
     const sel = `.day-card[data-w="${ref.wIdx}"][data-d="${ref.dIdx}"], .wv-col[data-w="${ref.wIdx}"][data-d="${ref.dIdx}"]`;
     const el = document.querySelector(sel);
     if (el) {
-      el.scrollIntoView({ behavior:'smooth', block:'center' });
+      scrollElBelowBar(el);
       el.classList.add('tp-flash'); setTimeout(()=>el.classList.remove('tp-flash'),900);
     }
   }
