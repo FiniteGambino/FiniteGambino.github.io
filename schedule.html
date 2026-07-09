@@ -2205,6 +2205,13 @@ function showToolbar(wIdx,dIdx,tIdx){
 function hideToolbar(){
   document.getElementById('toolbar').classList.remove('visible');
   const el=taskEl(active); if(el) el.classList.remove('selected-1');
+  // Clear the gold "on clipboard" marching glow so it doesn't linger after
+  // you click away. Keep the clipboard payload itself so Paste still works.
+  if(clipboardKey){
+    const ce=document.querySelector(`[data-key="${clipboardKey}"]`);
+    if(ce) ce.classList.remove('in-clipboard');
+    clipboardKey=null;
+  }
   active=null; swapMode=false; swapFirst=null;
 }
 function hideSwapConfirm(){
@@ -3512,6 +3519,10 @@ function openCustomChipModal() {
   document.getElementById('mConfirm').textContent = 'Add (session only)';
   document.getElementById('mSavePaletteWrap').style.display = 'block';
   document.getElementById('mSavePalette').checked = false;
+  // "Update this task in the palette too" only applies when editing an existing
+  // task — hide it so it doesn't linger from a prior Edit on a brand-new task.
+  document.getElementById('mEditPaletteWrap').style.display = 'none';
+  document.getElementById('mEditPalette').checked = false;
   document.getElementById('modalOverlay').classList.remove('hidden');
   setTimeout(() => document.getElementById('mText').focus(), 80);
 }
