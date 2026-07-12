@@ -349,6 +349,11 @@
 
   .toast { position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-70px); background:#3d5afe; color:#fff; font-size:.75rem; font-weight:600; padding:8px 18px; border-radius:20px; transition:transform .3s cubic-bezier(.34,1.56,.64,1); z-index:500; white-space:nowrap; pointer-events:none; }
   .toast.show { transform:translateX(-50%) translateY(0); }
+  /* Update-available prompt (service worker has a new version waiting) */
+  .sw-update { position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(140px); display:flex; align-items:center; gap:12px; background:#1a1c24; color:#fff; font-size:.75rem; font-weight:600; padding:10px 12px 10px 16px; border-radius:22px; box-shadow:0 6px 24px rgba(0,0,0,.22); transition:transform .32s cubic-bezier(.34,1.56,.64,1); z-index:600; max-width:calc(100vw - 32px); }
+  .sw-update.show { transform:translateX(-50%) translateY(0); }
+  .sw-update button { background:#3d5afe; color:#fff; border:none; border-radius:16px; padding:7px 14px; font-size:.72rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .sw-update .sw-dismiss { background:transparent; color:#9098a8; padding:7px 6px; font-weight:600; }
 
   /* ── Tab context menu ── */
   .ctx-menu {
@@ -506,10 +511,69 @@
 <script>
   // Cache the app shell so cold boots (very frequent on iOS, which kills
   // backgrounded web apps) load from disk instead of re-downloading ~340KB.
+  //
+  // Because the shell is served cache-first, a new deploy would otherwise only
+  // appear on the SECOND open. So: when a new worker finishes installing and
+  // parks in "waiting", we surface a prompt and let the user swap immediately.
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed:', e));
+    let _swRefreshing = false;
+
+    // Fires once the new worker takes control — reload to run the new shell.
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_swRefreshing) return;   // guard against reload loops
+      _swRefreshing = true;
+      window.location.reload();
     });
+
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+
+        function promptFor(worker) {
+          if (!worker) return;
+          showSwUpdate(() => worker.postMessage({ type: 'SKIP_WAITING' }));
+        }
+
+        // A new version was already waiting when we loaded.
+        if (reg.waiting && navigator.serviceWorker.controller) promptFor(reg.waiting);
+
+        // A new version shows up while the app is open.
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            // controller check: on a first-ever install there's nothing to
+            // "update" from, so don't nag on the very first visit.
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) promptFor(nw);
+          });
+        });
+
+        // Check for a new deploy on launch and whenever the app is refocused —
+        // matters on iOS, where the app is resumed far more than it's reloaded.
+        const check = () => reg.update().catch(() => {});
+        check();
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+      }).catch(e => console.warn('SW registration failed:', e));
+    });
+  }
+
+  // Slide-up "update available" bar. onUpdate runs when the user taps Update.
+  function showSwUpdate(onUpdate) {
+    if (document.getElementById('swUpdateBar')) return;   // already showing
+    const bar = document.createElement('div');
+    bar.className = 'sw-update';
+    bar.id = 'swUpdateBar';
+    const msg = document.createElement('span');
+    msg.textContent = 'New version available';
+    const btn = document.createElement('button');
+    btn.textContent = 'Update';
+    btn.onclick = () => { btn.textContent = 'Updating…'; btn.disabled = true; onUpdate(); };
+    const dis = document.createElement('button');
+    dis.className = 'sw-dismiss';
+    dis.textContent = 'Later';
+    dis.onclick = () => { bar.classList.remove('show'); setTimeout(() => bar.remove(), 350); };
+    bar.append(msg, btn, dis);
+    document.body.appendChild(bar);
+    requestAnimationFrame(() => bar.classList.add('show'));
   }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
