@@ -504,6 +504,12 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://schedule-backend-sigma.vercel.app">
+<link rel="preconnect" href="https://ap-planner-1f7df-default-rtdb.firebaseio.com">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style id="themeCSS">
   /* ============ THEME SWITCHER BUTTON ============ */
@@ -921,11 +927,15 @@
 <script type="module">
 (async () => {
   try {
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js");
-    const { getDatabase, ref, set, get, onValue, off, child, push } =
-      await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js");
-    const { getAuth, signInWithCustomToken, signOut, onAuthStateChanged } =
-      await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js");
+    const [
+      { initializeApp },
+      { getDatabase, ref, set, get, onValue, off, child, push },
+      { getAuth, signInWithCustomToken, signOut, onAuthStateChanged },
+    ] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"),
+      import("https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"),
+    ]);
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB__2dOB581BAOtn03835mlaHpKckAQU8",
@@ -1611,15 +1621,22 @@ function setSyncState(state, msg){
 }
 
 // ── Firebase init ──────────────────────────────────────────────────────────
+// Paint from the cached snapshot right away — do not wait for Firebase.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootFromCache, { once:true });
+} else {
+  bootFromCache();
+}
+
 window.addEventListener('firebase-ready', async () => {
   db    = window._db    || null;
   fsFns = window._dbFns || null;
   if (!db || !fsFns) {
     setSyncState('err', 'Offline — using local storage');
-    fallbackLoad();
+    if (!_paintedFromCache) fallbackLoad();
     return;
   }
-  setSyncState('syncing', 'Loading…');
+  setSyncState('syncing', _paintedFromCache ? 'Syncing…' : 'Loading…');
   // Wait for Firebase Auth to resolve before reading data
   const authUser = await new Promise(resolve => {
     const unsub = window._auth.onAuthStateChanged(user => { unsub(); resolve(user); });
@@ -1706,8 +1723,40 @@ async function loadPeriods() {
   periods = Object.entries(raw).map(([id, val]) => ({ id, label: val.label, order: val.order ?? 0 }));
   periods.sort((a,b) => a.order - b.order);
 
+  // Cache the full cloud payload so the next cold open can paint instantly
+  // from disk instead of waiting on the whole auth + fetch chain.
+  try {
+    localStorage.setItem('gs_cloud_cache', JSON.stringify({ raw, at: Date.now() }));
+  } catch(_) {}
+
   renderTabs();
   await switchPeriod(pickStartupPeriod(raw) || periods[0].id);
+}
+
+// ── Instant boot from cached cloud snapshot ────────────────────────────────
+// Paints the last-known schedule immediately on load. Firebase still runs in
+// the background and overwrites this once it resolves; this only removes the
+// blank-screen wait, it never becomes the source of truth.
+let _paintedFromCache = false;
+function bootFromCache() {
+  let cached;
+  try { cached = JSON.parse(localStorage.getItem('gs_cloud_cache') || 'null'); } catch(_) { return false; }
+  const raw = cached && cached.raw;
+  if (!raw || !Object.keys(raw).length) return false;
+  try {
+    periods = Object.entries(raw).map(([id, val]) => ({ id, label: val.label, order: val.order ?? 0 }));
+    periods.sort((a,b) => a.order - b.order);
+    const pid = pickStartupPeriod(raw) || periods[0].id;
+    activePeriodId = pid;
+    schedule = JSON.parse(JSON.stringify(raw[pid].weeks || DEFAULT_WEEKS));
+    undoStack.length = 0;
+    renderTabs();
+    render();
+    updateUndoBtn();
+    _paintedFromCache = true;
+    setSyncState('syncing', 'Syncing…');
+    return true;
+  } catch(e) { console.warn('Cache boot failed:', e); return false; }
 }
 
 // On app open, prefer the tab whose date RANGE spans today (today falls between
