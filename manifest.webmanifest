@@ -1,0 +1,10 @@
+{
+  "name": "Schedule",
+  "short_name": "Schedule",
+  "start_url": "./schedule.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#f0f2f5",
+  "orientation": "portrait"
+}
