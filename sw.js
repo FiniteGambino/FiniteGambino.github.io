@@ -4,16 +4,23 @@
 // kills backgrounded web apps), while a fresh copy is fetched in the background
 // and used on the next open.
 
-const CACHE = 'schedule-shell-v1';
+const CACHE = 'schedule-shell-v2';
 const SHELL = ['./schedule.html'];
 
 self.addEventListener('install', e => {
+  // NOTE: deliberately no skipWaiting() here. A new worker installs and then
+  // WAITS, so the page can show an "update available" prompt and let the user
+  // decide when to swap. The page sends SKIP_WAITING when they tap it.
   e.waitUntil(
     caches.open(CACHE)
       .then(c => c.addAll(SHELL))
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
+      .catch(() => {})
   );
+});
+
+// The page asks us to activate immediately (user tapped "Update").
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
