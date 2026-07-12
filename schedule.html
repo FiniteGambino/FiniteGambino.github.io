@@ -502,6 +502,16 @@
   @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 
+<link rel="manifest" href="./manifest.webmanifest">
+<script>
+  // Cache the app shell so cold boots (very frequent on iOS, which kills
+  // backgrounded web apps) load from disk instead of re-downloading ~340KB.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed:', e));
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
