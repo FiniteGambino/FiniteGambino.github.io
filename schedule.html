@@ -525,6 +525,19 @@
       window.location.reload();
     });
 
+    // Belt-and-suspenders: the worker also announces its own activation
+    // directly. This is what catches a tab running an OLDER worker that
+    // predates this whole update-prompt system (i.e. today) — that old
+    // worker never learned to wait or to fire controllerchange the same
+    // way, so without this listener that one tab would need a manual
+    // second open. With it, the swap happens on its own.
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data && e.data.type === 'SW_ACTIVATED' && !_swRefreshing) {
+        _swRefreshing = true;
+        window.location.reload();
+      }
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then(reg => {
 
