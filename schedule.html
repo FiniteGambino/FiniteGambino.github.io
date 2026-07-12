@@ -289,9 +289,9 @@
   }
 
   /* ── Modal ── */
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:300; padding:20px; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:300; padding:20px; overflow-y:auto; }
   .modal-overlay.hidden { display:none; }
-  .modal { background:#ffffff; border:1px solid #dde1e9; border-radius:14px; padding:20px; width:100%; max-width:360px; }
+  .modal { background:#ffffff; border:1px solid #dde1e9; border-radius:14px; padding:20px; width:100%; max-width:360px; max-height:calc(100dvh - 40px); overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
   .modal h3 { font-size:.85rem; font-weight:700; color:#1a1c24; margin-bottom:14px; }
   .modal label { font-size:.68rem; color:#9098a8; display:block; margin-bottom:4px; margin-top:10px; text-transform:uppercase; letter-spacing:.04em; }
   .color-swatch { width:28px; height:28px; border-radius:7px; cursor:pointer; border:2px solid #dde1e9; transition:transform .1s,box-shadow .1s; flex-shrink:0; }
@@ -1431,6 +1431,20 @@
     <div class="modal-btns" style="margin-top:20px;">
       <button class="btn-cancel" onclick="confirmResolve(false)">Cancel</button>
       <button id="confirmOkBtn" class="btn-confirm" onclick="confirmResolve(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Duplicate category prompt -->
+<div class="modal-overlay hidden" id="catConflictOverlay">
+  <div class="modal">
+    <h3>Category already exists</h3>
+    <p id="catConflictBody" style="font-size:.82rem;color:#6b7280;margin-top:6px;line-height:1.5;"></p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:18px;">
+      <button class="btn-confirm" style="padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;" onclick="catConflictPick('existing')">Use the existing one</button>
+      <button id="catConflictUpdate" class="btn-confirm" style="padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;" onclick="catConflictPick('update')">Update it with my new emoji / colour</button>
+      <button class="btn-cancel" style="padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;" onclick="catConflictPick('create')">Create a separate one anyway</button>
+      <button class="btn-cancel" style="padding:10px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;" onclick="closeCatConflict()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2799,17 +2813,69 @@ function cancelNewCat(id) {
   const sel = document.getElementById(id);
   sel.value = _catSelectPrev[id] || (id === 'gmCat' ? '' : (CATEGORIES[0] && CATEGORIES[0].id) || '');
 }
-function commitNewCat(id) {
-  const name = document.getElementById(newCatNameId(id)).value.trim();
-  const emoji = document.getElementById(newCatEmojiId(id)).value.trim();
-  if (!name) { document.getElementById(newCatNameId(id)).focus(); return; }
-  const cat = addCategory(name, emoji, _pendingCatColor[id] || '#6b7280');
+// Finish creating a category, after any conflict has been resolved.
+function _finishNewCat(id, cat, msg) {
   // Rebuild BOTH selects so the new category is available everywhere.
   refreshCatSelect('mCat'); refreshCatSelect('gmCat');
   const sel = document.getElementById(id);
   sel.value = cat.id; _catSelectPrev[id] = cat.id;
   document.getElementById(newCatWrapId(id)).style.display = 'none';
-  showToast(`Category ${cat.emoji} ${cat.label} added`);
+  render();
+  showToast(msg);
+}
+function commitNewCat(id) {
+  const name = document.getElementById(newCatNameId(id)).value.trim();
+  const emoji = document.getElementById(newCatEmojiId(id)).value.trim();
+  const color = _pendingCatColor[id] || '#6b7280';
+  if (!name) { document.getElementById(newCatNameId(id)).focus(); return; }
+
+  const conflict = findCategoryConflict(name, emoji);
+  if (conflict) {
+    const ex = conflict.cat;
+    const styleDiffers = (!!emoji && emoji !== ex.emoji) || (color !== ex.color);
+    const same = conflict.sameEmoji ? ' (same emoji)' : '';
+    let body = `A category called "${ex.emoji} ${ex.label}"${same} already exists.`;
+    if (styleDiffers) body += ' You picked a different emoji/colour for it.';
+    openCatConflict(body, styleDiffers, ex, {
+      onUseExisting: () => {
+        _finishNewCat(id, ex, `Using existing ${ex.emoji} ${ex.label}`);
+      },
+      onUpdateExisting: () => {
+        const up = updateCategoryStyle(ex.id, emoji, color);
+        _finishNewCat(id, up, `Updated ${up.emoji} ${up.label}`);
+      },
+      onCreateAnyway: () => {
+        const cat = addCategory(name, emoji, color, { force:true });
+        _finishNewCat(id, cat, `Category ${cat.emoji} ${cat.label} added`);
+      },
+    });
+    return;
+  }
+
+  const cat = addCategory(name, emoji, color);
+  _finishNewCat(id, cat, `Category ${cat.emoji} ${cat.label} added`);
+}
+
+// ── Category conflict prompt ────────────────────────────────────────────────
+let _catConflictCbs = null;
+function openCatConflict(body, styleDiffers, ex, cbs) {
+  _catConflictCbs = cbs;
+  document.getElementById('catConflictBody').textContent = body;
+  // "Update it" only makes sense when the user actually chose new styling.
+  document.getElementById('catConflictUpdate').style.display = styleDiffers ? 'block' : 'none';
+  document.getElementById('catConflictOverlay').classList.remove('hidden');
+}
+function closeCatConflict() {
+  document.getElementById('catConflictOverlay').classList.add('hidden');
+  _catConflictCbs = null;
+}
+function catConflictPick(which) {
+  const cbs = _catConflictCbs;
+  closeCatConflict();
+  if (!cbs) return;
+  if (which === 'existing') cbs.onUseExisting();
+  else if (which === 'update') cbs.onUpdateExisting();
+  else if (which === 'create')  cbs.onCreateAnyway();
 }
 
 // ── Task custom colours ──────────────────────────────────────────────────────
@@ -3128,17 +3194,43 @@ function saveCategories() {
   try { localStorage.setItem('gs_categories_custom', JSON.stringify(extras)); } catch(_) {}
 }
 function getCategory(id) { return CATEGORIES.find(c => c.id === id) || null; }
-function addCategory(label, emoji, color) {
+// Look for a category that collides with what the user is trying to create.
+// Returns null, or { cat, sameLabel, sameEmoji }.
+function findCategoryConflict(label, emoji) {
+  const clean = (label||'').trim().toLowerCase();
+  const em = (emoji||'').trim();
+  if (!clean) return null;
+  const cat = CATEGORIES.find(c => c.label.toLowerCase() === clean);
+  if (!cat) return null;
+  return { cat, sameLabel:true, sameEmoji: !!em && cat.emoji === em };
+}
+// Create a category. Does NOT silently reuse an existing one — callers must
+// resolve conflicts first (see commitNewCat). Pass force:true to allow a
+// duplicate label (a unique id is still generated).
+function addCategory(label, emoji, color, opts) {
   const clean = (label||'').trim();
   if (!clean) return null;
-  // Reuse an existing category if the label matches (case-insensitive).
-  const existing = CATEGORIES.find(c => c.label.toLowerCase() === clean.toLowerCase());
-  if (existing) return existing;
+  const force = !!(opts && opts.force);
+  if (!force) {
+    const conflict = findCategoryConflict(clean, emoji);
+    if (conflict) return conflict.cat;
+  }
   const base = clean.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'cat';
   let id = base, n = 2;
   while (CATEGORIES.find(c => c.id === id)) id = base + '-' + (n++);
   const cat = { id, label:clean, emoji:(emoji||'📌').trim()||'📌', color:color||'#6b7280' };
   CATEGORIES.push(cat);
+  saveCategories();
+  return cat;
+}
+// Apply a fresh emoji / colour to an existing category (used when the user
+// chooses "use existing" but supplied different styling).
+function updateCategoryStyle(id, emoji, color) {
+  const cat = getCategory(id);
+  if (!cat) return null;
+  const em = (emoji||'').trim();
+  if (em) cat.emoji = em;
+  if (color) cat.color = color;
   saveCategories();
   return cat;
 }
