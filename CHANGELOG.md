@@ -347,3 +347,5 @@ Final solution: **Firebase custom token via Vercel backend**
 | Calendar | Google OAuth refresh token via Vercel |
 | Backend | Vercel serverless (`schedule-backend-sigma.vercel.app`) |
 | Deploys | GitHub Contents API via Python urllib |
+
+- 2026-07-13: Verification write (Claude) - confirms token has repo write access. Safe to revert.
