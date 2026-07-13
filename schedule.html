@@ -1369,11 +1369,12 @@
   <div class="palette-section">Saved Tasks</div>
   <div class="palette-chips" id="paletteChips"></div>
 
-  <div class="palette-section" style="margin-top:16px;">Custom (session)</div>
-  <div class="palette-chips" id="paletteCustomChips"></div>
-  <div class="palette-chips" style="margin-top:6px;">
-    <div class="palette-chip event" style="cursor:pointer;" onclick="openCustomChipModal()">＋ New custom…</div>
+  <div class="palette-chips" style="margin-top:14px;">
+    <div class="palette-chip event" style="cursor:pointer;" onclick="openCustomChipModal()">＋ Add to Palette</div>
   </div>
+  <!-- Session-only custom chips are retired; kept hidden so any legacy code
+       referencing #paletteCustomChips still finds a node instead of throwing. -->
+  <div class="palette-chips" id="paletteCustomChips" style="display:none;"></div>
 
   <!-- Selection action bar — shown when a chip is selected -->
   <div id="paletteActionBar" style="display:none;margin-top:18px;padding-top:14px;border-top:1px solid #edf0f4;">
@@ -3130,6 +3131,10 @@ const COLOR_MAP = {
 function buildColorSwatches(selectedColor) {
   const row = document.getElementById('mColorRow');
   row.innerHTML = '';
+  // Defensive: strip any stale .selected left elsewhere in the DOM. getSelectedColor
+  // queries document-wide, so a leftover swatch would otherwise be picked up and
+  // silently colour a task the user never chose a colour for.
+  document.querySelectorAll('.color-swatch.selected').forEach(s => s.classList.remove('selected'));
   Object.entries(COLOR_MAP).forEach(([key, c]) => {
     const sw = document.createElement('div');
     sw.className = 'color-swatch' + (key === (selectedColor||'') ? ' selected' : '');
@@ -3145,7 +3150,10 @@ function buildColorSwatches(selectedColor) {
 }
 
 function getSelectedColor() {
-  const sel = document.querySelector('.color-swatch.selected');
+  // Scope to the modal's own colour row — a document-wide query can match a stale
+  // swatch elsewhere and return a colour the user never picked.
+  const row = document.getElementById('mColorRow');
+  const sel = row ? row.querySelector('.color-swatch.selected') : null;
   return sel ? sel.dataset.color : '';
 }
 
@@ -3944,9 +3952,9 @@ function openCustomChipModal() {
   document.getElementById('mCat').value = 'gym';
   _catSelectPrev['mCat']='gym';
   buildColorSwatches('');
-  document.getElementById('mConfirm').textContent = 'Add';
-  document.getElementById('mSavePaletteWrap').style.display = 'block';
-  // Default to saving permanently — session-only is now the opt-out, not the default.
+  document.getElementById('mConfirm').textContent = 'Add to Palette';
+  // Always saves to the palette now — no session-only path, so hide the choice.
+  document.getElementById('mSavePaletteWrap').style.display = 'none';
   document.getElementById('mSavePalette').checked = true;
   // "Update this task in the palette too" only applies when editing an existing
   // task — hide it so it doesn't linger from a prior Edit on a brand-new task.
