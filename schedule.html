@@ -235,8 +235,30 @@
   .task.in-clipboard { animation:borderMarch 1.4s ease-in-out infinite; }
 
   /* .task.dragging handled in #dragGhost block */
-  .task.drag-above { border-top:2px solid #3d5afe !important; }
-  .task.drag-below { border-bottom:2px solid #3d5afe !important; }
+  .task.drag-above, .task.drag-below { position:relative; }
+  .task.drag-above::after, .task.drag-below::after {
+    content:''; position:absolute; left:-2px; right:-2px; height:4px;
+    background:#3d5afe; border-radius:3px; z-index:5; pointer-events:none;
+    box-shadow:0 0 0 1px #fff, 0 0 10px 2px rgba(61,90,254,.65);
+    animation:dropPulse .9s ease-in-out infinite;
+  }
+  .task.drag-above::after { top:-3px; }
+  .task.drag-below::after { bottom:-3px; }
+  /* End caps so the line reads as a clear insertion point */
+  .task.drag-above::before, .task.drag-below::before {
+    content:''; position:absolute; left:-5px; width:8px; height:8px;
+    background:#3d5afe; border-radius:50%; z-index:6; pointer-events:none;
+    box-shadow:0 0 0 1.5px #fff;
+  }
+  .task.drag-above::before { top:-5px; }
+  .task.drag-below::before { bottom:-5px; }
+  @keyframes dropPulse { 0%,100%{opacity:1;} 50%{opacity:.55;} }
+  body[data-theme="d"] .task.drag-above::after, body[data-theme="d"] .task.drag-below::after {
+    background:#d6ff4a; box-shadow:0 0 0 1px #141318, 0 0 10px 2px rgba(214,255,74,.6);
+  }
+  body[data-theme="d"] .task.drag-above::before, body[data-theme="d"] .task.drag-below::before {
+    background:#d6ff4a; box-shadow:0 0 0 1.5px #141318;
+  }
   .task.selected-1 { border-color:#3d5afe !important; background:#eef1ff !important; box-shadow:0 0 0 2px rgba(61,90,254,.18); }
   .task.selected-2 { border-color:#ff6b35 !important; background:#fff3ef !important; box-shadow:0 0 0 2px rgba(255,107,53,.18); }
 
@@ -254,6 +276,22 @@
   }
   .task.shaking { animation:taskShake .45s ease-in-out infinite; transform-origin:center; }
   #dragGhost.shaking { animation:taskShake .45s ease-in-out infinite; transform-origin:center; }
+  /* Landing flight: ghost eases from release point into the final slot. */
+  #dragGhost.landing {
+    transition:left .34s cubic-bezier(.22,.61,.36,1),
+               top .34s cubic-bezier(.22,.61,.36,1),
+               width .34s cubic-bezier(.22,.61,.36,1),
+               transform .34s cubic-bezier(.22,.61,.36,1),
+               box-shadow .34s ease,
+               opacity .12s ease .26s;
+  }
+  /* Task settles in as the ghost fades — a soft press-down, not a pop. */
+  @keyframes taskLand {
+    0%   { transform:scale(1.035); }
+    60%  { transform:scale(.995); }
+    100% { transform:scale(1); }
+  }
+  .task.landing { animation:taskLand .3s cubic-bezier(.22,.61,.36,1); }
   .task-emoji { font-size:.9rem; flex-shrink:0; }
   .task-text { flex:1; line-height:1.3; user-select:none; -webkit-user-select:none; }
   .task-detail { flex-shrink:1; min-width:0; max-width:45%; margin-left:6px; font-style:italic; font-size:.68rem; opacity:.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right; user-select:none; -webkit-user-select:none; }
@@ -283,8 +321,10 @@
     /* Must NOT set padding/background here — task class handles those */
   }
   .task.dragging {
-    opacity:0 !important;
+    opacity:.35 !important;
     pointer-events:none;
+    outline:2px dashed #9db4ff;
+    outline-offset:-2px;
     /* Keep layout space — do not use display:none or visibility:hidden */
   }
 
@@ -608,6 +648,22 @@
   #themeSwitch.expanded { gap:8px; padding:7px 13px 7px 9px; }
   #themeSwitch.expanded .ts-label { max-width:140px; opacity:1; }
   #themeSwitch.expanded .ts-cycle { max-width:20px; opacity:1; }
+
+  /* Scroll-to-top button — sits directly under the theme switch */
+  #toTopBtn {
+    position:fixed; top:52px; right:11px; z-index:299;
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid #dde1e9; color:#2c2f3a;
+    box-shadow:0 3px 16px rgba(0,0,0,.16); cursor:pointer;
+    font-size:.9rem; line-height:1; padding:0;
+    -webkit-tap-highlight-color:transparent;
+    opacity:0; visibility:hidden; transform:translateY(-6px) scale(.9);
+    transition:opacity .22s ease, transform .22s ease, visibility .22s;
+  }
+  #toTopBtn.show { opacity:1; visibility:visible; transform:translateY(0) scale(1); }
+  #toTopBtn:active { transform:scale(.9); }
+  body[data-theme="d"] #toTopBtn { background:#1b1a20; border-color:#2a2833; color:#e8e6ef; }
 
   /* ============ THEME A2 — SOFT BUBBLE ============ */
   body[data-theme="a2"] { background:#fbf6ee; font-family:'Nunito',sans-serif; }
@@ -1113,6 +1169,7 @@
 })();
 </script>
 <button id="themeSwitch" onclick="cycleTheme()" aria-label="Switch design theme"><span class="ts-dot"></span><span class="ts-label">Soft Bubble</span><span class="ts-cycle">▸</span></button>
+<button id="toTopBtn" onclick="scrollToTop()" aria-label="Scroll to top">▲</button>
 
 <!-- ── App shell ── -->
 <div class="app-header">
@@ -2358,6 +2415,10 @@ function collapseAll(){
 function toggleDay(h){ h.nextElementSibling.classList.toggle('collapsed'); h.querySelector('.day-toggle').classList.toggle('open'); }
 function taskEl(ref){ return ref ? document.querySelector(`[data-key="${ref.wIdx}-${ref.dIdx}-${ref.tIdx}"]`) : null; }
 
+// Set when the Add modal is opened from a selected day, so that after the add
+// we can put the day toolbar back instead of dropping to no selection.
+let modalFromDay = null;
+
 // ── Toolbar ────────────────────────────────────────────────────────────────
 function showToolbar(wIdx,dIdx,tIdx){
   if(activeDay) hideDayToolbar();
@@ -2806,11 +2867,13 @@ function openModal(mode,wIdx,dIdx,tIdx){
     document.getElementById('mSavePaletteWrap').style.display='block';
   }
   // 'add' and 'add-to-day' share the add branch; normalize for confirmModal
+  // but remember the origin so confirmModal can restore the day toolbar.
+  modalFromDay = (mode==='add-to-day') ? {wIdx,dIdx} : null;
   if(mode==='add-to-day') modalMode='add';
   document.getElementById('modalOverlay').classList.remove('hidden');
   setTimeout(()=>document.getElementById('mText').focus(),80);
 }
-function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); modalFromDay=null; }
 function confirmModal(){
   const text=document.getElementById('mText').value.trim();
   const cat=document.getElementById('mCat').value;
@@ -2892,9 +2955,45 @@ function confirmModal(){
       showToast('Added');
     }
   }
+  const restoreDay = modalFromDay;
   closeModal(); hideToolbar(); save(); render();
+  // If this add came from a selected day, keep the day toolbar up — the user
+  // never clicked a task, so the toolbar shouldn't flip to task mode.
+  if(restoreDay && schedule[restoreDay.wIdx] && schedule[restoreDay.wIdx].days[restoreDay.dIdx]){
+    showDayToolbar(restoreDay.wIdx, restoreDay.dIdx);
+  }
 }
 function emojiFor(cat){ const c=getCategory(cat); return c?c.emoji:'📌'; }
+
+// ── Scroll to top ─────────────────────────────────────────────────────────
+function scrollToTop(){
+  const start = window.pageYOffset || document.documentElement.scrollTop;
+  if(start <= 0) return;
+  // Fast but not instant: ~420ms with an ease-out curve.
+  const DUR = 420;
+  const t0 = performance.now();
+  const ease = p => 1 - Math.pow(1 - p, 3);
+  function step(now){
+    const p = Math.min((now - t0) / DUR, 1);
+    window.scrollTo(0, Math.round(start * (1 - ease(p))));
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+(function initToTop(){
+  const btn = document.getElementById('toTopBtn');
+  if(!btn) return;
+  let ticking = false;
+  function upd(){
+    const y = window.pageYOffset || document.documentElement.scrollTop;
+    btn.classList.toggle('show', y > 400);
+    ticking = false;
+  }
+  window.addEventListener('scroll', ()=>{
+    if(!ticking){ ticking = true; requestAnimationFrame(upd); }
+  }, {passive:true});
+  upd();
+})();
 
 // ── Dynamic category selects (task modal = mCat, goal modal = gmCat) ──────────
 const _CAT_ADD_SENTINEL = '__add_new_cat__';
@@ -3215,9 +3314,42 @@ function onDragMove(cx,cy){
   }
 }
 
+// Fly the ghost from wherever it was released into the final resting rect of
+// the dropped task, then hand off to the real element. Without this the ghost
+// vanishes at the finger and the task pops into place — reads as a teleport.
+function flyGhostTo(targetEl, done){
+  const from = ghost.getBoundingClientRect();
+  const to   = targetEl.getBoundingClientRect();
+  // Nothing to travel — skip the flight.
+  if(Math.abs(from.top-to.top) < 2 && Math.abs(from.left-to.left) < 2){ done(); return; }
+
+  targetEl.style.visibility='hidden';   // hide real task during the flight
+  ghost.classList.add('landing');
+  ghost.style.left  = to.left+'px';
+  ghost.style.top   = to.top+'px';
+  ghost.style.width = to.width+'px';
+  ghost.style.transform='scale(1) rotate(0deg)';
+  ghost.style.boxShadow='0 2px 6px rgba(0,0,0,.10)';
+
+  let finished=false;
+  const finish=()=>{
+    if(finished) return; finished=true;
+    ghost.removeEventListener('transitionend', onEnd);
+    ghost.classList.remove('landing');
+    ghost.style.display='none';
+    ghost.style.transform=''; ghost.style.boxShadow=''; ghost.style.width='';
+    targetEl.style.visibility='';
+    targetEl.classList.add('landing');
+    setTimeout(()=>targetEl.classList.remove('landing'),320);
+    done();
+  };
+  const onEnd=e=>{ if(e.propertyName==='top'||e.propertyName==='left') finish(); };
+  ghost.addEventListener('transitionend', onEnd);
+  setTimeout(finish, 420);   // safety net if transitionend never fires
+}
+
 function onDragEnd(){
   if(!drag) return;
-  ghost.style.display='none';
   ghost.classList.remove('shaking');
   drag.el.classList.remove('dragging','shaking'); clearDropHL();
   if(dropInfo&&dragStarted){
@@ -3246,10 +3378,11 @@ function onDragEnd(){
           setTimeout(()=>{ el.style.transition=''; el.style.transform=''; el.classList.remove('flip-animate'); },650);
         });
         const droppedEl=document.querySelector(`[data-key="${dW}-${dD}-${idx}"]`);
-        if(droppedEl){ droppedEl.classList.add('paste-in'); setTimeout(()=>droppedEl.classList.remove('paste-in'),450); }
+        if(droppedEl) flyGhostTo(droppedEl, ()=>{});
+        else ghost.style.display='none';
       });
-    }
-  }
+    } else { ghost.style.display='none'; }
+  } else { ghost.style.display='none'; }
   drag=null; dropInfo=null;
   stopAutoScroll();
   setTimeout(()=>{ dragStarted=false; },0);
@@ -3811,9 +3944,10 @@ function openCustomChipModal() {
   document.getElementById('mCat').value = 'gym';
   _catSelectPrev['mCat']='gym';
   buildColorSwatches('');
-  document.getElementById('mConfirm').textContent = 'Add (session only)';
+  document.getElementById('mConfirm').textContent = 'Add';
   document.getElementById('mSavePaletteWrap').style.display = 'block';
-  document.getElementById('mSavePalette').checked = false;
+  // Default to saving permanently — session-only is now the opt-out, not the default.
+  document.getElementById('mSavePalette').checked = true;
   // "Update this task in the palette too" only applies when editing an existing
   // task — hide it so it doesn't linger from a prior Edit on a brand-new task.
   document.getElementById('mEditPaletteWrap').style.display = 'none';
