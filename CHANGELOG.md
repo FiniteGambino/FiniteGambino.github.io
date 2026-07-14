@@ -493,3 +493,31 @@ parsed anywhere. (`_flipId` in the FLIP wrapper had the same flaw and is fixed t
 
 The drop *index arithmetic* was verified correct across all 40 same-list permutations — the
 misplacement was entirely hit-test instability, not the math.
+
+### July 14, 2026 — Drag rewrite (fixing my own regressions)
+
+**Ghost was transparent again — in every theme.** `#dragGhost` is given `class="task"`, so theme
+rules like `body[data-theme="f"] .task { background:transparent !important }` MATCH it. An
+`!important` declaration beats a plain inline style, so `ghost.style.background = ...` never stood a
+chance. This was true for themes f/c/d all along; the earlier "fix" only worked on themes that
+lacked the `!important`. Now: those rules are `.task:not(#dragGhost)`, and the ghost's background is
+set with `setProperty(..., 'important')`.
+
+**Drop placement — root cause was the indicator itself.** It applied `margin-top:16px` to the
+highlighted row, which pushed that row and everything below it out from under the finger. The
+hit-test then read a different element → indicator cleared → layout sprang back → repeat. Simulated,
+it oscillates `2/before → none → 2/before → none`. Whichever state it was in on release decided the
+slot. My previous "geometry" patch kept the shifting indicator, so it did not fix this — it made it
+worse by also snapping to the nearest row when the cursor was outside the list entirely.
+
+Rewritten properly:
+- The indicator is now `#dropLine`: `position:fixed`, drawn at the target boundary, affecting **no
+  layout**. Nothing moves while you drag.
+- The slot is an **insertion index** — "how many row-midpoints are above the cursor", counted over
+  rows that exclude the dragged one. Monotonic in cursor Y, so it cannot oscillate; dragging past the
+  last row cleanly means "append".
+- `onDragEnd` consumes that index directly. The old before/after arithmetic (`if(sT<dT) idx--;
+  if(pos==='after') idx++`) is gone — the index is already correct for the post-removal array.
+  Verified across all 25 same-list (src × slot) combinations and every cross-list slot.
+- Added a no-op guard: dropping an item back where it started returns early without `pushUndo()`, so
+  a stray tap-drag no longer pollutes the undo stack.
