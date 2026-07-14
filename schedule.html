@@ -3696,44 +3696,81 @@ function onDragMove(cx,cy){
   if(!drag||!dragStarted) return;
   posGhost(cx,cy); clearDropHL(); dropInfo=null;
   updateAutoScroll(cy);
-  const els=document.elementsFromPoint(cx,cy);
 
-  // First try: find a task to drop before/after
+  // ── Find the container under the cursor ──────────────────────────────────
+  // NOTE: we must NOT pick the drop slot straight from elementsFromPoint().
+  // The drop indicator adds `margin-top:16px` to the task it highlights, which
+  // physically shifts rows under the finger — so the element at (cx,cy) changes
+  // the moment the indicator appears, the indicator flips to the new element,
+  // the layout shifts back, and it oscillates. That is why drops landed in the
+  // wrong slot.
+  //
+  // Instead: identify the *container*, then choose the slot by comparing the
+  // cursor against each row's UNSHIFTED geometry (we subtract any indicator
+  // margin we ourselves applied). Geometry is stable; hit-testing is not.
+  const els = document.elementsFromPoint(cx,cy);
+  let cont = null;
   for(const el of els){
-    if(el.classList.contains('task')&&el!==drag.el&&!el.closest('#dragGhost')){
-      const key=el.dataset.key; if(!key) continue;
-      const [w,d,t]=key.split('-').map(Number);
-      const rect=el.getBoundingClientRect();
-      const pos=cy<rect.top+rect.height/2?'before':'after';
-      el.classList.add(pos==='before'?'drag-above':'drag-below');
-      dropInfo={wIdx:w,dIdx:d,tIdx:t,pos}; return;
+    if(el.closest('#dragGhost')) continue;
+    const c = el.closest('[data-w][data-d]');
+    if(c){ cont = c; break; }
+  }
+  if(!cont) return;
+
+  const w = Number(cont.dataset.w), d = Number(cont.dataset.d);
+  if(Number.isNaN(w)||Number.isNaN(d)) return;
+
+  // Validate the target exists (To-Do is the virtual day w = -1).
+  const arr = tasksAt(w,d);
+  if(!arr) return;
+
+  // Highlight the container.
+  if(isTodoRef(w,d)){
+    const sec=document.getElementById('todoSection');
+    if(sec) sec.classList.add('drop-hot');
+  } else {
+    const hl = cont.classList.contains('wv-col')
+      ? cont
+      : (cont.closest('.day-card')||cont.closest('.wv-col')||cont);
+    hl.classList.add('wv-drag-over');
+  }
+
+  // Rows in this container, excluding the one being dragged.
+  const rows = Array.from(cont.querySelectorAll('.task[data-key]'))
+    .filter(el => el !== drag.el && !el.closest('#dragGhost'));
+
+  if(!rows.length){
+    dropInfo = {wIdx:w, dIdx:d, tIdx:0, pos:'before'};
+    return;
+  }
+
+  // Pick the row whose (unshifted) midpoint the cursor is nearest, and decide
+  // before/after from which half we're in. Subtracting the indicator margin we
+  // applied ourselves keeps the geometry stable while dragging.
+  let best=null, bestDist=Infinity;
+  for(const el of rows){
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const shiftTop = el.classList.contains('drag-above') ? parseFloat(cs.marginTop)||0 : 0;
+    const top    = r.top - shiftTop;
+    const bottom = r.bottom - shiftTop;
+    const mid    = (top + bottom)/2;
+    const dist   = Math.abs(cy - mid);
+    if(dist < bestDist){
+      bestDist = dist;
+      best = { el, top, bottom, mid };
     }
   }
-  // Fallback: dropping into a container (empty day, To-Do list, or below all tasks)
-  for(const el of els){
-    const cont = el.closest('[data-w][data-d]');
-    if(cont){
-      const w=Number(cont.dataset.w), d=Number(cont.dataset.d);
-      if(isNaN(w)||isNaN(d)) continue;
-      // The To-Do list is a virtual day (w = -1) — it's a valid drop target,
-      // so tasks can be dragged out of a day and back into To-Do.
-      if(isTodoRef(w,d)){
-        const sec=document.getElementById('todoSection');
-        if(sec) sec.classList.add('drop-hot');
-        const n=todoList.length;
-        dropInfo = n>0 ? {wIdx:w,dIdx:d,tIdx:n-1,pos:'after'} : {wIdx:w,dIdx:d,tIdx:0,pos:'before'};
-        return;
-      }
-      if(!schedule[w]||!schedule[w].days[d]) continue;
-      const taskCount=(schedule[w].days[d].tasks||[]).length;
-      const hl = cont.classList.contains('wv-col') ? cont : (cont.closest('.day-card')||cont.closest('.wv-col')||cont);
-      hl.classList.add('wv-drag-over');
-      if(taskCount>0) dropInfo={wIdx:w,dIdx:d,tIdx:taskCount-1,pos:'after'};
-      else dropInfo={wIdx:w,dIdx:d,tIdx:0,pos:'before'};
-      return;
-    }
-  }
+  if(!best) return;
+
+  const t = Number(best.el.dataset.t);
+  if(Number.isNaN(t)) return;
+
+  const pos = cy < best.mid ? 'before' : 'after';
+  best.el.classList.add(pos==='before' ? 'drag-above' : 'drag-below');
+  dropInfo = {wIdx:w, dIdx:d, tIdx:t, pos};
 }
+
 
 function onDragEnd(){
   if(!drag) return;
@@ -6522,6 +6559,12 @@ function appendTasks(container, tasks, wIdx, dIdx){
     const el=document.createElement('div');
     el.className=`task ${task.cat}`;
     el.dataset.key=key;
+    // Indices as their own attributes. The To-Do list uses wIdx = -1, and
+    // "-1-0-2".split('-') yields ["","1","0","2"] — so any parser that splits
+    // the key on '-' silently reads a To-Do task as Week 0 / Day 1.
+    el.dataset.w = wIdx;
+    el.dataset.d = dIdx;
+    el.dataset.t = tIdx;
     if(task.color && COLOR_MAP[task.color]) {
       const c = COLOR_MAP[task.color];
       el.style.background = c.bg;
@@ -7306,7 +7349,9 @@ let _flipDepth = 0;
 function _flipId(el){
   const txt = el.querySelector('.task-text');
   const key = el.dataset.key || '';
-  const day = key.split('-').slice(0,2).join('-');   // week-day
+  // Use the real attributes — splitting the key breaks on the To-Do list's
+  // negative week index (wIdx = -1).
+  const day = `${el.dataset.w}-${el.dataset.d}`;
   return (txt ? txt.textContent.trim() : key) + '@' + day;
 }
 
