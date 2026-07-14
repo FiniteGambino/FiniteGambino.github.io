@@ -419,3 +419,22 @@ undoable alongside everything else.
 
 Fix: the notes container id was `todoNotes`, which collided with the `todoNotes` global via the
 DOM id→window mapping. Renamed to `todoNotesWrap`.
+
+### July 14, 2026 (later still) — Week view squish, badge spacing, rare bar theming
+
+**Week view columns were rendering ~43px wide.** `.week-grid` sat inside a horizontal scroller
+with no explicit width, so it inherited the scroller's width and `grid-auto-columns:minmax(130px,1fr)`
+crushed all 7 columns to fit — `1fr` overrode the 130px floor. Now `grid-auto-columns:150px` +
+`width:max-content` so the grid sizes to its columns and the wrapper scrolls. Above 900px the
+columns go back to `1fr` and share the width evenly (no scroll).
+
+**Selection badge** was flush against the card's right border. `.task` right padding 9px→11px,
+badge 16px→18px (the digit was clipping to a solid dot) with 2px side margins. Week-view variant
+scaled to match.
+
+**Rare task bar** was inline-styled cream (`#fffbec` / `#f0d880`) and ignored the theme. Moved to
+`#rareTaskBar` + `.rare-*` classes: white card in light themes, amber kept only as an accent on the
+count pills; dark/warm/paper themes get proper variants.
+
+**Drop indicator** (added earlier today) was sized for list view; the 16px gap + 5px pill distorted
+the dense week-view columns. Scaled to 9px gap / 3px pill under `.wv-tasks`.
