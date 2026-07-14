@@ -624,8 +624,28 @@
   .todo-ic { font-size:.85rem; }
   .todo-title { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3149c4; flex:1; }
   .todo-count { font-size:.62rem; color:#3149c4; background:#dfe7ff; border-radius:10px; padding:1px 7px; }
-  .todo-add { background:#dfe7ff; border:1px solid #b9c8f5; color:#3149c4; border-radius:7px; width:24px; height:24px; font-size:.85rem; font-weight:700; line-height:1; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
+  .todo-add { border-radius:7px; height:24px; padding:0 6px; font-size:.72rem; font-weight:700; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:1px; -webkit-tap-highlight-color:transparent; transition:transform .1s; }
   .todo-add:active { transform:scale(.9); }
+  .todo-add .ta-ic { font-size:.7rem; }
+  .todo-add .ta-plus { font-size:.8rem; font-weight:700; }
+  /* Note = amber (stays put). Task = blue (goes into a day). */
+  .todo-add-note { background:#fdf7e3; border:1px solid #e6d39a; color:#7a5a00; }
+  .todo-add-task { background:#dfe7ff; border:1px solid #b9c8f5; color:#3149c4; }
+
+  /* ── Notes (free-text scribbles, never leave the To-Do section) ── */
+  .todo-notes { display:flex; flex-direction:column; gap:6px; }
+  .todo-notes:not(:empty) { margin-bottom:8px; }
+  .todo-note { display:flex; align-items:flex-start; gap:7px; background:#fdf7e3; border:1px solid #e6d39a; border-left:3px solid #e0b840; border-radius:7px; padding:7px 9px; }
+  .todo-note-ic { font-size:.75rem; flex-shrink:0; margin-top:1px; }
+  .todo-note-text { flex:1; min-width:0; font-size:.78rem; line-height:1.45; color:#5a4510; white-space:pre-wrap; overflow-wrap:anywhere; cursor:text; }
+  .todo-note-text:empty::before { content:'Empty note'; color:#b8a468; }
+  .todo-note-text:focus { outline:none; background:#fffdf5; border-radius:4px; box-shadow:0 0 0 2px rgba(224,184,64,.35); }
+  .todo-note-x { background:none; border:none; color:#c0ac70; font-size:.8rem; cursor:pointer; padding:0 2px; flex-shrink:0; line-height:1; -webkit-tap-highlight-color:transparent; }
+  .todo-note-x:hover { color:#c03050; }
+  body[data-theme="d"] .todo-add-note { background:#2a2620; border-color:#4a4230; color:#e0c060; }
+  body[data-theme="d"] .todo-note { background:#26242e; border-color:#3a3630; border-left-color:#c0a040; }
+  body[data-theme="d"] .todo-note-text { color:#d8d2c0; }
+  body[data-theme="c"] .todo-note, body[data-theme="f"] .todo-note { border-radius:4px; }
   .todo-arrow { font-size:.6rem; color:#a8b6d8; transition:transform .2s; }
   #todoSection.collapsed .todo-arrow { transform:rotate(0deg); }
   #todoSection:not(.collapsed) .todo-arrow { transform:rotate(180deg); }
@@ -1225,12 +1245,14 @@
       <span class="todo-ic">📋</span>
       <span class="todo-title">To Do</span>
       <span class="todo-count" id="todoCount">0</span>
-      <button class="todo-add" onclick="event.stopPropagation();todoAddTask()" title="Add a to-do">＋</button>
+      <button class="todo-add todo-add-note" onclick="event.stopPropagation();todoAddNote()" title="Add a note (stays in To Do)"><span class="ta-ic">📝</span><span class="ta-plus">＋</span></button>
+      <button class="todo-add todo-add-task" onclick="event.stopPropagation();todoAddTask()" title="Add a task (draggable into a day)"><span class="ta-ic">✓</span><span class="ta-plus">＋</span></button>
       <span class="todo-arrow" id="todoArrow">▲</span>
     </div>
     <div class="todo-body" id="todoBody">
+      <div class="todo-notes" id="todoNotesWrap"></div>
       <div class="task-list" id="todoTasks" data-w="-1" data-d="0"></div>
-      <div class="todo-empty" id="todoEmpty">Nothing here yet — add tasks you haven't scheduled, then drag them into a day.</div>
+      <div class="todo-empty" id="todoEmpty">Nothing here yet — 📝 jots down a note, ✓ adds a task you can drag into a day.</div>
     </div>
   </div>
 
@@ -1744,6 +1766,9 @@ let _keepDayToolbar = null;
 // toolbar, edit modal, undo) works on it unchanged.
 const TODO_W = -1, TODO_D = 0;
 let todoList = [];
+// Free-text scribbles. Notes are NOT tasks: they never enter a day, never
+// reach the rare-task bar, and stay in the To-Do section permanently.
+let todoNotes = []; // [{ id, text }]
 function isTodoRef(wIdx, dIdx){ return wIdx === TODO_W; }
 // Resolve a {wIdx,dIdx} pair to its backing tasks array — day or To-Do.
 function tasksAt(wIdx, dIdx){
@@ -1757,7 +1782,7 @@ const UNDO_LIMIT = 30;
 function pushUndo() {
   // Snapshot BOTH the schedule and the To-Do list so undo covers every
   // To-Do operation (add, edit, delete, reorder, drag in/out of a day).
-  undoStack.push(JSON.stringify({ schedule, todoList }));
+  undoStack.push(JSON.stringify({ schedule, todoList, todoNotes }));
   if (undoStack.length > UNDO_LIMIT) undoStack.shift();
   updateUndoBtn();
 }
@@ -1797,6 +1822,7 @@ function undo() {
   } else {
     schedule = snap.schedule;
     todoList = snap.todoList || [];
+    todoNotes = snap.todoNotes || [];
     saveTodo();
   }
   updateUndoBtn();
@@ -1963,7 +1989,8 @@ function bootFromCache() {
     const pid = pickStartupPeriod(raw) || periods[0].id;
     activePeriodId = pid;
     schedule = JSON.parse(JSON.stringify(raw[pid].weeks || DEFAULT_WEEKS));
-    try { todoList = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+    try { todoList  = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+    try { todoNotes = JSON.parse(localStorage.getItem('gs_todo_notes') || '[]'); } catch(_) { todoNotes = []; }
     undoStack.length = 0;
     renderTabs();
     render();
@@ -2411,7 +2438,8 @@ document.getElementById('pmLabel')?.addEventListener('keydown', e => {
 // ── Local fallback ─────────────────────────────────────────────────────────
 function localSave(){ delete _todayPeriodCache[activePeriodId]; try{ localStorage.setItem('gs_v9_'+activePeriodId, JSON.stringify(schedule)); }catch(e){} }
 function fallbackLoad(){
-  try { todoList = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+  try { todoList  = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+  try { todoNotes = JSON.parse(localStorage.getItem('gs_todo_notes') || '[]'); } catch(_) { todoNotes = []; }
   periods = [{ id:'local', label:'Jun 14 – Jul 4', order:0 }];
   activePeriodId = 'local';
   const saved = localStorage.getItem('gs_v9_local');
@@ -2425,27 +2453,45 @@ function save() { savePeriod(); }
 
 // ── To-Do persistence ──────────────────────────────────────────────────────
 // Stored OUTSIDE the periods tree so the same list shows in every tab.
-function localSaveTodo(){ try { localStorage.setItem('gs_todo', JSON.stringify(todoList)); } catch(_) {} }
+function localSaveTodo(){
+  try {
+    localStorage.setItem('gs_todo', JSON.stringify(todoList));
+    localStorage.setItem('gs_todo_notes', JSON.stringify(todoNotes));
+  } catch(_) {}
+}
 async function saveTodo(){
   localSaveTodo();
   if (!db || !window._currentUser) return;
   try {
     const { ref, set } = fsFns;
-    await set(ref(db, `users/${window._currentUser.uid}/schedule/todo`), todoList);
+    const base = `users/${window._currentUser.uid}/schedule`;
+    await Promise.all([
+      set(ref(db, `${base}/todo`), todoList),
+      set(ref(db, `${base}/todoNotes`), todoNotes)
+    ]);
   } catch(_) { /* localStorage already has it */ }
 }
 async function loadTodo(){
   // Local first so the list paints instantly, then reconcile with the cloud.
-  try { todoList = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+  try { todoList  = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+  try { todoNotes = JSON.parse(localStorage.getItem('gs_todo_notes') || '[]'); } catch(_) { todoNotes = []; }
   if (!db || !window._currentUser) return;
   try {
     const { ref, get } = fsFns;
-    const snap = await get(ref(db, `users/${window._currentUser.uid}/schedule/todo`));
-    if (snap.exists()) {
-      const val = snap.val();
-      todoList = Array.isArray(val) ? val : (val ? Object.values(val) : []);
-      localSaveTodo();
+    const base = `users/${window._currentUser.uid}/schedule`;
+    const [ts, ns] = await Promise.all([
+      get(ref(db, `${base}/todo`)),
+      get(ref(db, `${base}/todoNotes`))
+    ]);
+    if (ts.exists()) {
+      const v = ts.val();
+      todoList = Array.isArray(v) ? v : (v ? Object.values(v) : []);
     }
+    if (ns.exists()) {
+      const v = ns.val();
+      todoNotes = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+    }
+    localSaveTodo();
   } catch(_) {}
 }
 
@@ -5835,10 +5881,58 @@ function render() {
 function renderTodoList(){
   const sec = document.getElementById('todoSection');
   const wrap = document.getElementById('todoTasks');
-  if (!sec || !wrap) return;
+  const notesWrap = document.getElementById('todoNotesWrap');
+  if (!sec || !wrap || !notesWrap) return;
   sec.classList.toggle('collapsed', getTodoCollapsed());
-  document.getElementById('todoCount').textContent = todoList.length;
-  document.getElementById('todoEmpty').style.display = todoList.length ? 'none' : 'block';
+  document.getElementById('todoCount').textContent = todoList.length + todoNotes.length;
+  document.getElementById('todoEmpty').style.display =
+    (todoList.length || todoNotes.length) ? 'none' : 'block';
+
+  // ── Notes: plain scribbles, edited in place. Not tasks — never dragged
+  //    into a day, never counted as rare. ──
+  notesWrap.innerHTML = '';
+  todoNotes.forEach(note => {
+    const row = document.createElement('div');
+    row.className = 'todo-note';
+    row.innerHTML =
+      `<span class="todo-note-ic">📝</span>` +
+      `<div class="todo-note-text" contenteditable="true" spellcheck="true"></div>` +
+      `<button class="todo-note-x" title="Delete note">✕</button>`;
+    const box = row.querySelector('.todo-note-text');
+    box.textContent = note.text || '';
+
+    // Save on blur only if the text actually changed (keeps undo clean).
+    box.addEventListener('blur', () => {
+      const val = box.textContent.trim();
+      const n = todoNotes.find(x => x.id === note.id);
+      if (!n || n.text === val) return;
+      pushUndo();
+      n.text = val;
+      saveTodo();
+      updateUndoBtn();
+    });
+    // Esc = abandon the edit and restore what was there.
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); box.textContent = note.text || ''; box.blur(); }
+    });
+    // A note is free text — clicking it must not bubble into task/day selection.
+    row.addEventListener('click', e => e.stopPropagation());
+
+    row.querySelector('.todo-note-x').addEventListener('click', e => {
+      e.stopPropagation();
+      const preview = (note.text || '').trim();
+      const label = preview ? `"${preview.length > 40 ? preview.slice(0,40) + '…' : preview}"` : 'this empty note';
+      appConfirm(`Delete ${label}?`, 'Delete note?', 'Delete', true).then(ok => {
+        if (!ok) return;
+        pushUndo();
+        todoNotes = todoNotes.filter(x => x.id !== note.id);
+        saveTodo(); renderTodoList(); updateUndoBtn();
+        showToast('Note deleted');
+      });
+    });
+    notesWrap.appendChild(row);
+  });
+
   wrap.innerHTML = '';
   // Reuse the exact same task builder as days — drag, tap, toolbar, edit,
   // colours and details all work identically for free.
@@ -5851,6 +5945,20 @@ function toggleTodoBar(){
 function todoAddTask(){
   if (getTodoCollapsed()) { setTodoCollapsed(false); renderTodoList(); }
   openModal('add', TODO_W, TODO_D, todoList.length - 1);
+}
+// Scribble box — stays in To Do forever; can't be dragged into a day.
+function todoAddNote(){
+  if (getTodoCollapsed()) { setTodoCollapsed(false); }
+  pushUndo();
+  const id = 'n' + Date.now() + Math.random().toString(36).slice(2,7);
+  todoNotes.push({ id, text: '' });
+  saveTodo(); renderTodoList(); updateUndoBtn();
+  // Drop the caret straight into the new note so you can just start typing.
+  requestAnimationFrame(() => {
+    const boxes = document.querySelectorAll('#todoNotesWrap .todo-note-text');
+    const box = boxes[boxes.length - 1];
+    if (box) { box.focus(); }
+  });
 }
 
 // Read-only preview of today's tasks, pinned at the top for a quick glance.
