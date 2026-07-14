@@ -11,6 +11,53 @@
 <meta name="apple-mobile-web-app-title" content="Schedule">
 <meta name="theme-color" content="#f0f2f5">
 <style>
+  /* ══════════════════════════════════════════════════════════════════
+     DESIGN TOKENS — one scale for everything.
+     Before this, the app had 15 border-radii, 21 font sizes, 53 padding
+     values and 11 transition durations. That inconsistency (not any single
+     element) is what read as "unpolished": nothing shared a common measure.
+     Everything below snaps to a 4pt spacing grid and a fixed type scale.
+     ══════════════════════════════════════════════════════════════════ */
+  :root {
+    /* Spacing — 4pt grid. No value outside this scale. */
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
+
+    /* Radius — three values, plus full. */
+    --r-sm:6px; --r-md:10px; --r-lg:14px; --r-full:999px;
+
+    /* Type — a real scale. Each step is visibly distinct from the next. */
+    --t-xs:.6875rem;   /* 11px — meta, counts */
+    --t-sm:.8125rem;   /* 13px — secondary */
+    --t-md:.9375rem;   /* 15px — body / task text (Notes-sized) */
+    --t-lg:1.0625rem;  /* 17px — day names */
+    --t-xl:1.375rem;   /* 22px — titles */
+
+    /* Weight — 3 roles, not 5. */
+    --w-reg:400; --w-med:500; --w-bold:700;
+
+    /* Ink + surfaces (Direction A: content on white, no nested cards) */
+    --ink:#000000;
+    --ink-2:#8e8e93;      /* secondary label */
+    --ink-3:#c7c7cc;      /* tertiary label */
+    --surface:#ffffff;
+    --surface-2:#f2f2f7;  /* grouped background */
+    --hairline:#e5e5ea;
+    --accent:#007aff;
+    --accent-soft:#eaf3ff;
+    --danger:#ff3b30;
+
+    /* Motion — snappy. Three durations, one curve. Touch feedback is
+       near-instant; only things that MOVE get eased. */
+    --m-instant:.08s;
+    --m-fast:.14s;
+    --m-base:.22s;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  @media (prefers-reduced-motion:reduce){
+    :root { --m-instant:0s; --m-fast:0s; --m-base:0s; }
+    * { animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+  }
+
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:#f0f2f5; color:#2c2f3a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; padding:0 0 90px; -webkit-user-select:none; user-select:none; }
   .page-wrap { max-width:1100px; margin:0 auto; padding:0 20px; }
@@ -539,6 +586,151 @@
   .loading-screen { text-align:center; padding:60px 20px; color:#9098a8; font-size:.85rem; }
   .loading-screen .spinner { width:28px; height:28px; border:3px solid #dde1e9; border-top-color:#3d5afe; border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 14px; }
   @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ══════════════════════════════════════════════════════════════════
+     DIRECTION A — "Quiet"
+     Content sits on white, separated by hairlines. The nested-card look
+     (card inside card on a grey page) is what made this feel like a form
+     rather than a document. Type carries the hierarchy; chrome recedes.
+     Applies to the DEFAULT theme only — a2/c/d/f keep their identities.
+     ══════════════════════════════════════════════════════════════════ */
+  body[data-theme="n"] {
+    background:var(--surface-2);
+    color:var(--ink);
+    font-family:-apple-system,'SF Pro Text',BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body[data-theme="n"] .page-wrap { padding:0 var(--s4); }
+
+  /* Day: no card. A heading, then rows. */
+  body[data-theme="n"] .day-card {
+    background:var(--surface);
+    border:none;
+    border-radius:var(--r-lg);
+    margin-bottom:var(--s3);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  body[data-theme="n"] .day-card.today {
+    border:none;
+    box-shadow:0 0 0 2px var(--accent), 0 1px 2px rgba(0,0,0,.04);
+  }
+  body[data-theme="n"] .day-header {
+    padding:var(--s3) var(--s4) var(--s2);
+    border-bottom:none;
+    background:transparent;
+    align-items:baseline;
+  }
+  body[data-theme="n"] .day-card.today .day-header { background:transparent; }
+  body[data-theme="n"] .day-name {
+    font-size:var(--t-lg); font-weight:var(--w-bold);
+    letter-spacing:-.022em; text-transform:none; color:var(--ink);
+  }
+  body[data-theme="n"] .day-date {
+    font-size:var(--t-sm); font-weight:var(--w-reg);
+    color:var(--ink-2); background:transparent;
+    border-radius:0; padding:0; letter-spacing:0;
+  }
+  body[data-theme="n"] .day-card.today .day-date {
+    background:var(--accent); color:#fff;
+    border-radius:var(--r-full); padding:2px var(--s2);
+    font-weight:var(--w-med);
+  }
+  body[data-theme="n"] .day-count {
+    font-size:var(--t-sm); font-weight:var(--w-reg);
+    color:var(--ink-3); background:transparent;
+    border-radius:0; padding:0;
+  }
+  body[data-theme="n"] .day-toggle { color:var(--ink-3); transition:transform var(--m-fast) var(--ease); }
+
+  body[data-theme="n"] .task-list { padding:0 0 var(--s2); }
+
+  /* Task rows: hairline-separated, generous tap target, Notes-sized text. */
+  body[data-theme="n"] .task {
+    gap:var(--s3);
+    padding:var(--s3) var(--s4);
+    margin-bottom:0;
+    border:none;
+    border-radius:0;
+    font-size:var(--t-md);
+    letter-spacing:-.012em;
+    background:transparent;
+    transition:background var(--m-instant) linear;
+  }
+  body[data-theme="n"] .task:active { background:var(--surface-2); }
+  body[data-theme="n"] .task.selected-1,
+  body[data-theme="n"] .task.selected-2 { background:var(--accent-soft); }
+  /* The row carries the category colour only so the dot can inherit it —
+     the label itself stays black, Notes-style. */
+  body[data-theme="n"] .task .task-text { font-weight:var(--w-reg); color:var(--ink); }
+  body[data-theme="n"] .task { background:transparent !important; border-color:transparent !important; }
+  body[data-theme="n"] .task.selected-1 { background:var(--accent-soft) !important; }
+  body[data-theme="n"] .task .task-detail { font-size:var(--t-sm); color:var(--ink-2); opacity:1; font-style:normal; }
+  body[data-theme="n"] .task .drag-handle { color:var(--ink-3); }
+  body[data-theme="n"] .sel-badge { width:20px; height:20px; font-size:var(--t-xs); font-weight:var(--w-med); }
+  body[data-theme="n"] .task.selected-1 .sel-badge { background:var(--accent); }
+
+  /* Category colour becomes a dot, not a heavy bar. */
+  /* The category colour is a ::before pseudo-element (there is no .cat-bar
+     element in the markup). Render it as a small dot rather than a bar. */
+  /* Each category rule already sets a `color` on .task (e.g. .task.gym is
+     #1e7a46). Direction A flattens the tinted background away, so the dot
+     inherits that same colour via currentColor — the category signal survives
+     without the heavy filled block. Custom per-task colours set `style.color`
+     inline, so they flow through here too. */
+  body[data-theme="n"] .task::before {
+    content:''; position:absolute;
+    left:var(--s4); top:50%; margin-top:-4px;
+    width:8px; height:8px; border-radius:var(--r-full);
+    background:currentColor;
+  }
+  /* Uncategorised tasks have no colour of their own — keep them neutral. */
+  body[data-theme="n"] .task:not([class*=" "])::before { background:var(--ink-3); }
+  body[data-theme="n"] .task { padding-left:34px; }
+  /* The inset hairline must clear the dot. */
+  body[data-theme="n"] .task + .task::after {
+    content:''; position:absolute; top:0;
+    left:34px; right:0; height:1px;
+    transform:scaleY(.5); transform-origin:top;
+    background:var(--hairline);
+  }
+
+  /* Section headers (To Do / Rare) match the day headings. */
+  body[data-theme="n"] #todoSection,
+  body[data-theme="n"] #rareTaskBar {
+    background:var(--surface); border:none; border-radius:var(--r-lg);
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  body[data-theme="n"] .todo-head,
+  body[data-theme="n"] .rare-head { padding:var(--s3) var(--s4); }
+  body[data-theme="n"] .todo-title,
+  body[data-theme="n"] .rare-title {
+    font-size:var(--t-lg); font-weight:var(--w-bold);
+    text-transform:none; letter-spacing:-.022em; color:var(--ink);
+  }
+  body[data-theme="n"] .todo-count,
+  body[data-theme="n"] .rare-badge {
+    font-size:var(--t-sm); font-weight:var(--w-reg);
+    color:var(--ink-3); background:transparent; border:none; padding:0;
+  }
+
+  /* ── SNAP ──────────────────────────────────────────────────────────
+     Notes/Calendar feel fast because feedback is INSTANT and only things
+     that physically move get eased. Kill `transition:all` (it animates
+     layout and janks), and collapse 11 ad-hoc durations to 3 tokens. */
+  body[data-theme="n"] .view-btn,
+  body[data-theme="n"] .ctrl-btn,
+  body[data-theme="n"] .tb-btn {
+    transition:background var(--m-instant) linear,
+               color var(--m-instant) linear,
+               border-color var(--m-instant) linear;
+  }
+  body[data-theme="n"] .tb-btn:active,
+  body[data-theme="n"] .ctrl-btn:active { transform:scale(.96); }
+  /* Toolbar slides; that's a real movement, so it gets eased. */
+  body[data-theme="n"] .toolbar { transition:transform var(--m-base) var(--ease); }
+  /* Never animate layout. */
+  body[data-theme="n"] * { transition-property:background,color,border-color,box-shadow,transform,opacity; }
+
 </style>
 
 <link rel="manifest" href="./manifest.webmanifest">
@@ -6888,6 +7080,7 @@ async function copyGoalsWeek(srcPid,srcWi,dpid,dwi,applyMode){
 
 // ── Theme switcher ──────────────────────────────────────────
 const THEMES = [
+  { id:'n',  name:'Quiet',       dot:'#007aff' },
   { id:'a2', name:'Soft Bubble', dot:'#ff7a59' },
   { id:'f',  name:'Minimal',     dot:'#16171b' },
   { id:'c',  name:'Editorial',   dot:'#e0301e' },
