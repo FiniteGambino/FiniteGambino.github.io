@@ -468,3 +468,28 @@ the FLIP reflow already covers it.
 **Compositing polish.** `.flip-animate` was `.6s` (sluggish; now .26s in the wrapper). Added
 `will-change:transform` on the things that actually move so a sliding task doesn't force a full-page
 repaint, momentum scrolling on scroll containers, and killed the tap-highlight flash.
+
+### July 14, 2026 — Drop placement fixes
+
+**Tasks were landing in the wrong slot.** Two separate bugs.
+
+**1. The drop indicator was fighting the hit-test.** `onDragMove` picked its target with
+`elementsFromPoint(cx,cy)`, but the indicator (added earlier today) applies `margin-top:16px` to the
+highlighted row — which pushes that row *and everything below it* down by 16px. So the element under
+the finger changed the instant the indicator appeared, `dropInfo` went null, the indicator cleared,
+the layout sprang back, and it flipped again. Simulated at a row boundary it oscillates
+`2/before → none → 2/before → none…`; whichever state it happened to be in on release is where the
+task landed.
+
+Rewritten to derive the slot from **geometry** instead of hit-testing: find the container, then pick
+the nearest row by comparing the cursor to each row's *unshifted* midpoint (subtracting any indicator
+margin we applied ourselves). Stable across all boundary positions.
+
+**2. To-Do drags landed in the wrong day.** The To-Do list is the virtual day `wIdx = -1`, so its
+keys look like `"-1-0-2"` — and `"-1-0-2".split('-')` yields `["","1","0","2"]`, giving
+`w=NaN→0, d=1, t=0`. Every drag of a To-Do task silently reported **Week 0 / Day 1**. Indices are now
+stored as their own `data-w` / `data-d` / `data-t` attributes and read directly; no key string is
+parsed anywhere. (`_flipId` in the FLIP wrapper had the same flaw and is fixed too.)
+
+The drop *index arithmetic* was verified correct across all 40 same-list permutations — the
+misplacement was entirely hit-test instability, not the math.
