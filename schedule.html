@@ -292,30 +292,29 @@
   .task.in-clipboard { animation:borderMarch 1.4s ease-in-out infinite; }
 
   /* .task.dragging handled in #dragGhost block */
-  /* Drop indicator: a thick, high-contrast pill that physically parts the
-     stack so there's real room to aim into. */
-  .task.drag-above, .task.drag-below { position:relative; transition:margin .13s ease; }
-  .task.drag-above { margin-top:16px !important; }
-  .task.drag-below { margin-bottom:16px !important; }
-  /* Week view columns are narrow and dense — use a tighter indicator there. */
-  .wv-tasks .task.drag-above { margin-top:9px !important; }
-  .wv-tasks .task.drag-below { margin-bottom:9px !important; }
-  .wv-tasks .task.drag-above::before, .wv-tasks .task.drag-below::after { height:3px; }
-  .wv-tasks .task.drag-above::before { top:-6px; }
-  .wv-tasks .task.drag-below::after  { bottom:-6px; }
-  .task.drag-above::before, .task.drag-below::after {
-    content:''; position:absolute; left:0; right:0; height:5px;
-    background:#3d5afe; border-radius:3px; pointer-events:none;
-    box-shadow:0 0 0 2px rgba(61,90,254,.25), 0 0 10px 2px rgba(61,90,254,.5);
-    animation:dropPulse .9s ease-in-out infinite;
+  /* Drop indicator — a FLOATING line. It must not affect layout: the previous
+     version added `margin-top:16px` to the highlighted row, which pushed that
+     row (and everything below) out from under the finger. The hit-test then
+     read a different element, the indicator cleared, the layout sprang back,
+     and it oscillated — so tasks landed in the wrong slot. This line is
+     position:fixed and shifts nothing. */
+  #dropLine {
+    position:fixed; z-index:998; height:0; pointer-events:none;
+    display:none; border-radius:2px;
   }
-  .task.drag-above::before { top:-11px; }
-  .task.drag-below::after  { bottom:-11px; }
-  @keyframes dropPulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
-  body[data-theme="d"] .task.drag-above::before,
-  body[data-theme="d"] .task.drag-below::after {
-    background:#d6ff4a; box-shadow:0 0 0 2px rgba(214,255,74,.25), 0 0 10px 2px rgba(214,255,74,.5);
+  #dropLine::before {
+    content:''; position:absolute; left:0; right:0; top:-2px; height:4px;
+    background:#3d5afe; border-radius:2px;
+    box-shadow:0 0 0 2px rgba(61,90,254,.22), 0 0 8px 1px rgba(61,90,254,.45);
   }
+  #dropLine::after {
+    content:''; position:absolute; left:-3px; top:-5px;
+    width:10px; height:10px; border-radius:50%;
+    background:#3d5afe; box-shadow:0 0 6px rgba(61,90,254,.5);
+  }
+  body[data-theme="d"] #dropLine::before,
+  body[data-theme="d"] #dropLine::after { background:#d6ff4a; }
+  body[data-theme="d"] #dropLine::before { box-shadow:0 0 0 2px rgba(214,255,74,.22), 0 0 8px 1px rgba(214,255,74,.45); }
   .task.selected-1 { border-color:#3d5afe !important; background:#eef1ff !important; box-shadow:0 0 0 2px rgba(61,90,254,.18); }
   .task.selected-2 { border-color:#ff6b35 !important; background:#fff3ef !important; box-shadow:0 0 0 2px rgba(255,107,53,.18); }
 
@@ -662,7 +661,7 @@
   /* The row carries the category colour only so the dot can inherit it —
      the label itself stays black, Notes-style. */
   body[data-theme="n"] .task .task-text { font-weight:var(--w-reg); color:var(--ink); }
-  body[data-theme="n"] .task { background:transparent !important; border-color:transparent !important; }
+  body[data-theme="n"] .task:not(#dragGhost) { background:transparent !important; border-color:transparent !important; }
   body[data-theme="n"] .task.selected-1 { background:var(--accent-soft) !important; }
   body[data-theme="n"] .task .task-detail { font-size:var(--t-sm); color:var(--ink-2); opacity:1; font-style:normal; }
   body[data-theme="n"] .task .drag-handle { color:var(--ink-3); }
@@ -991,7 +990,7 @@
   body[data-theme="f"] .day-card.today .task-text { color:#f2f2f4; }
   body[data-theme="f"] .day-count { font-family:'Space Grotesk'; background:transparent; color:#c8cace; }
   body[data-theme="f"] .task-list { padding:0 2px; }
-  body[data-theme="f"] .task { background:transparent !important; border:none !important; border-top:1px solid #f3f3f5 !important; border-radius:0; padding:11px 0 11px 14px; position:relative; color:#2a2c34; font-family:'Archivo'; font-weight:500; font-size:.9rem; margin-bottom:0; }
+  body[data-theme="f"] .task:not(#dragGhost) { background:transparent !important; border:none !important; border-top:1px solid #f3f3f5 !important; border-radius:0; padding:11px 0 11px 14px; position:relative; color:#2a2c34; font-family:'Archivo'; font-weight:500; font-size:.9rem; margin-bottom:0; }
   body[data-theme="f"] .task::before { content:''; position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:#c0c2c8; }
   body[data-theme="f"] .task.gym::before { background:#1e9a52; }
   body[data-theme="f"] .task.study::before { background:#2a72c8; }
@@ -1029,7 +1028,7 @@
   body[data-theme="c"] .day-card.today .day-date { color:#e0301e; }
   body[data-theme="c"] .day-card.today .day-count { color:#8a8270; }
   body[data-theme="c"] .day-card.today .task-text { color:#f7f4ee; }
-  body[data-theme="c"] .task { background:transparent !important; border:none !important; border-radius:0; padding:7px 0 7px 18px; position:relative; color:#1a160e; font-family:'Archivo'; font-weight:600; font-size:.9rem; margin-bottom:0; }
+  body[data-theme="c"] .task:not(#dragGhost) { background:transparent !important; border:none !important; border-radius:0; padding:7px 0 7px 18px; position:relative; color:#1a160e; font-family:'Archivo'; font-weight:600; font-size:.9rem; margin-bottom:0; }
   body[data-theme="c"] .task::before { content:''; position:absolute; left:0; top:11px; width:9px; height:9px; border-radius:2px; background:#a89a82; }
   body[data-theme="c"] .task.gym::before { background:#1e9a52; }
   body[data-theme="c"] .task.study::before { background:#2a72c8; }
@@ -1069,7 +1068,7 @@
   body[data-theme="d"] .day-card.today .day-name { color:#141318; }
   body[data-theme="d"] .day-card.today .day-date { background:rgba(20,19,24,.12); color:#141318; }
   body[data-theme="d"] .day-card.today .day-count { background:rgba(20,19,24,.12); color:#3a3a10; }
-  body[data-theme="d"] .task { background:transparent !important; border:none !important; border-left:3px solid #6a6878 !important; border-radius:0; padding:6px 0 6px 11px; color:#eceaf2; font-family:'Archivo'; font-weight:600; font-size:.88rem; margin-bottom:6px; }
+  body[data-theme="d"] .task:not(#dragGhost) { background:transparent !important; border:none !important; border-left:3px solid #6a6878 !important; border-radius:0; padding:6px 0 6px 11px; color:#eceaf2; font-family:'Archivo'; font-weight:600; font-size:.88rem; margin-bottom:6px; }
   body[data-theme="d"] .task.gym { border-left-color:#3ddc84 !important; }
   body[data-theme="d"] .task.study { border-left-color:#6aa8ff !important; }
   body[data-theme="d"] .task.piano { border-left-color:#b07ae8 !important; }
@@ -1866,6 +1865,7 @@
 </div>
 
 <div id="dragGhost"></div>
+<div id="dropLine"></div>
 <div class="toast" id="toast"></div>
 
 <!-- Confirm modal (replaces browser confirm()) -->
@@ -3661,8 +3661,11 @@ function startDrag(wIdx,dIdx,tIdx,srcEl,cx,cy){
     _gbg = _card ? getComputedStyle(_card).backgroundColor : getComputedStyle(document.body).backgroundColor;
   }
   // Flatten any alpha against the page background so the ghost is 100% opaque.
-  ghost.style.background  = _opaqueBg(_gbg);
-  ghost.style.opacity     = '1';
+  // NOTE: the ghost carries class="task", so theme rules like
+  // `.task { background:transparent !important }` match it — and an !important
+  // declaration beats a plain inline style. Set ours with priority too.
+  ghost.style.setProperty('background', _opaqueBg(_gbg), 'important');
+  ghost.style.setProperty('opacity', '1', 'important');
   ghost.style.border      = computed.border;
   ghost.style.borderLeft  = computed.borderLeftWidth + ' ' + computed.borderLeftStyle + ' ' + computed.borderLeftColor;
   ghost.style.color       = srcEl.style.color       || computed.color;
@@ -3688,8 +3691,9 @@ function _opaqueBg(c){
 }
 function posGhost(x,y){ ghost.style.left=(x-grabOffX)+'px'; ghost.style.top=(y-grabOffY)+'px'; }
 function clearDropHL(){
-  document.querySelectorAll('.drag-above,.drag-below,.wv-drag-over').forEach(e=>e.classList.remove('drag-above','drag-below','wv-drag-over'));
+  document.querySelectorAll('.wv-drag-over').forEach(e=>e.classList.remove('wv-drag-over'));
   const sec=document.getElementById('todoSection'); if(sec) sec.classList.remove('drop-hot');
+  const dl=document.getElementById('dropLine'); if(dl) dl.style.display='none';
 }
 
 function onDragMove(cx,cy){
@@ -3697,21 +3701,15 @@ function onDragMove(cx,cy){
   posGhost(cx,cy); clearDropHL(); dropInfo=null;
   updateAutoScroll(cy);
 
-  // ── Find the container under the cursor ──────────────────────────────────
-  // NOTE: we must NOT pick the drop slot straight from elementsFromPoint().
-  // The drop indicator adds `margin-top:16px` to the task it highlights, which
-  // physically shifts rows under the finger — so the element at (cx,cy) changes
-  // the moment the indicator appears, the indicator flips to the new element,
-  // the layout shifts back, and it oscillates. That is why drops landed in the
-  // wrong slot.
-  //
-  // Instead: identify the *container*, then choose the slot by comparing the
-  // cursor against each row's UNSHIFTED geometry (we subtract any indicator
-  // margin we ourselves applied). Geometry is stable; hit-testing is not.
+  // Find the container under the cursor. We deliberately do NOT pick the drop
+  // slot from elementsFromPoint(): the old indicator applied margin-top to the
+  // highlighted row, shifting it out from under the finger, which made the
+  // hit-test oscillate. The indicator is now a floating line that changes no
+  // layout, and the slot is computed from stable geometry.
   const els = document.elementsFromPoint(cx,cy);
   let cont = null;
   for(const el of els){
-    if(el.closest('#dragGhost')) continue;
+    if(el.closest('#dragGhost')||el.closest('#dropLine')) continue;
     const c = el.closest('[data-w][data-d]');
     if(c){ cont = c; break; }
   }
@@ -3719,12 +3717,10 @@ function onDragMove(cx,cy){
 
   const w = Number(cont.dataset.w), d = Number(cont.dataset.d);
   if(Number.isNaN(w)||Number.isNaN(d)) return;
-
-  // Validate the target exists (To-Do is the virtual day w = -1).
   const arr = tasksAt(w,d);
   if(!arr) return;
 
-  // Highlight the container.
+  // Highlight the destination container.
   if(isTodoRef(w,d)){
     const sec=document.getElementById('todoSection');
     if(sec) sec.classList.add('drop-hot');
@@ -3735,40 +3731,42 @@ function onDragMove(cx,cy){
     hl.classList.add('wv-drag-over');
   }
 
-  // Rows in this container, excluding the one being dragged.
+  // Rows in this container, in DOM order, excluding the one being dragged.
   const rows = Array.from(cont.querySelectorAll('.task[data-key]'))
     .filter(el => el !== drag.el && !el.closest('#dragGhost'));
 
-  if(!rows.length){
-    dropInfo = {wIdx:w, dIdx:d, tIdx:0, pos:'before'};
-    return;
-  }
-
-  // Pick the row whose (unshifted) midpoint the cursor is nearest, and decide
-  // before/after from which half we're in. Subtracting the indicator margin we
-  // applied ourselves keeps the geometry stable while dragging.
-  let best=null, bestDist=Infinity;
+  // INSERTION INDEX = how many row-midpoints sit above the cursor.
+  // Monotonic in cy, so it cannot oscillate, and dragging past the last row
+  // cleanly means "append at the end".
+  let insert = 0;
   for(const el of rows){
     const r = el.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    const shiftTop = el.classList.contains('drag-above') ? parseFloat(cs.marginTop)||0 : 0;
-    const top    = r.top - shiftTop;
-    const bottom = r.bottom - shiftTop;
-    const mid    = (top + bottom)/2;
-    const dist   = Math.abs(cy - mid);
-    if(dist < bestDist){
-      bestDist = dist;
-      best = { el, top, bottom, mid };
-    }
+    if(cy > (r.top + r.bottom)/2) insert++;
   }
-  if(!best) return;
+  insert = Math.max(0, Math.min(insert, rows.length));
 
-  const t = Number(best.el.dataset.t);
-  if(Number.isNaN(t)) return;
+  // Draw the floating line at that boundary. Nothing in the layout moves.
+  const dl = document.getElementById('dropLine');
+  if(dl){
+    let lineY, left, width;
+    if(rows.length === 0){
+      const cr = cont.getBoundingClientRect();
+      lineY = cr.top + 4; left = cr.left; width = cr.width;
+    } else if(insert === 0){
+      const r = rows[0].getBoundingClientRect();
+      lineY = r.top - 2; left = r.left; width = r.width;
+    } else {
+      const r = rows[insert-1].getBoundingClientRect();
+      lineY = r.bottom + 2; left = r.left; width = r.width;
+    }
+    dl.style.display = 'block';
+    dl.style.top     = lineY + 'px';
+    dl.style.left    = left + 'px';
+    dl.style.width   = width + 'px';
+  }
 
-  const pos = cy < best.mid ? 'before' : 'after';
-  best.el.classList.add(pos==='before' ? 'drag-above' : 'drag-below');
-  dropInfo = {wIdx:w, dIdx:d, tIdx:t, pos};
+  // Carry the insertion index straight through — no before/after arithmetic.
+  dropInfo = { wIdx:w, dIdx:d, insert, srcIsSameList:false };
 }
 
 
@@ -3779,30 +3777,32 @@ function onDragEnd(){
   drag.el.classList.remove('dragging','shaking'); clearDropHL();
   if(dropInfo&&dragStarted){
     const {wIdx:sW,dIdx:sD,tIdx:sT}=drag;
-    const {wIdx:dW,dIdx:dD,tIdx:dT,pos}=dropInfo;
-    if(!(sW===dW&&sD===dD&&sT===dT)){
-      pushUndo();
-      const before={};
-      document.querySelectorAll('.task[data-key]').forEach(el=>{ before[el.dataset.key]=el.getBoundingClientRect().top; });
+    const {wIdx:dW,dIdx:dD,insert}=dropInfo;
+    {
       const srcArr=tasksAt(sW,sD), dstArr=tasksAt(dW,dD);
       if(!srcArr||!dstArr){ drag=null; dropInfo=null; stopAutoScroll(); return; }
-      // A task dragged out of To-Do LEAVES the To-Do list (move, not copy).
+
+      // `insert` counts the rows ALREADY EXCLUDING the dragged one (onDragMove
+      // filters it out), so it is the index in the post-removal array. No
+      // off-by-one correction is needed — the old before/after arithmetic is
+      // gone entirely.
+      let idx = insert;
+      const sameList = (sW===dW && sD===dD);
+      if(sameList && idx === sT){ drag=null; dropInfo=null; stopAutoScroll(); render(); return; } // no-op
+
+      pushUndo();
       const task=srcArr.splice(sT,1)[0];
-      let idx=dT;
-      if(sW===dW&&sD===dD&&sT<dT) idx--;
-      if(pos==='after') idx++;
-      idx=Math.max(0,Math.min(idx,dstArr.length));
+      idx = Math.max(0, Math.min(idx, dstArr.length));
       dstArr.splice(idx,0,task);
+
       const touchedTodo = isTodoRef(sW,sD) || isTodoRef(dW,dD);
       const touchedDay  = !isTodoRef(sW,sD) || !isTodoRef(dW,dD);
       if(touchedTodo) saveTodo();
       if(touchedDay)  save();
-      // The old FLIP here keyed off data-key (the INDEX), which changes on every
-      // reorder — so it animated the wrong rows. render() is now wrapped with a
-      // content-keyed FLIP that handles this correctly for every code path.
+      const idxForFlash = idx, dWf = dW, dDf = dD;
       render();
       requestAnimationFrame(()=>{
-        const droppedEl=document.querySelector(`[data-key="${dW}-${dD}-${idx}"]`);
+        const droppedEl=document.querySelector(`[data-key="${dWf}-${dDf}-${idxForFlash}"]`);
         if(droppedEl){ droppedEl.classList.add('paste-in'); setTimeout(()=>droppedEl.classList.remove('paste-in'),450); }
       });
     }
