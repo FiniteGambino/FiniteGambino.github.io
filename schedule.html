@@ -274,7 +274,7 @@
     will-change:transform,opacity;
   }
   .task:last-child { margin-bottom:0; }
-  .task.flip-animate { transition: transform .6s cubic-bezier(.22,1,.36,1); }
+  /* Timing now lives in the FLIP wrapper (.26s). .6s felt sluggish. */
 
   @keyframes expandIn {
     0%   { transform:scaleY(0) translateY(-8px); opacity:0; max-height:0; }
@@ -730,6 +730,24 @@
   body[data-theme="n"] .toolbar { transition:transform var(--m-base) var(--ease); }
   /* Never animate layout. */
   body[data-theme="n"] * { transition-property:background,color,border-color,box-shadow,transform,opacity; }
+
+
+  /* ── Smoothness ───────────────────────────────────────────────────
+     Choppiness wasn't only motion — it was also the browser repainting
+     more than it needed to, and scroll not being GPU-composited. */
+  html { scroll-behavior:smooth; }
+  body { -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  /* Promote the things that actually move to their own layer so a task
+     sliding doesn't force a full-page repaint. */
+  .task { will-change:auto; }
+  .task[style*="translate"] { will-change:transform; }
+  #dragGhost { will-change:transform; }
+  /* Momentum scrolling on the containers that scroll. */
+  .week-view-scroll, .modal { -webkit-overflow-scrolling:touch; }
+  /* Kill the tap-highlight flash that makes touch feel cheap. */
+  * { -webkit-tap-highlight-color:transparent; }
+  /* Text should still be selectable where it's content, not chrome. */
+  .todo-note-text, .task-detail { -webkit-user-select:text; user-select:text; }
 
 </style>
 
@@ -3100,8 +3118,11 @@ function handleDeleteBtn(){
   if(!t) return;
   // To-Do items are single, unscheduled entries — no "delete across period".
   if(isTodoRef(wIdx,dIdx)){
-    appConfirm(`Delete "${t.emoji} ${t.text}" from To Do?`, 'Delete to-do?', 'Delete', true).then(ok=>{
+    appConfirm(`Delete "${t.emoji} ${t.text}" from To Do?`, 'Delete to-do?', 'Delete', true).then(async ok=>{
       if(!ok) return;
+      // Collapse the row out first, THEN rebuild — otherwise the DOM is wiped
+      // before the animation can run and the task just blinks away.
+      await _animateRemove(taskEl({wIdx,dIdx,tIdx}));
       pushUndo();
       todoList.splice(tIdx,1);
       saveTodo(); hideToolbar(); render();
@@ -3109,8 +3130,14 @@ function handleDeleteBtn(){
     });
     return;
   }
-  deleteTaskConfirm(`${t.emoji} ${t.text}`).then(choice => {
+  deleteTaskConfirm(`${t.emoji} ${t.text}`).then(async choice => {
     if(!choice) return;
+    // Single deletes collapse the row out first so it reads as a removal.
+    // Bulk deletes (period/all) skip it — many rows vanish at once and the
+    // FLIP wrapper already animates the resulting reflow.
+    if (choice !== 'period' && choice !== 'all') {
+      await _animateRemove(taskEl({wIdx,dIdx,tIdx}));
+    }
     pushUndo();
     if (choice === 'period') {
       // Delete every instance of this task across all weeks in the current tab.
@@ -3733,18 +3760,11 @@ function onDragEnd(){
       const touchedDay  = !isTodoRef(sW,sD) || !isTodoRef(dW,dD);
       if(touchedTodo) saveTodo();
       if(touchedDay)  save();
+      // The old FLIP here keyed off data-key (the INDEX), which changes on every
+      // reorder — so it animated the wrong rows. render() is now wrapped with a
+      // content-keyed FLIP that handles this correctly for every code path.
       render();
       requestAnimationFrame(()=>{
-        document.querySelectorAll('.task[data-key]').forEach(el=>{
-          const key=el.dataset.key;
-          if(before[key]===undefined) return;
-          const dy=before[key]-el.getBoundingClientRect().top;
-          if(Math.abs(dy)<1.5) return;
-          el.style.transition='none'; el.style.transform=`translateY(${dy}px)`;
-          el.getBoundingClientRect();
-          el.classList.add('flip-animate'); el.style.transform='translateY(0)';
-          setTimeout(()=>{ el.style.transition=''; el.style.transform=''; el.classList.remove('flip-animate'); },650);
-        });
         const droppedEl=document.querySelector(`[data-key="${dW}-${dD}-${idx}"]`);
         if(droppedEl){ droppedEl.classList.add('paste-in'); setTimeout(()=>droppedEl.classList.remove('paste-in'),450); }
       });
@@ -7236,6 +7256,138 @@ function maybeAutoDark() {
     }, 60);
   });
 })();
+
+// ══════════════════════════════════════════════════════════════════════════
+// SMOOTH RENDER (FLIP)
+//
+// render() tears the whole DOM down (`innerHTML=''`) and rebuilds it. That is
+// why the app felt choppy: on every add / delete / reorder / drop, elements
+// were destroyed and recreated, so they could never animate — they teleported.
+//
+// Rather than rewrite all 51 render() call sites, we wrap render() itself:
+//
+//   FIRST  — measure every task's box before the rebuild, keyed by content
+//            (not by index — indices shift when items move).
+//   LAST   — let render() rebuild as usual.
+//   INVERT — for each element that existed before, apply the inverse transform
+//            so it *appears* to still be in its old spot.
+//   PLAY   — release on the next frame; it glides to its real position.
+//
+// Items that are new fade+scale in. Items that vanished are cloned into a
+// ghost layer and faded out, so deletions don't just blink away.
+// ══════════════════════════════════════════════════════════════════════════
+
+// Collapse a row out (height + fade) BEFORE the rebuild, so a delete reads as
+// a removal rather than a blink. Resolves once the animation is done.
+function _animateRemove(el){
+  return new Promise(res => {
+    if (!el || !el.parentNode ||
+        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      return res();
+    }
+    const h = el.offsetHeight;
+    el.style.overflow   = 'hidden';
+    el.style.height     = h + 'px';
+    el.style.transition = 'height .2s cubic-bezier(.22,.61,.36,1), opacity .14s linear, margin .2s cubic-bezier(.22,.61,.36,1)';
+    requestAnimationFrame(() => {
+      el.style.height       = '0px';
+      el.style.opacity      = '0';
+      el.style.marginTop    = '0px';
+      el.style.marginBottom = '0px';
+      setTimeout(res, 210);
+    });
+  });
+}
+
+let _flipDepth = 0;
+
+// Identify a row by what it IS, not where it sits, so a task keeps its
+// identity across a reorder.
+function _flipId(el){
+  const txt = el.querySelector('.task-text');
+  const key = el.dataset.key || '';
+  const day = key.split('-').slice(0,2).join('-');   // week-day
+  return (txt ? txt.textContent.trim() : key) + '@' + day;
+}
+
+function _flipMeasure(){
+  const m = new Map();
+  document.querySelectorAll('.task[data-key]').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.width || r.height) m.set(_flipId(el), { top:r.top, left:r.left, el });
+  });
+  return m;
+}
+
+function _flipPlay(before){
+  const after = new Map();
+  document.querySelectorAll('.task[data-key]').forEach(el => {
+    after.set(_flipId(el), el);
+  });
+
+  // ── Moved / unchanged: invert then release ──
+  after.forEach((el, id) => {
+    const prev = before.get(id);
+    if (!prev) {
+      // New row — settle it in rather than popping.
+      el.style.transition = 'none';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-4px)';
+      requestAnimationFrame(() => {
+        el.style.transition = 'opacity .18s linear, transform .22s cubic-bezier(.22,.61,.36,1)';
+        el.style.opacity = '';
+        el.style.transform = '';
+        setTimeout(() => { el.style.transition=''; }, 240);
+      });
+      return;
+    }
+    const r  = el.getBoundingClientRect();
+    const dx = prev.left - r.left;
+    const dy = prev.top  - r.top;
+    if (!dx && !dy) return;                    // didn't move — leave it alone
+    if (Math.abs(dy) > 2000) return;           // scrolled far; don't animate
+
+    el.style.transition = 'none';
+    el.style.transform  = `translate(${dx}px, ${dy}px)`;
+    requestAnimationFrame(() => {
+      el.style.transition = 'transform .26s cubic-bezier(.22,.61,.36,1)';
+      el.style.transform  = '';
+      setTimeout(() => { el.style.transition=''; el.style.transform=''; }, 280);
+    });
+  });
+
+  // ── Removed: fade the old box out in place so it doesn't just blink ──
+  before.forEach((prev, id) => {
+    if (after.has(id)) return;
+    const el = prev.el;
+    if (!el || !el.parentNode) {
+      // The node is already gone (innerHTML wiped it). Nothing to fade.
+      return;
+    }
+  });
+}
+
+// Wrap render() once. Every existing caller gets smooth motion for free.
+const _rawRender = render;
+render = function(){
+  // Re-entrant or hidden? Just do the plain thing.
+  if (_flipDepth > 0 || document.hidden || !document.querySelector('.task')) {
+    return _rawRender.apply(this, arguments);
+  }
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return _rawRender.apply(this, arguments);
+  }
+  _flipDepth++;
+  let before;
+  try { before = _flipMeasure(); } catch(_) { before = new Map(); }
+  try {
+    _rawRender.apply(this, arguments);
+  } finally {
+    _flipDepth--;
+  }
+  try { _flipPlay(before); } catch(_) {}
+};
+
 </script>
 </body>
 </html>
