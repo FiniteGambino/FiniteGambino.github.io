@@ -438,3 +438,33 @@ count pills; dark/warm/paper themes get proper variants.
 
 **Drop indicator** (added earlier today) was sized for list view; the 16px gap + 5px pill distorted
 the dense week-view columns. Scaled to 9px gap / 3px pill under `.wv-tasks`.
+
+### July 14, 2026 — Smooth motion (the "choppy" fix)
+
+**Root cause: `render()` tore down the entire DOM on every action.** It is called from 51 places
+and starts with `container.innerHTML=''`. Add a task, delete one, reorder, drop — the whole schedule
+was destroyed and rebuilt. Nothing could animate, because the element that would animate no longer
+existed a frame later. Everything teleported.
+
+**Fix — a content-keyed FLIP wrapper around `render()` itself**, so all 51 call sites get smooth
+motion without being rewritten:
+- FIRST: measure every task's box before the rebuild, keyed by *content + day* (not by index —
+  indices shift when items move, which is why the previous attempt animated the wrong rows).
+- LAST: let `render()` rebuild as normal.
+- INVERT: apply the inverse transform so each row appears to still be in its old spot.
+- PLAY: release on the next frame; rows glide (.26s) to their real positions.
+
+New rows fade+settle in rather than popping. Guards: re-entrant calls (`renderGoalsSection` calls
+`render()` from a click handler), hidden tabs, startup-before-DOM, and `prefers-reduced-motion` all
+fall through to the plain render, so the worst case is "no animation", never a broken app.
+
+**Removed the old FLIP** in `onDragEnd` — it keyed off `data-key` (the index), so after a reorder it
+animated the wrong elements, and it fought the new wrapper.
+
+**Animated removals.** Deleting a task now collapses the row (height + fade, .2s) *before* the
+rebuild, so it reads as a removal instead of a blink. Bulk deletes skip it — many rows go at once and
+the FLIP reflow already covers it.
+
+**Compositing polish.** `.flip-animate` was `.6s` (sluggish; now .26s in the wrapper). Added
+`will-change:transform` on the things that actually move so a sliding task doesn't force a full-page
+repaint, momentum scrolling on scroll containers, and killed the tap-highlight flash.
