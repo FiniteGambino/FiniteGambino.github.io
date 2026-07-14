@@ -235,8 +235,24 @@
   .task.in-clipboard { animation:borderMarch 1.4s ease-in-out infinite; }
 
   /* .task.dragging handled in #dragGhost block */
-  .task.drag-above { border-top:2px solid #3d5afe !important; }
-  .task.drag-below { border-bottom:2px solid #3d5afe !important; }
+  /* Drop indicator: a thick, high-contrast pill that physically parts the
+     stack so there's real room to aim into. */
+  .task.drag-above, .task.drag-below { position:relative; transition:margin .13s ease; }
+  .task.drag-above { margin-top:16px !important; }
+  .task.drag-below { margin-bottom:16px !important; }
+  .task.drag-above::before, .task.drag-below::after {
+    content:''; position:absolute; left:0; right:0; height:5px;
+    background:#3d5afe; border-radius:3px; pointer-events:none;
+    box-shadow:0 0 0 2px rgba(61,90,254,.25), 0 0 10px 2px rgba(61,90,254,.5);
+    animation:dropPulse .9s ease-in-out infinite;
+  }
+  .task.drag-above::before { top:-11px; }
+  .task.drag-below::after  { bottom:-11px; }
+  @keyframes dropPulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
+  body[data-theme="d"] .task.drag-above::before,
+  body[data-theme="d"] .task.drag-below::after {
+    background:#d6ff4a; box-shadow:0 0 0 2px rgba(214,255,74,.25), 0 0 10px 2px rgba(214,255,74,.5);
+  }
   .task.selected-1 { border-color:#3d5afe !important; background:#eef1ff !important; box-shadow:0 0 0 2px rgba(61,90,254,.18); }
   .task.selected-2 { border-color:#ff6b35 !important; background:#fff3ef !important; box-shadow:0 0 0 2px rgba(255,107,53,.18); }
 
@@ -275,7 +291,9 @@
   /* Drag ghost */
   #dragGhost {
     position:fixed; pointer-events:none; z-index:999;
-    border-radius:7px; display:none; opacity:.97;
+    border-radius:7px; display:none; opacity:1;
+    /* isolate + solid backing so the page never shows through the card */
+    isolation:isolate; backdrop-filter:none;
     box-shadow:0 20px 48px rgba(0,0,0,.28), 0 6px 16px rgba(0,0,0,.14);
     transform:scale(1.04) rotate(1.2deg);
     transition:none; cursor:grabbing;
@@ -600,6 +618,52 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style id="themeCSS">
   /* ============ THEME SWITCHER BUTTON ============ */
+  /* ── To Do section ── */
+  #todoSection { margin-top:40px; margin-bottom:28px; background:#f4f7ff; border:1px solid #cdd9ef; border-radius:10px; overflow:hidden; }
+  .todo-head { display:flex; align-items:center; gap:8px; padding:10px 14px; cursor:pointer; user-select:none; }
+  .todo-ic { font-size:.85rem; }
+  .todo-title { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#3149c4; flex:1; }
+  .todo-count { font-size:.62rem; color:#3149c4; background:#dfe7ff; border-radius:10px; padding:1px 7px; }
+  .todo-add { background:#dfe7ff; border:1px solid #b9c8f5; color:#3149c4; border-radius:7px; width:24px; height:24px; font-size:.85rem; font-weight:700; line-height:1; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
+  .todo-add:active { transform:scale(.9); }
+  .todo-arrow { font-size:.6rem; color:#a8b6d8; transition:transform .2s; }
+  #todoSection.collapsed .todo-arrow { transform:rotate(0deg); }
+  #todoSection:not(.collapsed) .todo-arrow { transform:rotate(180deg); }
+  #todoSection.collapsed .todo-body { display:none; }
+  .todo-body { padding:0 12px 12px; }
+  #todoTasks { display:flex; flex-direction:column; gap:6px; min-height:34px; border-radius:8px; transition:background .15s,border-color .15s; }
+  #todoTasks:empty { border:1.5px dashed #cdd9ef; }
+  .todo-empty { font-size:.68rem; color:#8fa0c8; padding:8px 4px 0; line-height:1.5; }
+  #todoSection.drop-hot { border-color:#3d5afe; box-shadow:0 0 0 2px rgba(61,90,254,.18); }
+  #todoSection.drop-hot #todoTasks { background:#e9eeff; }
+  body[data-theme="d"] #todoSection { background:#1b1a20; border-color:#2a2833; }
+  body[data-theme="d"] .todo-title, body[data-theme="d"] .todo-count { color:#d6ff4a; }
+  body[data-theme="d"] .todo-count, body[data-theme="d"] .todo-add { background:#26242e; border-color:#34313e; color:#d6ff4a; }
+  body[data-theme="d"] .todo-empty { color:#6a6878; }
+  body[data-theme="d"] #todoSection.drop-hot { border-color:#d6ff4a; box-shadow:0 0 0 2px rgba(214,255,74,.2); }
+  body[data-theme="d"] #todoSection.drop-hot #todoTasks { background:#26242e; }
+  body[data-theme="a2"] #todoSection { background:#fffaf3; border-color:#f0e6d8; border-radius:18px; }
+  body[data-theme="c"] #todoSection, body[data-theme="f"] #todoSection { border-radius:6px; }
+
+  /* Back-to-top — always visible, sits just left of the theme switch */
+  #backToTop {
+    position:fixed; top:9px; right:60px; z-index:300;
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid #dde1e9; color:#6b7280;
+    box-shadow:0 3px 16px rgba(0,0,0,.16);
+    cursor:pointer; font-size:.7rem; font-weight:700; line-height:1;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .1s, background .15s, color .15s;
+  }
+  #backToTop:active { transform:scale(.9); }
+  #backToTop:hover { background:#f5f6f8; color:#3d5afe; }
+  body[data-theme="d"] #backToTop { background:#1b1a20; border-color:#2a2833; color:#a8a6b4; box-shadow:0 3px 16px rgba(0,0,0,.5); }
+  body[data-theme="d"] #backToTop:hover { color:#d6ff4a; }
+  body[data-theme="a2"] #backToTop { background:#fffaf3; border-color:#f0e6d8; color:#a08868; }
+  body[data-theme="c"] #backToTop { background:#f7f4ee; border-color:#ddd4c2; color:#8a7c62; border-radius:6px; }
+  body[data-theme="f"] #backToTop { border-radius:6px; }
+
   #themeSwitch { position:fixed; top:9px; right:11px; z-index:300; display:flex; align-items:center; gap:0; background:#fff; border:1px solid #dde1e9; border-radius:999px; padding:8px; box-shadow:0 3px 16px rgba(0,0,0,.16); cursor:pointer; font:700 .72rem -apple-system,BlinkMacSystemFont,'Nunito',sans-serif; color:#2c2f3a; -webkit-tap-highlight-color:transparent; transition:transform .1s, gap .26s ease, padding .26s ease; }
   #themeSwitch:active { transform:scale(.94); }
   #themeSwitch .ts-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; background:#ff7a59; box-shadow:inset 0 0 0 2px rgba(0,0,0,.06); }
@@ -1112,6 +1176,7 @@
   }
 })();
 </script>
+<button id="backToTop" onclick="scrollToTop()" aria-label="Back to top" title="Back to top">▲</button>
 <button id="themeSwitch" onclick="cycleTheme()" aria-label="Switch design theme"><span class="ts-dot"></span><span class="ts-label">Soft Bubble</span><span class="ts-cycle">▸</span></button>
 
 <!-- ── App shell ── -->
@@ -1154,6 +1219,20 @@
   </div>
 
   <div id="todayPreview" style="display:none;margin-top:34px;margin-bottom:38px;"></div>
+
+  <div id="todoSection">
+    <div class="todo-head" onclick="toggleTodoBar()">
+      <span class="todo-ic">📋</span>
+      <span class="todo-title">To Do</span>
+      <span class="todo-count" id="todoCount">0</span>
+      <button class="todo-add" onclick="event.stopPropagation();todoAddTask()" title="Add a to-do">＋</button>
+      <span class="todo-arrow" id="todoArrow">▲</span>
+    </div>
+    <div class="todo-body" id="todoBody">
+      <div class="task-list" id="todoTasks" data-w="-1" data-d="0"></div>
+      <div class="todo-empty" id="todoEmpty">Nothing here yet — add tasks you haven't scheduled, then drag them into a day.</div>
+    </div>
+  </div>
 
   <div id="rareTaskBar" style="display:none;margin-top:44px;margin-bottom:32px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
 
@@ -1231,7 +1310,7 @@
     <div id="mSavePaletteWrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #edf0f4;">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;">
         <input type="checkbox" id="mSavePalette" style="width:auto;accent-color:#3d5afe;" />
-        <span style="font-size:.75rem;color:#6b7280;">Also save to palette for future use</span>
+        <span style="font-size:.75rem;color:#6b7280;">Also save to palette permanently (reusable in every period)</span>
       </label>
     </div>
     <div id="mEditPaletteWrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #edf0f4;">
@@ -1657,10 +1736,28 @@ let viewMode = 'list'; // 'list' | 'week'
 
 // ── Undo history ───────────────────────────────────────────────────────────
 const undoStack = [];
+let _keepDayToolbar = null;
+
+// ── To-Do list ─────────────────────────────────────────────────────────────
+// A global staging list for tasks with no home yet. Modelled as a "virtual
+// day" at wIdx = TODO_W so every existing task routine (appendTasks, drag,
+// toolbar, edit modal, undo) works on it unchanged.
+const TODO_W = -1, TODO_D = 0;
+let todoList = [];
+function isTodoRef(wIdx, dIdx){ return wIdx === TODO_W; }
+// Resolve a {wIdx,dIdx} pair to its backing tasks array — day or To-Do.
+function tasksAt(wIdx, dIdx){
+  if (isTodoRef(wIdx, dIdx)) return todoList;
+  return (schedule[wIdx] && schedule[wIdx].days[dIdx]) ? schedule[wIdx].days[dIdx].tasks : null;
+}
+function getTodoCollapsed(){ try { return localStorage.getItem('gs_todo_collapsed') === '1'; } catch(_) { return false; } }
+function setTodoCollapsed(v){ try { localStorage.setItem('gs_todo_collapsed', v ? '1' : '0'); } catch(_) {} }
 const UNDO_LIMIT = 30;
 
 function pushUndo() {
-  undoStack.push(JSON.stringify(schedule));
+  // Snapshot BOTH the schedule and the To-Do list so undo covers every
+  // To-Do operation (add, edit, delete, reorder, drag in/out of a day).
+  undoStack.push(JSON.stringify({ schedule, todoList }));
   if (undoStack.length > UNDO_LIMIT) undoStack.shift();
   updateUndoBtn();
 }
@@ -1673,9 +1770,35 @@ function updateUndoBtn() {
   btn.style.pointerEvents = canUndo ? 'auto' : 'none';
 }
 
+// Fast, smooth scroll to the top (no teleport).
+function scrollToTop(){
+  const y = window.scrollY || document.documentElement.scrollTop;
+  if (y <= 0) return;
+  if ('scrollBehavior' in document.documentElement.style) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  // Fallback for browsers without smooth-scroll: ~320ms eased animation.
+  const t0 = performance.now(), dur = 320;
+  (function step(now){
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    window.scrollTo(0, Math.round(y * (1 - e)));
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
 function undo() {
   if (!undoStack.length) return;
-  schedule = JSON.parse(undoStack.pop());
+  const snap = JSON.parse(undoStack.pop());
+  // Tolerate legacy snapshots (bare schedule array) from older sessions.
+  if (Array.isArray(snap)) {
+    schedule = snap;
+  } else {
+    schedule = snap.schedule;
+    todoList = snap.todoList || [];
+    saveTodo();
+  }
   updateUndoBtn();
   active = null; swapFirst = null; swapMode = false;
   hideToolbar(); hideSwapConfirm();
@@ -1771,6 +1894,9 @@ window.addEventListener('load', () => {
 async function loadPeriods() {
   const { ref, get, set } = fsFns;
 
+  // Global To-Do list — same list in every tab/period.
+  await loadTodo();
+
   const snap = await get(ref(db, `users/${window._currentUser.uid}/schedule/periods`));
   let raw = snap.val();
 
@@ -1837,6 +1963,7 @@ function bootFromCache() {
     const pid = pickStartupPeriod(raw) || periods[0].id;
     activePeriodId = pid;
     schedule = JSON.parse(JSON.stringify(raw[pid].weeks || DEFAULT_WEEKS));
+    try { todoList = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
     undoStack.length = 0;
     renderTabs();
     render();
@@ -2284,6 +2411,7 @@ document.getElementById('pmLabel')?.addEventListener('keydown', e => {
 // ── Local fallback ─────────────────────────────────────────────────────────
 function localSave(){ delete _todayPeriodCache[activePeriodId]; try{ localStorage.setItem('gs_v9_'+activePeriodId, JSON.stringify(schedule)); }catch(e){} }
 function fallbackLoad(){
+  try { todoList = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
   periods = [{ id:'local', label:'Jun 14 – Jul 4', order:0 }];
   activePeriodId = 'local';
   const saved = localStorage.getItem('gs_v9_local');
@@ -2294,6 +2422,32 @@ function fallbackLoad(){
   updateUndoBtn();
 }
 function save() { savePeriod(); }
+
+// ── To-Do persistence ──────────────────────────────────────────────────────
+// Stored OUTSIDE the periods tree so the same list shows in every tab.
+function localSaveTodo(){ try { localStorage.setItem('gs_todo', JSON.stringify(todoList)); } catch(_) {} }
+async function saveTodo(){
+  localSaveTodo();
+  if (!db || !window._currentUser) return;
+  try {
+    const { ref, set } = fsFns;
+    await set(ref(db, `users/${window._currentUser.uid}/schedule/todo`), todoList);
+  } catch(_) { /* localStorage already has it */ }
+}
+async function loadTodo(){
+  // Local first so the list paints instantly, then reconcile with the cloud.
+  try { todoList = JSON.parse(localStorage.getItem('gs_todo') || '[]'); } catch(_) { todoList = []; }
+  if (!db || !window._currentUser) return;
+  try {
+    const { ref, get } = fsFns;
+    const snap = await get(ref(db, `users/${window._currentUser.uid}/schedule/todo`));
+    if (snap.exists()) {
+      const val = snap.val();
+      todoList = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+      localSaveTodo();
+    }
+  } catch(_) {}
+}
 
 // ── Schedule actions ───────────────────────────────────────────────────────
 function resetSchedule(){
@@ -2340,9 +2494,10 @@ function expandAll(){
   saveGoalsCollapsed();
   // Rare tasks bar
   setRareCollapsed(false);
+  setTodoCollapsed(false);
   render();
-  // Day task-lists (post-render DOM)
-  requestAnimationFrame(()=>{ document.querySelectorAll('.task-list').forEach(e=>e.classList.remove('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.add('open')); });
+  // Day task-lists (post-render DOM) — scoped so the To-Do list isn't touched
+  requestAnimationFrame(()=>{ document.querySelectorAll('.day-card .task-list').forEach(e=>e.classList.remove('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.add('open')); });
 }
 function collapseAll(){
   const wc = weeksCollapsed[activePeriodId] || (weeksCollapsed[activePeriodId] = {});
@@ -2353,18 +2508,22 @@ function collapseAll(){
   schedule.forEach((_,wIdx)=>{ gc[wIdx]=true; });
   saveGoalsCollapsed();
   setRareCollapsed(true);
+  setTodoCollapsed(true);
   render();
-  requestAnimationFrame(()=>{ document.querySelectorAll('.task-list').forEach(e=>e.classList.add('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.remove('open')); });
+  requestAnimationFrame(()=>{ document.querySelectorAll('.day-card .task-list').forEach(e=>e.classList.add('collapsed')); document.querySelectorAll('.day-toggle').forEach(e=>e.classList.remove('open')); });
 }
 function toggleDay(h){ h.nextElementSibling.classList.toggle('collapsed'); h.querySelector('.day-toggle').classList.toggle('open'); }
 function taskEl(ref){ return ref ? document.querySelector(`[data-key="${ref.wIdx}-${ref.dIdx}-${ref.tIdx}"]`) : null; }
+// Persist whichever store a ref lives in (day → period, To-Do → global list).
+function saveFor(wIdx,dIdx){ if(isTodoRef(wIdx,dIdx)) saveTodo(); else save(); }
 
 // ── Toolbar ────────────────────────────────────────────────────────────────
 function showToolbar(wIdx,dIdx,tIdx){
   if(activeDay) hideDayToolbar();
   hideGoalsToolbar();
   document.getElementById('toolbar').classList.remove('day-mode');
-  const t=schedule[wIdx].days[dIdx].tasks[tIdx];
+  const t=tasksAt(wIdx,dIdx)[tIdx];
+  if(!t) return;
   document.getElementById('tbName').textContent=`${t.emoji} ${t.text}`;
   document.getElementById('toolbar').classList.add('visible');
   document.getElementById('tbSwapBtn').classList.remove('active');
@@ -2543,8 +2702,8 @@ function onTaskTap(wIdx,dIdx,tIdx){
     if(same){ cancelSwap(); return; }
     document.querySelectorAll('.task.selected-2').forEach(e=>e.classList.remove('selected-2'));
     const el=taskEl({wIdx,dIdx,tIdx}); if(el) el.classList.add('selected-2');
-    const t1=schedule[swapFirst.wIdx].days[swapFirst.dIdx].tasks[swapFirst.tIdx];
-    const t2=schedule[wIdx].days[dIdx].tasks[tIdx];
+    const t1=tasksAt(swapFirst.wIdx,swapFirst.dIdx)[swapFirst.tIdx];
+    const t2=tasksAt(wIdx,dIdx)[tIdx];
     document.getElementById('swapLabel').textContent=`${t1.emoji} ${t1.text}  ⇄  ${t2.emoji} ${t2.text}`;
     document.getElementById('swapConfirm').classList.add('visible');
     swapFirst._second={wIdx,dIdx,tIdx};
@@ -2569,7 +2728,8 @@ function handleEditBtn(){ if(!active) return; openModal('edit',active.wIdx,activ
 
 function handleDetailBtn(){
   if(!active) return;
-  const t=schedule[active.wIdx].days[active.dIdx].tasks[active.tIdx];
+  const t=tasksAt(active.wIdx,active.dIdx)[active.tIdx];
+  if(!t) return;
   const cur=t.detail||'';
   document.getElementById('detailTitle').textContent=cur?'Edit detail':'Add detail';
   document.getElementById('detailClearBtn').style.display=cur?'':'none';
@@ -2582,17 +2742,19 @@ function closeDetailModal(){ document.getElementById('detailOverlay').classList.
 function saveDetail(){
   if(!active){ closeDetailModal(); return; }
   const val=document.getElementById('detailInput').value.trim();
-  const t=schedule[active.wIdx].days[active.dIdx].tasks[active.tIdx];
+  const t=tasksAt(active.wIdx,active.dIdx)[active.tIdx];
+  if(!t){ closeDetailModal(); return; }
   pushUndo();
   if(val) t.detail=val; else delete t.detail;
-  closeDetailModal(); save(); render();
+  closeDetailModal(); saveFor(active.wIdx,active.dIdx); render();
   showToast(val?'Detail saved':'Detail cleared');
 }
 function clearDetail(){
   if(!active){ closeDetailModal(); return; }
-  const t=schedule[active.wIdx].days[active.dIdx].tasks[active.tIdx];
+  const t=tasksAt(active.wIdx,active.dIdx)[active.tIdx];
+  if(!t){ closeDetailModal(); return; }
   pushUndo(); delete t.detail;
-  closeDetailModal(); save(); render();
+  closeDetailModal(); saveFor(active.wIdx,active.dIdx); render();
   showToast('Detail cleared');
 }
 document.getElementById('detailOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('detailOverlay')) closeDetailModal(); });
@@ -2604,7 +2766,7 @@ function handleCopyBtn(){
     const old=document.querySelector(`[data-key="${clipboardKey}"]`);
     if(old) old.classList.remove('in-clipboard');
   }
-  clipboard={...schedule[active.wIdx].days[active.dIdx].tasks[active.tIdx]};
+  clipboard={...tasksAt(active.wIdx,active.dIdx)[active.tIdx]};
   clipboardKey=`${active.wIdx}-${active.dIdx}-${active.tIdx}`;
   const srcEl=taskEl(active);
   if(srcEl) srcEl.classList.add('in-clipboard');
@@ -2620,7 +2782,7 @@ function handleCutBtn(){
     if(old) old.classList.remove('in-clipboard');
   }
   const {wIdx,dIdx,tIdx}=active;
-  clipboard={...schedule[wIdx].days[dIdx].tasks[tIdx]};
+  clipboard={...tasksAt(wIdx,dIdx)[tIdx]};
   clipboardKey=null; // cut removes the source, no marching border needed
   pushUndo();
   schedule[wIdx].days[dIdx].tasks.splice(tIdx,1);
@@ -2649,9 +2811,9 @@ async function handlePasteBtn(){
   const {wIdx,dIdx,tIdx}=active;
   const copy=await clipWithDetailChoice();
   pushUndo();
-  schedule[wIdx].days[dIdx].tasks.splice(tIdx+1,0,copy);
+  tasksAt(wIdx,dIdx).splice(tIdx+1,0,copy);
   pendingPasteKey=`${wIdx}-${dIdx}-${tIdx+1}`;
-  hideToolbar(); save(); render();
+  hideToolbar(); saveFor(wIdx,dIdx); render();
   showToast(`Pasted: ${copy.emoji} ${copy.text}`);
 }
 
@@ -2660,7 +2822,19 @@ function handleAddBtn(){ if(!active) return; openModal('add',active.wIdx,active.
 function handleDeleteBtn(){
   if(!active) return;
   const {wIdx,dIdx,tIdx}=active;
-  const t=schedule[wIdx].days[dIdx].tasks[tIdx];
+  const t=tasksAt(wIdx,dIdx)[tIdx];
+  if(!t) return;
+  // To-Do items are single, unscheduled entries — no "delete across period".
+  if(isTodoRef(wIdx,dIdx)){
+    appConfirm(`Delete "${t.emoji} ${t.text}" from To Do?`, 'Delete to-do?', 'Delete', true).then(ok=>{
+      if(!ok) return;
+      pushUndo();
+      todoList.splice(tIdx,1);
+      saveTodo(); hideToolbar(); render();
+      showToast('Deleted');
+    });
+    return;
+  }
   deleteTaskConfirm(`${t.emoji} ${t.text}`).then(choice => {
     if(!choice) return;
     pushUndo();
@@ -2692,13 +2866,13 @@ function handleDeleteBtn(){
 function handleMoveTopBtn(){
   if(!active) return;
   const {wIdx,dIdx,tIdx}=active;
-  const tasks=schedule[wIdx].days[dIdx].tasks||[];
+  const tasks=tasksAt(wIdx,dIdx)||[];
   if(tIdx<=0){ showToast('Already at top'); return; }
   pushUndo();
   const [t]=tasks.splice(tIdx,1);
   tasks.unshift(t);
   active={wIdx,dIdx,tIdx:0};
-  save(); render();
+  saveFor(wIdx,dIdx); render();
   showToolbar(wIdx,dIdx,0);
   showToast('Moved to top');
 }
@@ -2755,12 +2929,15 @@ function executeSwap(){
 
 function doSwap(a,b){
   pushUndo();
-  const tA=schedule[a.wIdx].days[a.dIdx].tasks[a.tIdx];
-  const tB=schedule[b.wIdx].days[b.dIdx].tasks[b.tIdx];
-  schedule[a.wIdx].days[a.dIdx].tasks[a.tIdx]=tB;
-  schedule[b.wIdx].days[b.dIdx].tasks[b.tIdx]=tA;
+  const arrA=tasksAt(a.wIdx,a.dIdx), arrB=tasksAt(b.wIdx,b.dIdx);
+  if(!arrA||!arrB) return;
+  const tA=arrA[a.tIdx], tB=arrB[b.tIdx];
+  arrA[a.tIdx]=tB;
+  arrB[b.tIdx]=tA;
   swapFirst=null; swapMode=false; active=null;
-  hideSwapConfirm(); hideToolbar(); save(); render();
+  hideSwapConfirm(); hideToolbar();
+  saveFor(a.wIdx,a.dIdx); if(isTodoRef(a.wIdx,a.dIdx)!==isTodoRef(b.wIdx,b.dIdx)) saveFor(b.wIdx,b.dIdx);
+  render();
 }
 
 function cancelSwap(){
@@ -2772,13 +2949,17 @@ function cancelSwap(){
 // ── Modal ──────────────────────────────────────────────────────────────────
 function openModal(mode,wIdx,dIdx,tIdx){
   modalMode=mode; modalTarget={wIdx,dIdx,tIdx};
-  document.getElementById('mSavePalette').checked = false;
+  // Adding via the whole-day toolbar must leave the day toolbar up afterwards
+  // (it should only switch to the task toolbar when you actually tap a task).
+  _keepDayToolbar = (mode==='add-to-day') ? (activeDay ? {...activeDay} : null) : null;
+  // New tasks are saved to the palette by default — no "session only" tasks.
+  document.getElementById('mSavePalette').checked = true;
   document.getElementById('mEditPalette').checked = false;
   document.getElementById('mEditPaletteWrap').style.display='none';
   refreshCatSelect('mCat');
   document.getElementById('mNewCatWrap').style.display='none';
   if(mode==='edit'){
-    const t=schedule[wIdx].days[dIdx].tasks[tIdx];
+    const t=tasksAt(wIdx,dIdx)[tIdx];
     document.getElementById('modalTitle').textContent='Edit Task';
     document.getElementById('mText').value=t.text;
     document.getElementById('mEmoji').value=t.emoji;
@@ -2838,16 +3019,18 @@ function confirmModal(){
   const color = getSelectedColor();
   pushUndo();
   if(modalMode==='edit'){
-    const oldTask = schedule[wIdx].days[dIdx].tasks[tIdx];
+    const arr = tasksAt(wIdx,dIdx);
+    const oldTask = arr[tIdx];
     const oldColor = oldTask.color||'';
     const newTask = {text,emoji,cat};
     if(color) newTask.color = color;
-    schedule[wIdx].days[dIdx].tasks[tIdx] = newTask;
+    if(oldTask.detail) newTask.detail = oldTask.detail;
+    arr[tIdx] = newTask;
     // If colour changed, offer to apply to all tasks with same name
     if(color !== oldColor && text) {
       const matchCount = schedule.reduce((n,w)=>n+w.days.reduce((m,d)=>m+(d.tasks||[]).filter(t=>t!==newTask&&t.text===text).length,0),0);
       if(matchCount > 0) {
-        closeModal(); hideToolbar(); save(); render();
+        closeModal(); hideToolbar(); save(); saveTodo(); render();
         appConfirm(
           `Apply this colour to all ${matchCount} other task${matchCount>1?'s':''} named "${text}"?`,
           'Apply colour everywhere?', 'Apply to all', false
@@ -2879,8 +3062,10 @@ function confirmModal(){
     // New tasks render with the default neutral card style — no colour is
     // assigned on creation. Use Edit on a task to give it a colour deliberately.
     // New tasks always go to the bottom of the day; user can drag to reorder.
-    const dayTasks = schedule[wIdx].days[dIdx].tasks;
+    const dayTasks = tasksAt(wIdx,dIdx);
     dayTasks.push(newTask);
+    // Only flash-highlight the new task; never auto-select it into the task
+    // toolbar when the add came from the whole-day toolbar.
     pendingPasteKey=`${wIdx}-${dIdx}-${dayTasks.length-1}`;
     const savePalette = document.getElementById('mSavePalette').checked;
     if (savePalette && !PALETTE_ITEMS.find(i => i.text === text)) {
@@ -2891,7 +3076,17 @@ function confirmModal(){
       showToast('Added');
     }
   }
-  closeModal(); hideToolbar(); save(); render();
+  closeModal();
+  if(isTodoRef(wIdx,dIdx)) saveTodo();
+  const _restoreDay = _keepDayToolbar; _keepDayToolbar = null;
+  if(_restoreDay){
+    // Keep the whole-day toolbar exactly as it was — no mode flip.
+    hideToolbar();
+    save(); render();
+    showDayToolbar(_restoreDay.wIdx, _restoreDay.dIdx);
+  } else {
+    hideToolbar(); save(); render();
+  }
 }
 function emojiFor(cat){ const c=getCategory(cat); return c?c.emoji:'📌'; }
 
@@ -3164,7 +3359,8 @@ function startDrag(wIdx,dIdx,tIdx,srcEl,cx,cy){
     const _card = srcEl.closest('.day-card, .wv-col');
     _gbg = _card ? getComputedStyle(_card).backgroundColor : getComputedStyle(document.body).backgroundColor;
   }
-  ghost.style.background  = _gbg;
+  // Flatten any alpha against the page background so the ghost is 100% opaque.
+  ghost.style.background  = _opaqueBg(_gbg);
   ghost.style.opacity     = '1';
   ghost.style.border      = computed.border;
   ghost.style.borderLeft  = computed.borderLeftWidth + ' ' + computed.borderLeftStyle + ' ' + computed.borderLeftColor;
@@ -3177,8 +3373,23 @@ function startDrag(wIdx,dIdx,tIdx,srcEl,cx,cy){
   requestAnimationFrame(() => srcEl.classList.add('dragging'));
   startAutoScroll();
 }
+// Flatten a possibly-translucent colour against the page background so the
+// drag ghost never looks see-through.
+function _rgbParts(c){ const m=String(c).match(/rgba?\(([^)]+)\)/); if(!m) return null; const p=m[1].split(',').map(x=>parseFloat(x.trim())); return {r:p[0],g:p[1],b:p[2],a:p[3]===undefined?1:p[3]}; }
+function _opaqueBg(c){
+  const f=_rgbParts(c);
+  if(!f) return c || '#ffffff';
+  if(f.a>=1) return `rgb(${f.r},${f.g},${f.b})`;
+  let base=_rgbParts(getComputedStyle(document.body).backgroundColor) || {r:255,g:255,b:255,a:1};
+  if(base.a<1) base={r:255,g:255,b:255,a:1};
+  const mix=(fg,bg)=>Math.round(fg*f.a + bg*(1-f.a));
+  return `rgb(${mix(f.r,base.r)},${mix(f.g,base.g)},${mix(f.b,base.b)})`;
+}
 function posGhost(x,y){ ghost.style.left=(x-grabOffX)+'px'; ghost.style.top=(y-grabOffY)+'px'; }
-function clearDropHL(){ document.querySelectorAll('.drag-above,.drag-below,.wv-drag-over').forEach(e=>e.classList.remove('drag-above','drag-below','wv-drag-over')); }
+function clearDropHL(){
+  document.querySelectorAll('.drag-above,.drag-below,.wv-drag-over').forEach(e=>e.classList.remove('drag-above','drag-below','wv-drag-over'));
+  const sec=document.getElementById('todoSection'); if(sec) sec.classList.remove('drop-hot');
+}
 
 function onDragMove(cx,cy){
   if(!drag||!dragStarted) return;
@@ -3197,12 +3408,21 @@ function onDragMove(cx,cy){
       dropInfo={wIdx:w,dIdx:d,tIdx:t,pos}; return;
     }
   }
-  // Fallback: dropping into a day container (empty day, or below all its tasks)
+  // Fallback: dropping into a container (empty day, To-Do list, or below all tasks)
   for(const el of els){
     const cont = el.closest('[data-w][data-d]');
     if(cont){
       const w=Number(cont.dataset.w), d=Number(cont.dataset.d);
       if(isNaN(w)||isNaN(d)) continue;
+      // The To-Do list is a virtual day (w = -1) — it's a valid drop target,
+      // so tasks can be dragged out of a day and back into To-Do.
+      if(isTodoRef(w,d)){
+        const sec=document.getElementById('todoSection');
+        if(sec) sec.classList.add('drop-hot');
+        const n=todoList.length;
+        dropInfo = n>0 ? {wIdx:w,dIdx:d,tIdx:n-1,pos:'after'} : {wIdx:w,dIdx:d,tIdx:0,pos:'before'};
+        return;
+      }
       if(!schedule[w]||!schedule[w].days[d]) continue;
       const taskCount=(schedule[w].days[d].tasks||[]).length;
       const hl = cont.classList.contains('wv-col') ? cont : (cont.closest('.day-card')||cont.closest('.wv-col')||cont);
@@ -3226,13 +3446,20 @@ function onDragEnd(){
       pushUndo();
       const before={};
       document.querySelectorAll('.task[data-key]').forEach(el=>{ before[el.dataset.key]=el.getBoundingClientRect().top; });
-      const task=schedule[sW].days[sD].tasks.splice(sT,1)[0];
+      const srcArr=tasksAt(sW,sD), dstArr=tasksAt(dW,dD);
+      if(!srcArr||!dstArr){ drag=null; dropInfo=null; stopAutoScroll(); return; }
+      // A task dragged out of To-Do LEAVES the To-Do list (move, not copy).
+      const task=srcArr.splice(sT,1)[0];
       let idx=dT;
       if(sW===dW&&sD===dD&&sT<dT) idx--;
       if(pos==='after') idx++;
-      idx=Math.max(0,Math.min(idx,schedule[dW].days[dD].tasks.length));
-      schedule[dW].days[dD].tasks.splice(idx,0,task);
-      save(); render();
+      idx=Math.max(0,Math.min(idx,dstArr.length));
+      dstArr.splice(idx,0,task);
+      const touchedTodo = isTodoRef(sW,sD) || isTodoRef(dW,dD);
+      const touchedDay  = !isTodoRef(sW,sD) || !isTodoRef(dW,dD);
+      if(touchedTodo) saveTodo();
+      if(touchedDay)  save();
+      render();
       requestAnimationFrame(()=>{
         document.querySelectorAll('.task[data-key]').forEach(el=>{
           const key=el.dataset.key;
@@ -3268,7 +3495,7 @@ function syncPaletteOverlay(){ const panel=document.getElementById('palettePanel
 setInterval(syncPaletteOverlay, 500);
 
 document.addEventListener('click',e=>{
-  if(e.target.closest('.task')||e.target.closest('.toolbar')||e.target.closest('.swap-confirm')||e.target.closest('.modal')||e.target.closest('.ctrl-btn')||e.target.closest('.tab-bar-wrap')||e.target.closest('#rareTaskBar')) return;
+  if(e.target.closest('.task')||e.target.closest('.toolbar')||e.target.closest('.swap-confirm')||e.target.closest('.modal')||e.target.closest('.ctrl-btn')||e.target.closest('.tab-bar-wrap')||e.target.closest('#rareTaskBar')||e.target.closest('#todoSection')||e.target.closest('#backToTop')) return;
   if(e.target.closest('.palette-panel')) return; // keep task selection alive while palette / add-across-weeks / import panels are open
   if(e.target.closest('.modal-overlay')) return;  // keep selection alive across confirm / detail / other overlays (incl. backdrop taps)
   if(e.target.closest('.day-header')||e.target.closest('.day-card')||e.target.closest('.wv-col')) return;
@@ -3833,7 +4060,10 @@ let paletteTarget = null; // snapshot {kind:'task'|'day', wIdx,dIdx,[tIdx]} take
 function openAtwFromToolbar() {
   if (!active) return;
   const { wIdx, dIdx, tIdx } = active;
-  openAtwWithTask({ ...schedule[wIdx].days[dIdx].tasks[tIdx] }, wIdx);
+  const t = tasksAt(wIdx, dIdx)[tIdx];
+  if (!t) return;
+  // A To-Do task has no week of its own — start the picker on week 0.
+  openAtwWithTask({ ...t }, isTodoRef(wIdx, dIdx) ? 0 : wIdx);
 }
 
 let atwMode = 'single';          // 'single' | 'multi'
@@ -4945,6 +5175,7 @@ function deleteGoalModal() {
 function handleGoNext() {
   if (!active) return;
   const { wIdx, dIdx, tIdx } = active;
+  if (isTodoRef(wIdx,dIdx)) { showToast('Not scheduled yet — drag it into a day first'); return; }
   const text = schedule[wIdx].days[dIdx].tasks[tIdx]?.text;
   if (!text) return;
   // Find next occurrence after current position
@@ -5595,8 +5826,31 @@ function isToday(dateStr) {
 // ── Render ─────────────────────────────────────────────────────────────────
 function render() {
   renderTodayPreview();
+  renderTodoList();
   renderRareTaskBar();
   viewMode === 'week' ? renderWeek() : renderList();
+}
+
+// ── To Do list ─────────────────────────────────────────────────────────────
+function renderTodoList(){
+  const sec = document.getElementById('todoSection');
+  const wrap = document.getElementById('todoTasks');
+  if (!sec || !wrap) return;
+  sec.classList.toggle('collapsed', getTodoCollapsed());
+  document.getElementById('todoCount').textContent = todoList.length;
+  document.getElementById('todoEmpty').style.display = todoList.length ? 'none' : 'block';
+  wrap.innerHTML = '';
+  // Reuse the exact same task builder as days — drag, tap, toolbar, edit,
+  // colours and details all work identically for free.
+  appendTasks(wrap, todoList, TODO_W, TODO_D);
+}
+function toggleTodoBar(){
+  setTodoCollapsed(!getTodoCollapsed());
+  renderTodoList();
+}
+function todoAddTask(){
+  if (getTodoCollapsed()) { setTodoCollapsed(false); renderTodoList(); }
+  openModal('add', TODO_W, TODO_D, todoList.length - 1);
 }
 
 // Read-only preview of today's tasks, pinned at the top for a quick glance.
