@@ -401,3 +401,21 @@ Always-visible round button left of the theme switch. Smooth ~320ms scroll (no t
   is no longer collapsed as a side effect; both now also toggle the To-Do section.
 - Outside-click deselect ignores `#todoSection` and `#backToTop`.
 - Editing a task no longer drops its `detail` field.
+
+### July 14, 2026 (later) — To Do: notes vs tasks
+
+The To-Do header now has **two** add buttons:
+- **📝＋ (amber)** — adds a *note*: a free-text scribble box, edited inline (`contenteditable`),
+  saved on blur, Esc to abandon the edit. Notes live in `todoNotes` (`[{id, text}]`), persisted to
+  `users/{uid}/schedule/todoNotes` + `gs_todo_notes`.
+- **✓＋ (blue)** — adds a *task*, as before (draggable into a day).
+
+Notes are deliberately NOT tasks: there is no code path to drag one into a day, they are absent
+from the `schedule` tree, and so they never reach the rare-task bar. They stay in the To-Do
+section permanently. The header count shows notes + tasks combined.
+
+`pushUndo()` now snapshots `{schedule, todoList, todoNotes}`, so note add/edit/delete are all
+undoable alongside everything else.
+
+Fix: the notes container id was `todoNotes`, which collided with the `todoNotes` global via the
+DOM id→window mapping. Renamed to `todoNotesWrap`.
