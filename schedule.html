@@ -189,7 +189,16 @@
   .week-view-scroll::-webkit-scrollbar-track { background:transparent; }
   .week-view-scroll::-webkit-scrollbar-thumb { background:#dde1e9; border-radius:2px; }
 
-  .week-grid { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(130px,1fr); gap:8px; align-items:start; }
+  /* The grid lives inside a horizontal scroller. Without an explicit width it
+     inherits the scroller's width, and `1fr` then crushes all 7 columns below
+     the 130px floor (≈45px each on a phone). `max-content` lets the grid size
+     to its columns and the wrapper scroll instead. */
+  .week-grid { display:grid; grid-auto-flow:column; grid-auto-columns:150px; width:max-content; min-width:100%; gap:8px; align-items:start; }
+  /* On wide screens all 7 fit — let them share the space evenly instead of
+     leaving a gap on the right. */
+  @media (min-width:900px){
+    .week-grid { grid-auto-columns:1fr; width:auto; }
+  }
 
   .wv-col { background:#fff; border:1px solid #dde1e9; border-radius:10px; overflow:hidden; display:flex; flex-direction:column; min-width:0; }
   .wv-col.today { border-color:#3d5afe; box-shadow:0 0 0 2px rgba(61,90,254,.12); }
@@ -204,12 +213,13 @@
   .wv-tasks { padding:7px; flex:1; min-height:30px; }
   .wv-tasks .task { font-size:.68rem; padding:5px 6px; margin-bottom:3px; cursor:pointer; }
   .wv-tasks .task .drag-handle { display:none; }
-  .wv-tasks .task .sel-badge { width:13px; height:13px; font-size:.52rem; }
+  .wv-tasks .task .sel-badge { width:15px; height:15px; font-size:.54rem; margin-left:1px; margin-right:1px; }
+  .wv-tasks .task { padding-right:8px; }
 
   /* ── Task base ── */
   .task {
     display:flex; align-items:center; gap:7px;
-    padding:8px 9px; border-radius:7px; margin-bottom:4px;
+    padding:8px 11px 8px 9px; border-radius:7px; margin-bottom:4px;
     border:1.5px solid transparent; font-size:.78rem;
     user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; cursor:pointer; position:relative;
     -webkit-tap-highlight-color:transparent;
@@ -240,6 +250,12 @@
   .task.drag-above, .task.drag-below { position:relative; transition:margin .13s ease; }
   .task.drag-above { margin-top:16px !important; }
   .task.drag-below { margin-bottom:16px !important; }
+  /* Week view columns are narrow and dense — use a tighter indicator there. */
+  .wv-tasks .task.drag-above { margin-top:9px !important; }
+  .wv-tasks .task.drag-below { margin-bottom:9px !important; }
+  .wv-tasks .task.drag-above::before, .wv-tasks .task.drag-below::after { height:3px; }
+  .wv-tasks .task.drag-above::before { top:-6px; }
+  .wv-tasks .task.drag-below::after  { bottom:-6px; }
   .task.drag-above::before, .task.drag-below::after {
     content:''; position:absolute; left:0; right:0; height:5px;
     background:#3d5afe; border-radius:3px; pointer-events:none;
@@ -273,7 +289,7 @@
   .task-emoji { font-size:.9rem; flex-shrink:0; }
   .task-text { flex:1; line-height:1.3; user-select:none; -webkit-user-select:none; }
   .task-detail { flex-shrink:1; min-width:0; max-width:45%; margin-left:6px; font-style:italic; font-size:.68rem; opacity:.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right; user-select:none; -webkit-user-select:none; }
-  .sel-badge { width:16px; height:16px; border-radius:50%; font-size:.6rem; font-weight:700; display:none; align-items:center; justify-content:center; flex-shrink:0; }
+  .sel-badge { width:18px; height:18px; border-radius:50%; font-size:.62rem; font-weight:700; display:none; align-items:center; justify-content:center; flex-shrink:0; margin-left:2px; margin-right:2px; }
   .task.selected-1 .sel-badge { display:flex; background:#3d5afe; color:#fff; }
   .task.selected-2 .sel-badge { display:flex; background:#ff6b35; color:#fff; }
 
@@ -618,6 +634,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style id="themeCSS">
   /* ============ THEME SWITCHER BUTTON ============ */
+  /* ── Rare task bar ── */
+  #rareTaskBar { margin-top:44px; margin-bottom:32px; background:#fff; border:1px solid #dde1e9; border-radius:10px; overflow:hidden; }
+  .rare-head { display:flex; align-items:center; gap:8px; padding:10px 14px; cursor:pointer; user-select:none; }
+  .rare-title { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#8a6a20; flex:1; }
+  .rare-badge { font-size:.62rem; color:#8a6a20; background:#fdf7e3; border:1px solid #ecdcae; border-radius:10px; padding:1px 7px; }
+  .rare-arrow { font-size:.6rem; color:#c8cdd8; transition:transform .2s; }
+  .rare-body { display:flex; flex-wrap:wrap; gap:6px; }
+  .rare-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:8px; font-size:.75rem; font-weight:500; background:#fff; border:1px solid #dde1e9; color:#3a3f52; cursor:pointer; }
+  .rare-chip:active { transform:scale(.97); }
+  .rare-count { font-size:.65rem; color:#8a6a20; background:#fdf7e3; border:1px solid #ecdcae; border-radius:8px; padding:1px 6px; }
+  .rare-dates { font-size:.62rem; color:#9098a8; }
+  body[data-theme="d"] #rareTaskBar { background:#1b1a20; border-color:#2a2833; }
+  body[data-theme="d"] .rare-title, body[data-theme="d"] .rare-badge, body[data-theme="d"] .rare-count { color:#e0c060; }
+  body[data-theme="d"] .rare-badge, body[data-theme="d"] .rare-count { background:#2a2620; border-color:#4a4230; }
+  body[data-theme="d"] .rare-chip { background:#26242e; border-color:#34313e; color:#eceaf2; }
+  body[data-theme="d"] .rare-dates { color:#6a6878; }
+  body[data-theme="a2"] #rareTaskBar { background:#fffdfa; border-color:#f0e6d8; border-radius:18px; }
+  body[data-theme="c"] #rareTaskBar { background:#fffefb; border-color:#ddd4c2; border-radius:6px; }
+  body[data-theme="f"] #rareTaskBar { border-radius:6px; }
+
   /* ── To Do section ── */
   #todoSection { margin-top:40px; margin-bottom:28px; background:#f4f7ff; border:1px solid #cdd9ef; border-radius:10px; overflow:hidden; }
   .todo-head { display:flex; align-items:center; gap:8px; padding:10px 14px; cursor:pointer; user-select:none; }
@@ -1256,7 +1292,7 @@
     </div>
   </div>
 
-  <div id="rareTaskBar" style="display:none;margin-top:44px;margin-bottom:32px;background:#fffbec;border:1px solid #f0d880;border-radius:10px;overflow:hidden;"></div>
+  <div id="rareTaskBar" style="display:none;"></div>
 
   <div id="schedule"><div class="loading-screen"><div class="spinner"></div>Loading…</div></div>
 </div><!-- /.page-wrap -->
@@ -4506,19 +4542,19 @@ function renderRareTaskBar() {
   bar.style.display = 'block';
   bar._rareList = rare;
   bar.innerHTML = `
-    <div onclick="toggleRareBar()" style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;">
+    <div class="rare-head" onclick="toggleRareBar()">
       <span style="font-size:.85rem;">⚠️</span>
-      <span style="font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a07820;flex:1;">Rare tasks this period</span>
-      <span style="font-size:.62rem;color:#c09830;background:#fef3c0;border-radius:10px;padding:1px 7px;">${rare.length}</span>
-      <span id="rareToggleArrow" style="font-size:.6rem;color:#c8cdd8;transition:transform .2s;transform:${collapsed?'rotate(0deg)':'rotate(180deg)'};">▲</span>
+      <span class="rare-title">Rare tasks this period</span>
+      <span class="rare-badge">${rare.length}</span>
+      <span class="rare-arrow" id="rareToggleArrow" style="transform:${collapsed?'rotate(0deg)':'rotate(180deg)'};">▲</span>
     </div>
-    <div id="rareBody" style="padding:0 14px ${collapsed?'0':'10px'};display:${collapsed?'none':'flex'};flex-wrap:wrap;gap:6px;">
+    <div class="rare-body" id="rareBody" style="padding:0 14px ${collapsed?'0':'10px'};display:${collapsed?'none':'flex'};">
       ${rare.map(([text, count], i) => {
         const m = taskMeta[text] || { emoji: '📌' };
         const dates = taskDates[text] || [];
         const dateStr = dates.join(', ');
-        return `<span data-rare-idx="${i}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:500;background:#fff;border:1px solid #f0d880;color:#6b5010;cursor:pointer;">
-          <span>${m.emoji}</span><span>${text}</span><span style="font-size:.65rem;color:#a07820;background:#fef3c0;border-radius:8px;padding:1px 6px;">×${count}</span>${dateStr ? `<span style="font-size:.62rem;color:#9098a8;">${dateStr}</span>` : ''}
+        return `<span class="rare-chip" data-rare-idx="${i}">
+          <span>${m.emoji}</span><span>${text}</span><span class="rare-count">×${count}</span>${dateStr ? `<span class="rare-dates">${dateStr}</span>` : ''}
         </span>`;
       }).join('')}
     </div>`;
