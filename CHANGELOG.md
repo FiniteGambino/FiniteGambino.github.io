@@ -349,3 +349,55 @@ Final solution: **Firebase custom token via Vercel backend**
 | Deploys | GitHub Contents API via Python urllib |
 
 - 2026-07-13: Verification write (Claude) - confirms token has repo write access. Safe to revert.
+
+---
+
+## July 14, 2026 — To-Do List, Drag/Drop Polish, Toolbar Fixes
+
+### To Do section (new)
+Global staging list for tasks with no home yet. Sits above the rare-tasks bar, collapsible.
+- Modelled as a **virtual day** (`wIdx = -1`, `TODO_W`) so it reuses the entire existing task
+  pipeline: `appendTasks`, drag engine, task toolbar, edit modal, colours, details, copy/cut/paste,
+  swap, move-to-top all work unchanged.
+- `tasksAt(wIdx, dIdx)` resolves a ref to its backing array — day tasks or `todoList`.
+- **Global across tabs**: stored outside the periods tree at `users/{uid}/schedule/todo`
+  (+ `gs_todo` in localStorage). Same list in every period.
+- **Move, not copy**: dragging a to-do into a day removes it from To Do. Dragging a day task
+  onto the To Do list moves it back.
+- **Rare-task gating**: the rare bar derives from `schedule` only, so a to-do only starts
+  counting toward rare tasks once it has actually been placed into a day.
+- Delete on a to-do skips the "delete across period" branch (single unscheduled entry).
+- "Go to next" is disabled for to-dos (no calendar position).
+- "Add to Weeks" from a to-do opens the picker on week 0.
+
+### Undo now covers the To-Do list
+`pushUndo()` snapshots `{schedule, todoList}` together instead of just `schedule`; `undo()`
+restores both and re-persists the To-Do list. Legacy bare-array snapshots still load.
+
+### Day toolbar no longer flips to task mode
+Adding a task via the whole-day toolbar previously ended in `hideToolbar()`, and the re-render
+auto-selected the new task — switching the bar to task mode. `openModal` now records the
+originating day (`_keepDayToolbar`) and `confirmModal` restores the day toolbar. The bar only
+changes when a task is actually tapped.
+
+### New tasks persist to the palette by default
+The "save to palette" checkbox now defaults to **checked** (was unchecked), so toolbar-created
+tasks are saved permanently rather than being session-only. Label updated to say so.
+
+### Drop indicator is actually visible
+Was a 2px border on the neighbouring task. Now a 5px glowing, pulsing pill, and the stack parts
+by 16px at the insertion point so there is real room to aim into.
+
+### Drag ghost is fully opaque
+`#dragGhost` was `opacity:.97` and could inherit a translucent background. Added `_opaqueBg()`,
+which flattens any alpha against the page background before applying it to the ghost.
+
+### Back-to-top button
+Always-visible round button left of the theme switch. Smooth ~320ms scroll (no teleport), with a
+`requestAnimationFrame` easing fallback. Themed for all five designs.
+
+### Fixes
+- `expandAll`/`collapseAll` selectors scoped to `.day-card .task-list` so the To-Do list container
+  is no longer collapsed as a side effect; both now also toggle the To-Do section.
+- Outside-click deselect ignores `#todoSection` and `#backToTop`.
+- Editing a task no longer drops its `detail` field.
