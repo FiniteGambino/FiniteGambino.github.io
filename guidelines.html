@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EMR Call Flows</title>
+<style>
+  :root{
+    --maroon:#6d1622; --maroon-l:#8c1d2c; --ink:#22303f; --body:#3a4756; --mute:#8a93a0;
+    --line:#e6e9ee; --bg:#f6f7f9; --card:#fff;
+    --crit-bg:#fdeeee; --crit-bd:#e59a9a; --crit-tx:#a52121;
+    --warn-bg:#fbe9d6; --warn-bd:#e0a56a; --warn-tx:#8a5a1d;
+    --good-bg:#edf6ef; --good-bd:#aad4b5; --good-tx:#2f7d4a;
+    --neut-bg:#eaf1fb; --neut-bd:#aecaee; --neut-tx:#1d4c9e;
+    --mut-bg:#f2f1ed;  --mut-bd:#c7c0b4;  --mut-tx:#5b5647;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--body);background:var(--bg)}
+  a{color:inherit}
+
+  /* layout */
+  .wrap{display:flex;min-height:100vh}
+  aside{width:290px;flex:0 0 290px;background:#fff;border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow-y:auto}
+  main{flex:1;min-width:0;padding:26px 30px 70px;max-width:900px}
+  .topbar{display:none}
+  @media(max-width:820px){
+    .wrap{display:block}
+    .topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:30;background:#fff;
+      border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 9px) 12px 9px}
+    .topbar button{border:1px solid #d5dae1;background:#fff;border-radius:9px;padding:8px 11px;font:inherit;
+      font-weight:700;font-size:14px;color:var(--maroon);cursor:pointer;line-height:1}
+    .topbar .now{font-weight:700;color:var(--ink);font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .topbar .now b{color:var(--maroon)}
+    aside{position:fixed;inset:0 auto 0 0;width:86%;max-width:330px;height:100dvh;z-index:50;
+      transform:translateX(-102%);transition:transform .22s ease;box-shadow:0 0 40px rgba(0,0,0,.18);
+      padding-top:env(safe-area-inset-top)}
+    body.navopen aside{transform:none}
+    body.navopen::after{content:"";position:fixed;inset:0;background:rgba(15,20,28,.45);z-index:40}
+    main{padding:16px 14px calc(env(safe-area-inset-bottom) + 46px);max-width:none}
+    .head h2{font-size:23px}
+    .node{max-width:none}
+    .rail{max-width:none}
+    .timing td.a,.timing td.g{width:auto}
+    .timing table,.timing tbody,.timing tr,.timing td{display:block;width:100%}
+    .timing thead{display:none}
+    .timing tr{border-bottom:1px solid #d7e8dd;padding:7px 0}
+    .timing td{padding:2px 0;border:0}
+    .timing td.a{font-size:14px}
+    .timing td.g::before{content:"GATE — ";font-size:10px;letter-spacing:.8px}
+    .pos .alt{flex-direction:column;gap:2px}
+    .pos .alt .w{flex:none}
+    .hx .ltr .k{flex:0 0 22px;height:22px}
+  }
+  @media(min-width:821px){ body.navopen{overflow:auto} }
+
+  /* sidebar */
+  .brand{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+  .brand .k{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#a8687a}
+  .brand h1{margin:3px 0 0;font-size:18px;color:var(--maroon)}
+  .search{padding:12px 14px;border-bottom:1px solid var(--line)}
+  .search input{width:100%;padding:9px 11px;border:1px solid #d5dae1;border-radius:8px;font-size:14px;outline:none}
+  .search input:focus{border-color:var(--maroon-l);box-shadow:0 0 0 3px rgba(140,29,44,.09)}
+  nav{padding:8px 0 24px}
+  .sec{padding:12px 18px 5px;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:#9aa3af;font-weight:700}
+  .item{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 18px;cursor:pointer;border-left:3px solid transparent;font:inherit}
+  .item:hover{background:#f6f7f9}
+  .item.on{background:#fdf3f4;border-left-color:var(--maroon)}
+  .item .id{font-weight:700;color:var(--maroon);font-size:12px;letter-spacing:.4px}
+  .item .t{color:var(--ink);font-weight:600;font-size:13.5px}
+  .item .h{color:var(--mute);font-size:11.5px;margin-top:1px;line-height:1.35}
+
+  /* header */
+  .head{border-left:5px solid var(--maroon);padding-left:13px;margin-bottom:14px}
+  .head .k{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#a8687a}
+  .head h2{margin:2px 0 3px;font-size:27px;color:var(--maroon);line-height:1.15}
+  .head .sub{color:#55606e;font-size:15px}
+  .head .meta{color:var(--mute);font-size:11.5px;margin-top:5px}
+
+  .box{border-radius:9px;padding:11px 14px;margin-bottom:14px;font-size:13.5px}
+  .caveat{background:#fdf8ee;border:1px solid #ecd9ac;color:#6b5320}
+  .scopenote{background:#f9f5fb;border:1px solid #d9c6e2;color:#5b3f68}
+  .scopenote b{color:#6d2d80}
+
+  h3.part{display:flex;align-items:center;gap:9px;font-size:16px;color:#39434f;margin:26px 0 10px}
+  h3.part .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--maroon);color:#fff;font-size:12px}
+  h3.part .r{flex:1;height:1px;background:var(--line)}
+
+  /* kit */
+  .kit{background:#eef4fb;border:1px solid #b9c9dc;border-radius:9px;padding:12px 14px}
+  .kit h4{margin:0 0 4px;font-size:14px;color:#12315e}
+  .kit .lead{font-size:12px;color:#4a5b70}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .chip{border:1px solid #9fb8d4;background:#fff;border-radius:6px;padding:3px 9px;font-size:12.5px;color:#1d4c9e;font-weight:600}
+  .chip.first-trip{background:var(--crit-bg);border-color:var(--crit-bd);color:var(--crit-tx)}
+  .chip.situational{background:#f7f7f4;border-color:#d8d3c8;color:#6f6a5e;font-weight:400}
+  .kit .rule{font-size:12.5px;color:#3f5570}
+
+  /* flow diagram */
+  .flow{display:flex;flex-direction:column;align-items:center;gap:0}
+  .node{width:100%;max-width:560px;border-radius:11px;padding:10px 14px;text-align:center;border:1.4px solid}
+  .node .t{font-weight:700;font-size:14.5px}
+  .node .l{font-size:12.5px;margin-top:3px;opacity:.92;line-height:1.4}
+  .node.critical{background:var(--crit-bg);border-color:var(--crit-bd);color:var(--crit-tx)}
+  .node.warn{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-tx)}
+  .node.good{background:var(--good-bg);border-color:var(--good-bd);color:var(--good-tx)}
+  .node.neutral{background:var(--neut-bg);border-color:var(--neut-bd);color:var(--neut-tx)}
+  .node.muted{background:var(--mut-bg);border-color:var(--mut-bd);color:var(--mut-tx)}
+  .arr{width:2px;height:17px;background:#c9cfd8;position:relative}
+  .arr::after{content:"";position:absolute;bottom:-1px;left:-4px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #c9cfd8}
+  .branches{display:flex;gap:12px;width:100%;max-width:560px}
+  .branches .node{flex:1}
+  @media(max-width:620px){.branches{flex-direction:column}}
+  .handoff{font-size:12px;color:var(--mute);margin-top:6px;text-align:center;max-width:560px}
+  .phasetag{display:inline-block;background:#dde6f1;color:#2c4468;border-radius:5px;font-size:11.5px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 9px;margin-bottom:6px;font-weight:800}
+
+  /* phase rail — vertical */
+  .rail{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 16px 15px;margin-bottom:16px;max-width:340px}
+  .rail .lbl{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:#9aa3af;font-weight:700;margin-bottom:9px}
+  .rail ol{list-style:none;margin:0;padding:0;counter-reset:ph}
+  .rail li{position:relative;padding:0 0 0 28px}
+  .rail li:not(:last-child){padding-bottom:7px}
+  .rail li::before{counter-increment:ph;content:counter(ph);position:absolute;left:0;top:6px;width:17px;height:17px;border-radius:50%;background:#dde6f1;color:#2c4468;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .rail li:not(:last-child)::after{content:"";position:absolute;left:8px;top:23px;bottom:-1px;width:1.5px;background:#d5dde7}
+  .rail li.critical::before{background:var(--crit-bd);color:#fff}
+  .rail li.warn::before{background:var(--warn-bd);color:#fff}
+  .rail .rs{display:block;width:100%;text-align:left;border:1.4px solid #c3d0e0;background:#f2f6fb;color:#2c4468;border-radius:7px;padding:5px 11px;font-size:12.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;cursor:pointer;font-family:inherit}
+  .rail .rs:hover{background:#e5eefa;border-color:#8fb0d6}
+  .rail li.critical .rs{background:var(--crit-bg);border-color:var(--crit-bd);color:var(--crit-tx)}
+  .rail li.warn .rs{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-tx)}
+  @media(max-width:620px){.rail{max-width:none}}
+
+  /* provenance */
+  .srcbadge{display:inline-block;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;vertical-align:2px;margin-left:8px;border:1px solid}
+  .srcbadge.handbook{background:#edf6ef;border-color:#aad4b5;color:#2f7d4a}
+  .srcbadge.handbook-derived{background:#eaf1fb;border-color:#aecaee;color:#1d4c9e}
+  .srcbadge.general-practice{background:#fdf8ee;border-color:#ecd9ac;color:#8a6410}
+  .srcbadge.unverified{background:#fdeeee;border-color:#e59a9a;color:#a52121}
+  .provbar{background:#fff;border:1px solid var(--line);border-left:4px solid #c9a227;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#5b5647}
+  .provbar b{color:#8a6410}
+  .provbar .legend{margin-top:7px;display:flex;flex-wrap:wrap;gap:6px}
+
+  /* positioning */
+  .pos{background:#f7f3fb;border:1px solid #d2c2e2;border-radius:9px;padding:12px 15px;margin-bottom:14px}
+  .pos h4{margin:0 0 7px;font-size:14px;color:#6d2d80;display:flex;align-items:center;gap:7px}
+  .pos .prim{background:#fff;border:1.6px solid #b9a0cf;border-radius:8px;padding:9px 12px;font-size:14.5px;font-weight:700;color:#4b2a5e}
+  .pos .why{font-size:12.8px;color:#5b3f68;margin:7px 0 0;line-height:1.45}
+  .pos .sub{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:#8e6ba3;font-weight:700;margin:11px 0 5px}
+  .pos .alt{display:flex;gap:9px;padding:5px 0;border-bottom:1px solid #eae1f2;font-size:13px}
+  .pos .alt:last-child{border-bottom:0}
+  .pos .alt .w{flex:0 0 34%;font-weight:700;color:#6d2d80}
+  .pos .avoid{background:#fdeeee;border:1px solid #eab6b6;border-radius:7px;padding:8px 12px;margin-top:10px}
+  .pos .avoid .sub{color:#a52121;margin:0 0 4px}
+  .pos .avoid ul{margin:0;padding-left:17px}
+  .pos .avoid li{font-size:12.8px;color:#8d3636;margin:3px 0}
+  .pos .tr{background:#fff;border-left:3px solid #b9a0cf;border-radius:0 7px 7px 0;padding:8px 12px;margin-top:10px;font-size:13px;color:#4b2a5e}
+
+  /* walkthrough */
+  ol.walk{list-style:none;margin:0;padding:0;counter-reset:w}
+  ol.walk li{position:relative;padding:9px 0 10px 36px;border-bottom:1px solid #eef1f5;font-size:13.8px}
+  ol.walk li::before{counter-increment:w;content:counter(w);position:absolute;left:0;top:9px;width:23px;height:23px;border-radius:50%;background:#12315e;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  ol.walk li.critical{background:var(--crit-bg);border-left:3px solid #d05656;border-radius:0 7px 7px 0;padding:9px 12px 10px 36px;margin:3px 0;border-bottom:1px solid #f3d9d9}
+  ol.walk li.critical::before{background:#cf3535;left:8px}
+  ol.walk .lab{font-weight:700;color:#12315e}
+  .script{margin-top:6px;padding:7px 11px;background:#f5f8fc;border-left:3px solid #93b2d6;border-radius:0 6px 6px 0;font-style:italic;color:#2c3f56;font-size:13px}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl{border-radius:9px;padding:11px 14px;border:1px solid}
+  .timing{background:#f2f9f4;border-color:#a9cdb6}
+  .timing h4{margin:0 0 6px;font-size:14px;color:var(--good-tx)}
+  .timing th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#3f8d5c;border-bottom:1.2px solid #cfe6d7;padding:0 10px 5px 0}
+  .timing td{padding:6px 10px 6px 0;border-bottom:1px solid #e2f0e7;vertical-align:top}
+  .timing td.a{font-weight:700;color:var(--good-tx);width:130px}
+  .timing td.g{color:var(--crit-tx);font-weight:700;width:190px}
+  .hx{background:#fdfaf1;border-color:#ecd9ac}
+  .hx .mnem{display:flex;align-items:baseline;gap:9px;margin-bottom:8px}
+  .hx .mnem .word{font-size:21px;font-weight:800;color:#8a6410;letter-spacing:3px}
+  .hx .mnem .aka{font-size:11.5px;color:#a08a4e}
+  .hx .note{font-size:12.3px;color:#6b5320;background:#fffdf6;border:1px solid #f0e6ce;border-radius:7px;padding:7px 10px;margin-bottom:9px}
+  .hx .ltr{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #f0e6ce}
+  .hx .ltr:last-of-type{border-bottom:0}
+  .hx .ltr .k{flex:0 0 24px;height:24px;border-radius:6px;background:#8a6410;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .hx .ltr .lab{font-weight:700;color:#7a5a12;display:block;margin-bottom:1px}
+  .hx .ltr .det{font-size:12.6px;color:#6b5320}
+  .hx .bt{background:#fdeeee;border:1px solid #eab6b6;border-radius:7px;padding:8px 11px;margin:10px 0 0;font-size:12.8px;color:#8d3636}
+  .hx .bt b{color:#a52121}
+  .hx h4{margin:0 0 6px;font-size:14px;color:#8a6410}
+  .hx td{padding:5px 10px 5px 0;border-bottom:1px solid #f0e6ce;vertical-align:top}
+  .hx td.k{font-weight:700;color:#8a6410;width:82px}
+  .hx .when{margin-top:8px;padding-top:7px;border-top:1px solid #f0e6ce;font-size:12.5px;color:#6b5320}
+
+  .tips{background:#f5f8fc;border:1px solid #c2cede;border-radius:9px;padding:12px 16px}
+  .tips ul{margin:0;padding-left:18px}
+  .tips li{margin:7px 0;font-size:13.4px}
+  .flag{background:#eaf6ee;border:1px solid #bcdcc6;border-radius:5px;padding:1px 7px;font-size:11.5px;color:var(--good-tx);font-weight:700;margin-right:6px;white-space:nowrap}
+
+  .xrefs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .xref{border:1px solid #d5dae1;background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;cursor:pointer;font-weight:600;color:var(--maroon)}
+  .xref:hover{background:#fdf3f4}
+  .xref.dead{color:var(--mute);cursor:default;font-weight:400}
+  .foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mute);text-align:center}
+  .empty{color:var(--mute);padding:40px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <button id="menu" aria-label="Open call list">☰ Calls</button>
+    <div class="now" id="nowtitle"></div>
+  </div>
+  <aside>
+    <div class="brand"><div class="k">BCEHS</div><h1>EMR Call Flows</h1></div>
+    <div class="search"><input id="q" type="search" placeholder="Search calls, steps, tips…" autocomplete="off"></div>
+    <nav id="nav"></nav>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script src="data.js"></script>
+<script>
+const SECTIONS = {A:"General care",B:"Airway & breathing",C:"Cardiovascular",D:"Circulatory",E:"Medical",
+  F:"Neurological",G:"Behavioural",H:"Trauma",I:"Environmental",J:"Poisonings",K:"Infectious",
+  L:"Obstetric",M:"Paediatric",N:"Cardiac arrest",P:"Palliative",R:"Resuscitation decisions",PR:"Procedures"};
+
+const PHASE_LABEL = {"en-route":"En route", door:"At the door", scene:"Scene scan",
+  primary:"Primary", vitals:"Vitals", treat:"Treat", assess:"Assess",
+  transport:"Transport", handover:"Handover"};
+
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// inline markup: **bold** and [[ID]]
+const md = s => esc(s)
+  .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+  .replace(/\[\[([A-Z]{1,2}\d{2})\]\]/g, (m,id) =>
+    FLOWS.some(f=>f.id===id) ? `<span class="xref" data-go="${id}">${id}</span>` : `<span class="xref dead">${id}</span>`);
+
+let current = FLOWS[0] ? FLOWS[0].id : null;
+let filter = "";
+
+function buildNav(){
+  const q = filter.toLowerCase();
+  const hits = FLOWS.filter(f => !q || [
+      f.id, f.title, f.hook, f.tagline,
+      ...(f.walkthrough||[]).map(w=>w.label+" "+w.body),
+      ...(f.tips||[]).map(t=>t.body)
+    ].join(" ").toLowerCase().includes(q));
+
+  const bySec = {};
+  hits.forEach(f => (bySec[f.section] = bySec[f.section] || []).push(f));
+
+  const nav = document.getElementById('nav');
+  if(!hits.length){ nav.innerHTML = '<div class="empty">No matches</div>'; return; }
+  nav.innerHTML = Object.keys(bySec).sort().map(sec => `
+    <div class="sec">${sec} — ${SECTIONS[sec]||''}</div>
+    ${bySec[sec].map(f => `
+      <button class="item ${f.id===current?'on':''}" data-go="${f.id}">
+        <span class="id">${f.id}</span> <span class="t">${esc(f.title)}</span>
+        <div class="h">${esc(f.hook)}</div>
+      </button>`).join('')}
+  `).join('');
+}
+
+const SRC_LABEL = {handbook:"Handbook", "handbook-derived":"Handbook-derived",
+  "general-practice":"General practice", unverified:"Unverified"};
+const badge = src => src ? `<span class="srcbadge ${src}" title="${SRC_LABEL[src]||src}">${SRC_LABEL[src]||src}</span>` : '';
+
+function node(n, idx){
+  const lines = (n.lines||[]).map(l=>`<div class="l">${md(l)}</div>`).join('');
+  return `<div class="node ${n.emphasis||'neutral'}" ${idx!=null?`id="nd-${idx}"`:''}>
+      ${n.phase?`<span class="phasetag">${n.phase}</span>`:''}
+      <div class="t">${md(n.title)}</div>${lines}</div>`;
+}
+
+function renderFlow(flow){
+  return flow.map((n,i)=>{
+    const arrow = i ? '<div class="arr"></div>' : '';
+    if(n.type==='decision'){
+      return arrow + node(n,i) + '<div class="arr"></div>' +
+        `<div class="branches">${(n.branches||[]).map(b=>node({title:b.label,lines:b.lines,emphasis:b.emphasis})).join('')}</div>`;
+    }
+    return arrow + node(n,i) + (n.handoff?`<div class="handoff">→ ${md(n.handoff)}</div>`:'');
+  }).join('');
+}
+
+function rail(flow){
+  const seen = [];
+  flow.forEach((n,i)=>{ if(n.phase && !seen.some(x=>x.phase===n.phase)) seen.push({phase:n.phase, idx:i, emphasis:n.emphasis}); });
+  if(seen.length < 2) return '';
+  return `<div class="rail"><div class="lbl">Shape of the call</div><ol>` +
+    seen.map(p=>
+      `<li class="${p.emphasis==='critical'?'critical':(p.emphasis==='warn'?'warn':'')}">
+         <button class="rs" data-scroll="nd-${p.idx}">${PHASE_LABEL[p.phase]||p.phase}</button>
+       </li>`
+    ).join('') + `</ol></div>`;
+}
+
+function render(id){
+  const f = FLOWS.find(x=>x.id===id); if(!f) return;
+  current = id;
+  document.getElementById('main').innerHTML = `
+    <div class="head">
+      <div class="k">${f.id} · ${f.sectionName||SECTIONS[f.section]||''}</div>
+      <h2>${esc(f.title)}</h2>
+      <div class="sub">${esc(f.tagline||'')}</div>
+      <div class="meta">Last verified ${f.lastVerified} · CliniCall ${f.contacts?.cliniCall||''}</div>
+    </div>
+
+    ${f.caveat?`<div class="box caveat">${md(f.caveat)}</div>`:''}
+    ${(f.scopeNotes||[]).map(s=>`<div class="box scopenote"><b>${esc(s.title)}</b> ${md(s.body)}</div>`).join('')}
+
+    ${f.provenance?`<div class="provbar"><b>Where this came from.</b> ${md(f.provenance.note||'')}
+      ${f.provenance.verifiedAgainst?`<div style="margin-top:6px;font-size:12px;color:#2f7d4a"><b>Verified against:</b> ${esc(f.provenance.verifiedAgainst)}</div>`:''}
+      <div class="legend">${Object.entries(f.provenance.blocks||{}).map(([k,v])=>
+        `<span class="srcbadge ${v}">${k}: ${SRC_LABEL[v]||v}</span>`).join('')}</div></div>`:''}
+
+    ${f.kit?`
+      <div class="kit">
+        <h4>Kit to bring in — ${esc(f.kit.headline||'')}${badge(f.kit.source)}</h4>
+        <div class="chips">${f.kit.items.map(i=>`<span class="chip ${i.tier}">${esc(i.name)}</span>`).join('')}</div>
+        <div class="rule">${md(f.kit.rule||'')}</div>
+      </div>`:''}
+
+    ${f.positioning?`
+      <div class="pos">
+        <h4>Positioning${badge(f.positioning.source)}</h4>
+        <div class="prim">${md(f.positioning.primary)}</div>
+        ${f.positioning.why?`<div class="why">${md(f.positioning.why)}</div>`:''}
+        ${(f.positioning.alternatives||[]).length?`
+          <div class="sub">Change it when…</div>
+          ${f.positioning.alternatives.map(a=>`<div class="alt"><div class="w">${md(a.when)}</div><div>${md(a.position)}</div></div>`).join('')}`:''}
+        ${(f.positioning.avoid||[]).length?`
+          <div class="avoid"><div class="sub">Avoid</div>
+          <ul>${f.positioning.avoid.map(x=>`<li>${md(x)}</li>`).join('')}</ul></div>`:''}
+        ${f.positioning.transport?`<div class="tr"><b>On the stretcher —</b> ${md(f.positioning.transport)}</div>`:''}
+      </div>`:''}
+
+    <h3 class="part"><span class="n">1</span> The call flow ${badge(f.flowSource)} <span class="r"></span></h3>
+    ${rail(f.flow||[])}
+    <div class="flow">${renderFlow(f.flow||[])}</div>
+
+    <h3 class="part"><span class="n">2</span> Walkthrough <span class="r"></span></h3>
+    <ol class="walk">${(f.walkthrough||[]).map(w=>`
+      <li class="${w.emphasis==='critical'?'critical':''}">
+        <span class="phasetag">${w.phase}</span>
+        <span class="lab">${md(w.label)}</span> ${md(w.body)}
+        ${w.script?`<div class="script">“${esc(w.script)}”</div>`:''}
+      </li>`).join('')}</ol>
+
+    ${f.timing?`
+      <h3 class="part"><span class="n">3</span> Timing &amp; gates ${badge(f.timingSource)} <span class="r"></span></h3>
+      <div class="tbl timing">
+        <table><tr><th>Action</th><th>When</th><th>Gate — must be true first</th></tr>
+        ${f.timing.map(t=>`<tr><td class="a">${md(t.action)}</td><td>${md(t.when)}</td><td class="g">${md(t.gate)}</td></tr>`).join('')}
+        </table>
+      </div>`:''}
+
+    ${f.history?`
+      <h3 class="part"><span class="n">4</span> History ${badge(f.history.source)} <span class="r"></span></h3>
+      <div class="tbl hx">
+        <div class="mnem"><span class="word">${esc(f.history.mnemonic||'History')}</span>
+          <span class="aka">${f.history.mnemonic==='CHAMPLE'?'— SAMPLE is the same content without a letter for the chief complaint':''}</span></div>
+        ${f.history.note?`<div class="note">${md(f.history.note)}</div>`:''}
+        ${(f.history.letters||[]).map(l=>`<div class="ltr"><div class="k">${esc(l.k)}</div>
+          <div><span class="lab">${esc(l.label)}</span><span class="det">${md(l.detail)}</span></div></div>`).join('')}
+        ${f.history.beforeTreatment?`<div class="bt"><b>Before any drug:</b> ${md(f.history.beforeTreatment)}</div>`:''}
+        <div class="when"><b>WHEN:</b> ${md(f.history.when)}</div>
+      </div>`:''}
+
+    ${f.tips?`
+      <h3 class="part"><span class="n">5</span> Tips &amp; essentials <span class="r"></span></h3>
+      <div class="tips"><ul>${f.tips.map(t=>`<li>${t.scopeFlag?`<span class="flag">${esc(t.scopeFlag)}</span>`:''}${md(t.body)}</li>`).join('')}</ul></div>`:''}
+
+    ${(f.crossRefs||[]).length?`
+      <h3 class="part"><span class="n">6</span> Related <span class="r"></span></h3>
+      <div class="xrefs">${f.crossRefs.map(r=>{
+        const known = FLOWS.find(x=>x.id===r);
+        return `<span class="xref ${known?'':'dead'}" ${known?`data-go="${r}"`:''}>${r}${known?' · '+esc(known.title):''}</span>`;
+      }).join('')}</div>`:''}
+
+    <div class="foot">Study aid — the handbook governs. Confirm agency-specific scope items before shift.</div>
+  `;
+  const nt=document.getElementById('nowtitle');
+  if(nt) nt.innerHTML = `<b>${f.id}</b> ${esc(f.title)}`;
+  buildNav();
+  window.scrollTo(0,0);
+}
+
+document.addEventListener('click', e=>{
+  const sc = e.target.closest('[data-scroll]');
+  if(sc){
+    const el = document.getElementById(sc.getAttribute('data-scroll'));
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'center'});
+      el.style.transition='box-shadow .25s'; el.style.boxShadow='0 0 0 4px rgba(140,29,44,.18)';
+      setTimeout(()=>{ el.style.boxShadow='none'; }, 1200); }
+    return;
+  }
+  const go = e.target.closest('[data-go]');
+  if(go) render(go.getAttribute('data-go'));
+});
+document.getElementById('q').addEventListener('input', e=>{ filter = e.target.value; buildNav(); });
+
+// mobile nav
+const menuBtn = document.getElementById('menu');
+if(menuBtn) menuBtn.addEventListener('click', ()=> document.body.classList.toggle('navopen'));
+document.addEventListener('click', e=>{
+  if(e.target.closest('[data-go]')) document.body.classList.remove('navopen');
+  else if(document.body.classList.contains('navopen') && !e.target.closest('aside') && !e.target.closest('#menu'))
+    document.body.classList.remove('navopen');
+});
+
+buildNav();
+if(current) render(current);
+</script>
+</body>
+</html>
