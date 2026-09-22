@@ -4642,7 +4642,8 @@ window.__startQuiz=function(o){
  if(!o.weak&&!o.ids&&!o.topic){pool.sort(function(a,b){return (SW.S.q[a.id]?1:0)-(SW.S.q[b.id]?1:0);});}
  var n=Math.min(o.n||pool.length,pool.length);
  var items=pool.slice(0,n).map(function(q){return {id:q.id,order:SW.shuffle(q.opts.map(function(_,i){return i;})),sel:null,checked:false,correct:null,flag:!!(SW.S.q[q.id]&&SW.S.q[q.id].flag)};});
- QZ.session={section:o.section||null,items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
+ var oneSec=o.section||(!o.weak&&!o.ids&&!o.topic&&o.mods&&o.mods!=='all'&&o.mods.length===1?o.mods[0]:null);
+ QZ.session={section:oneSec,items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
  if(location.hash!=='#/quiz') location.hash='#/quiz'; else V.quiz($('#main'));
 };
 
