@@ -178,11 +178,44 @@ td+td,th+th{border-left:1px solid var(--border)}
 .recall-cover{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:2;padding:16px}
 .recall-wrap.hidden .recall-cover{display:flex}
 .recall-cover .card{max-width:340px;text-align:center}
+/* Typed recall */
+.recall-wrap.hidden .content{max-height:170px;overflow:hidden}
+.recall-wrap.hidden .recall-cover{position:static;display:block;padding:0;margin-bottom:12px}
+.recall-cover .card.rc-card{max-width:none;text-align:left}
+.rc-card b{display:block;margin-bottom:2px}
+.rc-card .rc-input{font-size:16px;line-height:1.5;font-family:inherit;min-height:150px;margin:10px 0;resize:vertical}
+.rc-card .rc-actions{display:flex;gap:10px;flex-wrap:wrap}
+.rc-card .rc-actions .btn{flex:1 1 160px}
+.rc-result{margin-bottom:12px}
+.rc-score{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rc-score .pct{font-size:30px;font-weight:750;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rc-score .pct.good{color:var(--good)} .rc-score .pct.warn{color:var(--warn)} .rc-score .pct.bad{color:var(--bad)}
+.rc-result .bar{margin:8px 0 12px}
+.rc-terms{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.rc-terms span{font-size:13.5px;font-weight:600;border-radius:99px;padding:4px 10px;line-height:1.3}
+.rc-terms.got span{background:var(--good-bg);color:var(--good)}
+.rc-terms.miss span{background:var(--bad-bg);color:var(--bad)}
+.rc-sub{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--faint);margin-top:4px}
+.rc-hist{margin:-4px 0 14px;font-size:14px}
+.rc-hist summary{cursor:pointer;color:var(--muted);font-weight:600;list-style:none;display:block;padding:8px 0;line-height:1.4}
+.rc-hist summary::-webkit-details-marker{display:none}
+.rc-hist summary .v{color:var(--text)}
+.rc-hist summary .more{color:var(--accent-text);text-decoration:underline;text-underline-offset:3px}
+.rc-hist ol{list-style:none;padding:0;margin:6px 0 0;display:grid;gap:6px}
+.rc-hist li{display:grid;grid-template-columns:1fr 48px 44px;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
+.rc-hist li .d{color:var(--muted);font-size:13px}
+.rc-hist li .p{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.topic .rc{margin-left:auto;font-size:12px;font-weight:700;border-radius:99px;padding:2px 8px;white-space:nowrap}
+.topic .rc+.qn{margin-left:8px}
+.rc.good{background:var(--good-bg);color:var(--good)} .rc.warn{background:var(--warn-bg);color:var(--warn)} .rc.bad{background:var(--bad-bg);color:var(--bad)}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .pager a{min-width:0}
-.pager a span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;font-size:13px;color:var(--muted)}
+.pager a span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;font-size:13px;color:var(--muted)}
 .pager .btn{flex-direction:column;align-items:flex-start;gap:0}
 .pager .next{align-items:flex-end;text-align:right}
+.pager .btn.ghost{background:var(--accent-weak);border-color:transparent;color:var(--accent-text)}
+.pager .btn.ghost:hover{border-color:var(--accent)}
+.pager .btn.ghost span{color:var(--muted)}
 /* Chips & forms */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:14px;font-weight:600;color:var(--muted);min-height:38px}
@@ -3346,7 +3379,7 @@ var SEARCH=[]; MODULES.forEach(function(m){m.topics.forEach(function(t){SEARCH.p
 
 /* ---------- state ---------- */
 var KEY='swexam.v1';
-var DEFAULT={examDate:'2026-09-24',theme:'auto',view:'guide',reviewed:{},q:{},c:{},plan:{},last:null,sessions:[]};
+var DEFAULT={examDate:'2026-09-24',theme:'auto',view:'guide',reviewed:{},q:{},c:{},plan:{},last:null,sessions:[],recall:{}};
 var S=load();
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}var o=JSON.parse(JSON.stringify(DEFAULT));if(s&&typeof s==='object'){for(var k in s)o[k]=s[k];}return o;}
 var storageOK=true;
@@ -3496,35 +3529,168 @@ function moduleView(main,m){
  h+='<div class="row" style="margin:10px 0 16px">'+(st.total?'<button class="btn primary" data-quizmod="'+m.id+'">'+I.quiz+'Quiz this section ('+st.total+')</button>':'')+(wc?'<button class="btn" data-cardmod="'+m.id+'">'+I.cards+'Flashcards ('+wc+')</button>':'')+'</div>';
  h+='<div class="topics">';
  m.topics.forEach(function(t){var n=SW.QS.filter(function(q){return q.m===m.id&&q.t===t.id;}).length;
-  h+='<a class="topic'+(SW.S.reviewed[t.key]?' done':'')+'" href="#/learn/'+m.id+'/'+t.id+'"><span class="ck">'+(SW.S.reviewed[t.key]?I.check:'')+'</span><span>'+esc(t.title)+'</span>'+(n?'<span class="qn">'+n+' Q</span>':'')+'</a>';});
+  var ra=(SW.S.recall||{})[t.key], rl=ra&&ra.length?ra[ra.length-1]:null;
+  h+='<a class="topic'+(SW.S.reviewed[t.key]?' done':'')+'" href="#/learn/'+m.id+'/'+t.id+'"><span class="ck">'+(SW.S.reviewed[t.key]?I.check:'')+'</span><span>'+esc(t.title)+'</span>'+(rl?'<span class="rc '+rcTone(rl.p)+'" title="Latest recall score">'+rl.p+'% recall</span>':'')+(n?'<span class="qn">'+n+' Q</span>':'')+'</a>';});
  h+='</div>';
  main.innerHTML=h;
  main.onclick=function(e){var q=e.target.closest('[data-quizmod]');if(q)window.__startQuiz({mods:[q.getAttribute('data-quizmod')],n:20,type:'mixed'});var c=e.target.closest('[data-cardmod]');if(c)window.__startCards({mods:[c.getAttribute('data-cardmod')]});};
 }
+/* ---------- RECALL GRADING (key-term matching, offline) ---------- */
+var RC=(function(){
+ var STOP=('a about above after again against all almost also although always am among an and another any are around as at away back be because been before being below between both but by can cannot could did do does doing done down during each either else enough especially etc even ever every few first for from further get gets getting give given go goes going good got had has have having he her here hers him his how however i if in into is it its itself just keep know known less let like likely made main make makes many may me might more most much must my need needs never new next no nor not now of off often on once one only onto or other others our out over own part per rather really same see seen seems several she should show shows since so some something sometimes still such take takes than that the their them themselves then there these they thing things this those though through thus to too toward towards under until up upon us use used uses using usually very via was way ways we well were what when where whether which while who whom whose why will with within without would yes yet you your '+
+  'client clients clients’ sw sws social worker workers work working exam exams question questions answer answers test tests example examples eg ie e g i e vs versus note notes important remember think always never best first next person people someone something thing things type types kind kinds key also often include includes including called call calls refers refer mean means meaning describe describes help helps helping client\'s patient patients individual individuals level levels based related area areas way form forms part parts stage stages step steps common commonly usually generally would could should might unless actually higher lower worse better longer shorter varies limited overall later lives empty bottles safer school august minute minutes month months year years').split(/\s+/);
+ var STOPSET={}; STOP.forEach(function(w){if(w)STOPSET[w]=1;});
+ var LABEL={examples:1,example:1,why:1,types:1,type:1,stages:1,goal:1,structure:1,signs:1,patterns:1,'key phases':1,'commenter\'s note':1,'commenters note':1,note:1,decision:1,'decision process':1,evaluation:1,red:1,'red flags':1,'common symptoms amongst diagnoses':1};
+ var LABELRX=/\b(exam|exams|test|tests|formatting|until|example|examples|note|notes|commenter|ideas|patterns|practice)\b/;
+ function norm(s){return String(s).toLowerCase().replace(/[‘’]/g,"'").replace(/'s\b/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
+ function stem(w){
+  if(w.length<=3)return w;
+  var r=w;
+  var rules=[['ational','ate'],['tional','tion'],['iveness','ive'],['fulness','ful'],['ousness','ous'],['ization','ize'],['isation','ize'],['izing','ize'],['ising','ize'],['ized','ize'],['ised','ize'],['ities','ity'],['ically','ic'],['ation','ate'],['ments','ment'],['ness',''],['ings',''],['ing',''],['ies','y'],['ied','y'],['edly',''],['ed',''],['ly',''],['es',''],['s','']];
+  if(/ss$/.test(r))return r;
+  for(var i=0;i<rules.length;i++){var s=rules[i][0];if(r.length-s.length>=3&&r.slice(-s.length)===s){r=r.slice(0,-s.length)+rules[i][1];break;}}
+  return r;
+ }
+ function words(s){return norm(s).split(' ').filter(Boolean);}
+ function content(ws){return ws.filter(function(w){return !STOPSET[w]&&(w.length>2||/\d/.test(w));});}
+ function lev(a,b,max){ if(Math.abs(a.length-b.length)>max)return max+1; var p=[],i,j; for(j=0;j<=b.length;j++)p[j]=j; for(i=1;i<=a.length;i++){var c=[i],mn=i; for(j=1;j<=b.length;j++){c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); if(c[j]<mn)mn=c[j];} if(mn>max)return max+1; p=c;} return p[b.length]; }
+ function strip(html){var d=document.createElement('div');d.innerHTML=html;return d;}
+ function textOf(d){d=d.cloneNode(true);[].forEach.call(d.querySelectorAll('p,li,br,div,tr,td,th,h1,h2,h3,h4,h5,h6,ul,ol,table,dt,dd'),function(e){e.insertAdjacentText('beforebegin',' ');e.insertAdjacentText('afterend',' ');});return d.textContent;}
+ // content words of a term, keeping distinguishing letters/numerals like "Cluster A", "Bipolar II"
+ function termWords(label){
+  var out=[]; String(label).replace(/[\u2018\u2019]/g,"'").replace(/'s\b/g,'').split(/[^A-Za-z0-9]+/).forEach(function(w){
+   if(!w)return; if(/^([A-Z]|I{1,3}|IV)$/.test(w)){out.push(w.toLowerCase());return;}
+   var l=w.toLowerCase(); if(!STOPSET[l]&&(l.length>2||/\d/.test(l)))out.push(l);
+  }); return out;
+ }
+ var IDF=null, TOPICS=null;
+ function buildIdf(all){
+  var df={},N=all.length; all.forEach(function(t){var seen={};content(words(textOf(strip(t.guide)))).forEach(function(w){var s=stem(w);if(!seen[s]){seen[s]=1;df[s]=(df[s]||0)+1;}});});
+  IDF={}; for(var k in df)IDF[k]=Math.log((N+1)/(df[k]+.5)); TOPICS=N;
+ }
+ var cache={};
+ function terms(t,all){
+  if(cache[t.key])return cache[t.key];
+  if(!IDF)buildIdf(all);
+  var d=strip(t.guide), text=textOf(d), simple=' '+content(words(textOf(strip(t.simple||'')))).map(stem).join(' ')+' ', out=[], have={};
+  function add(label){
+   var ws=termWords(label); if(!ws.length||ws.length>4)return;
+   var st=ws.map(stem), id=st.join(' '); if(have[id])return;
+   // skip if every word already covered by an earlier term
+   if(st.every(function(s){return have['w:'+s];})&&ws.length>1)return;
+   have[id]=1; st.forEach(function(s){have['w:'+s]=1;});
+   out.push({label:label.replace(/\s+/g,' ').trim(),alts:[st]});
+  }
+  function addAlt(full,abbr){
+   var a=termWords(full).map(stem), b=[stem(norm(abbr).replace(/ /g,''))]; if(!a.length)return add(abbr);
+   var id=a.join(' '); if(have[id]||have[b[0]])return; have[id]=have[b[0]]=1; a.concat(b).forEach(function(s){have['w:'+s]=1;});
+   out.push({label:full.trim()+' ('+abbr+')',alts:[a,b]});
+  }
+  // 1) bolded phrases from the guide, split into clean pieces
+  [].forEach.call(d.querySelectorAll('b,strong'),function(b){
+   var raw=b.textContent.replace(/\s+/g,' ');
+   var ac=raw.match(/([A-Za-z][A-Za-z '\-]{3,60}?)\s*\(([A-Z][A-Z0-9\-]{1,7})\)/);
+   if(ac){ addAlt(ac[1].replace(/^.*:\s*/,''),ac[2]); raw=raw.replace(ac[0],' '); }
+   raw.split(/\s*(?::|;|,|=|→|->|\(|\)|\/|\s–\s|\s-\s|\bvs\.?\s|\bversus\b|!|\?)\s*/i).forEach(function(p){
+    p=p.replace(/^[\s.\-–]+|[\s.\-–]+$/g,''); var n=norm(p);
+    if(!n||LABEL[n]||n.length<3||LABELRX.test(n))return; if(/^\d+$/.test(n))return; if(n.split(' ').length>4)return;
+    add(p);
+   });
+  });
+  // 2) distinctive single words from the guide text (TF-IDF), to cover topics with few or no bold terms
+  var tf={},orig={}; content(words(text)).forEach(function(w){var s=stem(w);if(w.length<5||/\d/.test(w))return;tf[s]=(tf[s]||0)+1;if(!orig[s]||w.length<orig[s].length)orig[s]=w;});
+  var target=Math.max(3,Math.min(14,Math.round(text.length/90)));
+  var ranked=Object.keys(tf).map(function(s){return {s:s,v:tf[s]*(IDF[s]||1)*(simple.indexOf(' '+s+' ')>=0?2.5:0.6)};}).sort(function(a,b){return b.v-a.v;});
+  var uniq=Math.log((TOPICS+1)/1.5)-0.01;
+  for(var i=0;i<ranked.length&&out.length<14;i++){var s=ranked[i].s; if(have['w:'+s])continue; if(out.length>=target&&!((IDF[s]||0)>=uniq&&simple.indexOf(' '+s+' ')>=0))continue; if((IDF[s]||0)<0.6||simple.indexOf(' '+s+' ')<0&&ranked[i].v<3)continue; add(orig[s]);}
+  if(out.length>20)out=out.slice(0,20);
+  cache[t.key]=out; return out;
+ }
+ function wordHit(s,user){
+  if(user.set[s])return true;
+  if(s.length<5)return false;
+  for(var i=0;i<user.list.length;i++){var u=user.list[i];
+   if(s.length>=6&&u.length>=6&&u.slice(0,6)===s.slice(0,6))return true;
+   if(s.length>=5&&lev(s,u,s.length>=8?2:1)<=(s.length>=8?2:1))return true;
+  }
+  return false;
+ }
+ function grade(t,all,answer){
+  var ts=terms(t,all), uw=words(answer).map(stem), set={}; uw.forEach(function(w){set[w]=1;});
+  var user={set:set,list:Object.keys(set).filter(function(w){return w.length>=5;})}, got=[], missed=[];
+  ts.forEach(function(term){
+   var hit=term.alts.some(function(st){var need=Math.max(1,Math.ceil(st.length*0.6)),n=0;st.forEach(function(s){if(wordHit(s,user))n++;});return n>=need;});
+   (hit?got:missed).push(term.label);
+  });
+  var total=ts.length, pct=total?Math.round(got.length/total*100):0;
+  return {pct:pct,got:got,missed:missed,total:total};
+ }
+ return {terms:terms,grade:grade,_stem:stem};
+})();
+
+function rcTone(p){return p>=70?'good':p>=40?'warn':'bad';}
+function fmtWhen(ts){var d=new Date(ts);try{return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}catch(e){return d.toISOString().slice(0,16).replace('T',' ');}}
+function allTopics(){var a=[];SW.MODULES.forEach(function(mm){mm.topics.forEach(function(tt){a.push(tt);});});return a;}
 var recallOn=false;
 function reader(main,t){
  var S=SW.S, m=SW.MOD[t.mod], idx=m.topics.indexOf(t);
- var flat=[];SW.MODULES.forEach(function(mm){mm.topics.forEach(function(tt){flat.push(tt);});});
- var fi=flat.indexOf(t), prev=flat[fi-1], next=flat[fi+1];
+ var flat=allTopics();
+ var fi=flat.indexOf(t), prev=flat[fi-1], next=flat[fi+1], lastInSection=idx===m.topics.length-1;
  S.last=t.key; SW.save();
+ recallOn=false;               // every topic opens with Recall mode off
+ var revealed=false, result=null, draft='', histOpen=false, curView='guide'; // every topic opens on Guide
  var nq=SW.QS.filter(function(q){return q.m===t.mod&&q.t===t.id;}).length;
+ function attempts(){if(!S.recall)S.recall={};return S.recall[t.key]||[];}
  function draw(){
-  var view=S.view==='simple'?'simple':'guide', done=!!S.reviewed[t.key];
+  var view=curView, done=!!S.reviewed[t.key], hidden=recallOn&&!revealed, at=attempts();
   var h='<div class="crumb"><a href="#/learn">Learn</a> › <a href="#/learn/'+m.id+'">'+esc(m.title)+'</a> · '+(idx+1)+' of '+m.topics.length+'</div>';
   h+='<h1>'+esc(t.title)+'</h1>';
   h+='<div class="reader-tools"><div class="seg" role="group" aria-label="Explanation style"><button data-view="guide" aria-pressed="'+(view==='guide')+'">Guide</button><button data-view="simple" aria-pressed="'+(view==='simple')+'">Simplified</button></div>';
   h+='<button class="toggle" data-recall aria-pressed="'+recallOn+'">'+(recallOn?I.eyeoff:I.eye)+'Recall mode</button></div>';
-  h+='<div class="recall-wrap'+(recallOn?' hidden':'')+'" id="rw"><div class="content"><div class="content-body"><p class="label">'+(view==='guide'?'From the study guide':'Simplified explanation')+'</p>'+(view==='guide'?t.guide:t.simple)+'</div>';
-  h+='<div class="recall-cover"><div class="card"><b>Recall first</b><p class="small muted">Say or jot down everything you remember about <b>'+esc(t.title)+'</b>, then check yourself.</p><button class="btn primary block" data-reveal>Reveal</button></div></div></div></div>';
+  if(at.length){
+   var last=at[at.length-1];
+   h+='<details class="rc-hist" id="rch"'+(histOpen?' open':'')+'><summary>Last recall: <span class="v">'+last.p+'%</span> · '+fmtWhen(last.d)+(at.length>1?' · <span class="more">History ('+at.length+')</span>':'')+'</summary>';
+   if(at.length>1){h+='<ol>';at.slice().reverse().forEach(function(a){h+='<li><span class="d">'+fmtWhen(a.d)+' · '+a.g+'/'+a.n+' terms</span><div class="bar '+rcTone(a.p)+'"><i style="width:'+a.p+'%"></i></div><span class="p">'+a.p+'%</span></li>';});h+='</ol>';}
+   h+='</details>';
+  }
+  if(result){
+   h+='<div class="card rc-result" id="rcres"><div class="rc-score"><span class="pct '+rcTone(result.pct)+'">'+result.pct+'%</span><span class="muted">recalled · '+result.got.length+' of '+result.total+' key terms</span></div>';
+   h+='<div class="bar '+rcTone(result.pct)+'"><i style="width:'+result.pct+'%"></i></div>';
+   if(result.got.length)h+='<div class="rc-sub">You got</div><div class="rc-terms got">'+result.got.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>';
+   if(result.missed.length)h+='<div class="rc-sub">You missed</div><div class="rc-terms miss">'+result.missed.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>';
+   h+='<p class="small muted" style="margin:0 0 12px">Scored on key terms from the guide wording. An idea you put in your own words without the term won\'t count, so check the text below.</p>';
+   h+='<div class="rc-sub">What you wrote</div><p class="small" style="white-space:pre-wrap;margin:4px 0 12px">'+esc(result.text)+'</p>';
+   h+='<button class="btn" data-rc-again>Try again</button></div>';
+  }
+  h+='<div class="recall-wrap'+(hidden?' hidden':'')+'" id="rw">';
+  if(hidden){
+   h+='<div class="recall-cover"><div class="card rc-card"><b>Recall first</b><span class="small muted">Type everything you remember about <b style="display:inline">'+esc(t.title)+'</b>, then check how much you got.</span>';
+   h+='<textarea class="rc-input" id="rcin" placeholder="Terms, definitions, examples, anything you can pull from memory…" aria-label="What you remember about '+esc(t.title)+'">'+esc(draft)+'</textarea>';
+   h+='<div class="rc-actions"><button class="btn primary" data-rc-check>'+I.check+'Check my recall</button><button class="btn ghost" data-reveal>Just reveal</button></div></div></div>';
+  }
+  h+='<div class="content"><div class="content-body"><p class="label">'+(view==='guide'?'From the study guide':'Simplified explanation')+'</p>'+(view==='guide'?t.guide:t.simple)+'</div></div></div>';
   h+='<div class="row" style="margin-top:14px"><button class="btn '+(done?'good':'primary')+'" data-done>'+(done?I.check+'Reviewed':'Mark as reviewed')+'</button>'+(nq?'<button class="btn" data-quiztopic>'+I.quiz+'Quiz this topic ('+nq+')</button>':'')+'</div>';
-  h+='<div class="pager">'+(prev?'<a class="btn ghost" href="#/learn/'+prev.mod+'/'+prev.id+'">← Previous<span>'+esc(prev.title)+'</span></a>':'<span></span>')+(next?'<a class="btn ghost next" href="#/learn/'+next.mod+'/'+next.id+'">Next →<span>'+esc(next.title)+'</span></a>':'<span></span>')+'</div>';
+  var nextLink=lastInSection?'<a class="btn ghost next" href="#/learn">Finish section →<span>Back to all sections</span></a>':(next?'<a class="btn ghost next" href="#/learn/'+next.mod+'/'+next.id+'">Next →<span>'+esc(next.title)+'</span></a>':'<span></span>');
+  h+='<div class="pager">'+(prev?'<a class="btn ghost" href="#/learn/'+prev.mod+'/'+prev.id+'">← Previous<span>'+esc(prev.title)+'</span></a>':'<span></span>')+nextLink+'</div>';
   main.innerHTML=h;
+  var ta=$('#rcin'); if(ta)ta.addEventListener('input',function(){draft=ta.value;});
+  var hd=$('#rch'); if(hd)hd.addEventListener('toggle',function(){histOpen=hd.open;});
  }
  draw();
  main.onclick=function(e){
-  var v=e.target.closest('[data-view]'); if(v){S.view=v.getAttribute('data-view');SW.save();draw();return;}
-  if(e.target.closest('[data-recall]')){recallOn=!recallOn;draw();return;}
-  if(e.target.closest('[data-reveal]')){$('#rw').classList.remove('hidden');return;}
+  var v=e.target.closest('[data-view]'); if(v){curView=v.getAttribute('data-view')==='simple'?'simple':'guide';draw();return;}
+  if(e.target.closest('[data-recall]')){recallOn=!recallOn;revealed=false;result=null;draw();if(recallOn){var ta=$('#rcin');if(ta)ta.focus();}return;}
+  if(e.target.closest('[data-reveal]')){revealed=true;draw();return;}
+  if(e.target.closest('[data-rc-check]')){
+   var txt=($('#rcin')||{}).value||draft;
+   if(!txt.trim()){SW.toast('Type what you remember first');var t2=$('#rcin');if(t2)t2.focus();return;}
+   var g=RC.grade(t,flat,txt); g.text=txt.trim();
+   if(!S.recall)S.recall={}; (S.recall[t.key]=S.recall[t.key]||[]).push({d:Date.now(),p:g.pct,g:g.got.length,n:g.total});
+   SW.save(); result=g; revealed=true; draft=''; draw();
+   var r=$('#rcres'); if(r&&r.scrollIntoView)r.scrollIntoView({block:'start',behavior:'smooth'});
+   return;
+  }
+  if(e.target.closest('[data-rc-again]')){result=null;revealed=false;draft='';draw();var ta=$('#rcin');if(ta)ta.focus();return;}
   if(e.target.closest('[data-done]')){if(S.reviewed[t.key])delete S.reviewed[t.key];else S.reviewed[t.key]=true;SW.save();draw();return;}
   if(e.target.closest('[data-quiztopic]')){window.__startQuiz({mods:[t.mod],topic:t.id,n:999,type:'mixed'});return;}
  };
