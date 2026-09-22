@@ -20,6 +20,8 @@
     --emr-glow: rgba(26,124,79,0.18);
     --quiz-accent: #7c3aed;
     --quiz-glow: rgba(124,58,237,0.18);
+    --sw-accent: #0e8a7d;
+    --sw-glow: rgba(14,138,125,0.18);
     --gold: #c8922a;
   }
 
@@ -106,12 +108,14 @@
   .card.ap::before   { background: radial-gradient(ellipse at 20% 0%, var(--ap-glow),   transparent 60%); }
   .card.emr::before  { background: radial-gradient(ellipse at 20% 0%, var(--emr-glow),  transparent 60%); }
   .card.quiz::before { background: radial-gradient(ellipse at 20% 0%, var(--quiz-glow), transparent 60%); }
+  .card.sw::before   { background: radial-gradient(ellipse at 20% 0%, var(--sw-glow),   transparent 60%); }
 
   .card:hover { transform: translateY(-3px); }
   .card.pcp:hover  { border-color: var(--pcp-accent);  box-shadow: 0 8px 32px var(--pcp-glow); }
   .card.ap:hover   { border-color: var(--ap-accent);   box-shadow: 0 8px 32px var(--ap-glow); }
   .card.emr:hover  { border-color: var(--emr-accent);  box-shadow: 0 8px 32px var(--emr-glow); }
   .card.quiz:hover { border-color: var(--quiz-accent); box-shadow: 0 8px 32px var(--quiz-glow); }
+  .card.sw:hover   { border-color: var(--sw-accent);   box-shadow: 0 8px 32px var(--sw-glow); }
   .card:hover::before { opacity: 1; }
 
   .card-bar {
@@ -122,6 +126,7 @@
   .ap   .card-bar { background: linear-gradient(90deg, var(--ap-accent),   #4aa8e8); }
   .emr  .card-bar { background: linear-gradient(90deg, var(--emr-accent),  #2ecc8a); }
   .quiz .card-bar { background: linear-gradient(90deg, var(--quiz-accent), #a855f7); }
+  .sw   .card-bar { background: linear-gradient(90deg, var(--sw-accent),   #34d1bf); }
 
   .card-icon { font-size: 2rem; margin-bottom: 16px; line-height: 1; }
 
@@ -133,6 +138,7 @@
   .ap   .card-label { color: var(--ap-accent); }
   .emr  .card-label { color: var(--emr-accent); }
   .quiz .card-label { color: var(--quiz-accent); }
+  .sw   .card-label { color: var(--sw-accent); }
 
   .card h2 {
     font-family: 'DM Serif Display', serif;
@@ -189,6 +195,7 @@
   .ap   .stat-num { color: var(--ap-accent); }
   .emr  .stat-num { color: var(--emr-accent); }
   .quiz .stat-num { color: var(--quiz-accent); }
+  .sw   .stat-num { color: var(--sw-accent); }
   .stat-lbl { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
   .card-cta {
@@ -205,6 +212,8 @@
   .emr  .card-cta:hover { background: var(--emr-accent);  color: white; border-color: var(--emr-accent); }
   .quiz .card-cta { background: rgba(124,58,237,0.12);  color: #a78bfa; border-color: rgba(124,58,237,0.3); }
   .quiz .card-cta:hover { background: var(--quiz-accent); color: white; border-color: var(--quiz-accent); }
+  .sw   .card-cta { background: rgba(14,138,125,0.12);  color: #34d1bf; border-color: rgba(14,138,125,0.3); }
+  .sw   .card-cta:hover { background: var(--sw-accent);   color: white; border-color: var(--sw-accent); }
 
   .arrow { transition: transform 0.15s; }
   .card:hover .arrow { transform: translateX(3px); }
@@ -329,6 +338,31 @@
         <div class="stat"><div class="stat-num">AI</div><div class="stat-lbl">Generated</div></div>
       </div>
       <div class="card-cta">Start Quiz <span class="arrow">→</span></div>
+    </a>
+
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-dot"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- SOCIAL WORK -->
+  <div class="section-label">Social Work</div>
+  <div class="cards">
+
+    <a class="card sw" href="SW_Exam_Study_Tool.html">
+      <div class="card-bar"></div>
+      <div class="card-icon">🎓</div>
+      <div class="card-label">Licensing Exam</div>
+      <h2>SW Exam Prep</h2>
+      <p>Offline study tool for the social work licensing exam — guide content with simplified explanations, quizzes, flashcards, weak-spot tracking, and a 3-day plan.</p>
+      <div class="card-stats">
+        <div class="stat"><div class="stat-num">Quiz</div><div class="stat-lbl">+ Flashcards</div></div>
+        <div class="stat"><div class="stat-num">3-Day</div><div class="stat-lbl">Plan</div></div>
+      </div>
+      <div class="card-cta">Open Study Tool <span class="arrow">→</span></div>
     </a>
 
   </div>
