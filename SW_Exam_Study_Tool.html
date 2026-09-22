@@ -311,6 +311,19 @@ textarea{width:100%;min-height:90px;border-radius:10px;border:1px solid var(--bo
 @media (hover:none){.kbd{display:none}}
 .divider{height:1px;background:var(--border);margin:18px 0}
 .acc{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.rv-list{display:grid;gap:10px;margin-bottom:10px}
+.rv-sec{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px;border-radius:var(--radius);border:1px solid var(--border);border-left:4px solid var(--bad);background:var(--surface);text-decoration:none;color:var(--text);box-shadow:var(--shadow)}
+.rv-sec .rk{width:30px;height:30px;border-radius:50%;background:var(--bad-bg);color:var(--bad);display:grid;place-items:center;font-weight:800;font-size:14px}
+.rv-sec b{display:block}.rv-sec .rv-why{display:block;margin-top:2px}.rv-sec .bar{margin-top:7px}.rv-sec .rv-tops{display:block;margin-top:6px;color:var(--muted)}
+.rv-steps{list-style:none;counter-reset:rv;padding:0;margin:16px 0 0;display:grid;gap:12px}
+.rv-steps>li{counter-increment:rv;position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 14px 52px;box-shadow:var(--shadow)}
+.rv-steps>li::before{content:counter(rv);position:absolute;left:14px;top:14px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
+.rv-h{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.rv-topic{border-top:1px solid var(--border);padding:12px 0}.rv-topic:first-of-type{border-top:0;padding-top:0}
+.rv-tt{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin-bottom:8px}.rv-tt a{color:var(--text)}
+.rv-ev{font-size:12px;font-weight:700;border-radius:99px;padding:2px 8px;background:var(--surface-2);color:var(--muted)}
+.rv-ev.bad{background:var(--bad-bg);color:var(--bad)}.rv-ev.warn{background:var(--warn-bg);color:var(--warn)}.rv-ev.good{background:var(--good-bg);color:var(--good)}
+.rv-miss{margin:10px 0 0}.rv-q{border-top:1px solid var(--border);padding-top:8px;margin-top:8px}.rv-q:first-child{border-top:0;margin-top:0;padding-top:0}.rv-q p{margin:4px 0}
 .acc:last-child{border-bottom:0}
 .acc .nm{flex:1;min-width:0;font-size:14.5px}
 .acc .nm .bar{margin-top:5px}
@@ -4411,7 +4424,7 @@ V.learn=function(main,parts){
   var r=SW.reviewedCount(m.id), n=m.topics.length, st=SW.modStats(m.id);
   h+='<a class="mod'+(r===n?' done':'')+(m.src==='beyond'?' bx':'')+'" href="#/learn/'+m.id+'"><span class="num">'+m.n+'</span><span style="min-width:0"><b>'+esc(m.title)+'</b><span class="meta">'+r+'/'+n+' reviewed'+(st.acc!==null?' · '+st.acc+'% quiz accuracy':'')+'</span><div class="bar"><i style="width:'+SW.pct(r,n)+'%"></i></div></span><span class="chev">'+I.chev+'</span></a>';
  });
- h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 22 Sep 2026, 3:40 pm</p>';
+ h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 22 Sep 2026, 4:20 pm</p>';
  main.innerHTML=h;
  var inp=$('#q'); inp.addEventListener('input',function(){search(inp.value);});
  var key='_lastSearch_'+src;
@@ -4643,7 +4656,7 @@ window.__startQuiz=function(o){
  var n=Math.min(o.n||pool.length,pool.length);
  var items=pool.slice(0,n).map(function(q){return {id:q.id,order:SW.shuffle(q.opts.map(function(_,i){return i;})),sel:null,checked:false,correct:null,flag:!!(SW.S.q[q.id]&&SW.S.q[q.id].flag)};});
  var oneSec=o.topicKey?null:(o.section||(!o.weak&&!o.ids&&!o.topic&&o.mods&&o.mods!=='all'&&o.mods.length===1?o.mods[0]:null));
- QZ.session={section:oneSec,topicKey:o.topicKey||(o.topic&&o.mods&&o.mods.length===1?o.mods[0]+'/'+o.topic:null),origin:o.origin||null,items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
+ QZ.session={section:oneSec,topicKey:o.topicKey||(o.topic&&o.mods&&o.mods.length===1?o.mods[0]+'/'+o.topic:null),origin:o.origin||null,items:items,i:0,done:false,t0:Date.now(),label:o.label?o.label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
  if(location.hash!=='#/quiz') location.hash='#/quiz'; else V.quiz($('#main'));
 };
 
@@ -4746,7 +4759,8 @@ function results(main){
    (tn?'<a class="btn primary" href="#/learn/'+tm.id+'/'+tn.id+'">Next topic: '+esc(tn.title)+' →</a>':'<a class="btn primary" href="#/learn/'+SW.srcOf(tm.id)+'">Finish section → all sections</a>')+
    '<a class="btn" href="#/learn/'+tt.mod+'/'+tt.id+'">Back to topic</a><a class="btn" href="#/learn/'+tm.id+'">'+esc(tm.title)+' topics</a></div></div>';
  }
- h+='<div class="row" style="margin:16px 0">'+(missed.length?'<button class="btn '+(s.section||s.topicKey?'':'primary')+'" data-retry>Retry the '+missed.length+' missed</button>':'')+'<button class="btn" data-new>New quiz</button></div>';
+ if(s.origin&&!s.section&&!s.topicKey){ h+='<div class="card sec-next" style="margin-top:16px"><div class="row"><a class="btn primary" href="'+s.origin+'">'+(s.origin.indexOf('#/weak')===0?'Back to your review':'Back')+' →</a></div></div>'; }
+ h+='<div class="row" style="margin:16px 0">'+(missed.length?'<button class="btn '+(s.section||s.topicKey||s.origin?'':'primary')+'" data-retry>Retry the '+missed.length+' missed</button>':'')+'<button class="btn" data-new>New quiz</button></div>';
  if(missed.length){h+='<h2>Review what you missed</h2>'+missed.map(function(x){var q=SW.QBYID[x.id];return '<details class="missed"><summary><span class="mk">✕</span><span>'+q.stem+'</span></summary><div class="body"><p><span class="muted">You chose:</span> '+q.opts[x.order[x.sel]]+'</p><p class="ans">Answer: '+q.opts[0]+'</p><p>'+q.exp+'</p><a href="#/learn/'+q.m+'/'+q.t+'">Review topic →</a></div></details>';}).join('');}
  main.innerHTML=h;
  main.onclick=function(e){
@@ -4764,7 +4778,7 @@ window.__startCards=function(o){
  if(o.mods&&o.mods!=='all') pool=pool.filter(function(c){return o.mods.indexOf(c.m)>=0;});
  else if(o.src&&o.src!=='both') pool=pool.filter(function(c){return SW.srcOf(c.m)===o.src;});
  if(!pool.length){SW.toast(o.weak?'No weak cards yet.':'No cards match.');return;}
- FC.session={deck:SW.shuffle(pool).map(function(c){return c.id;}),total:pool.length,flipped:false,got:0,again:0,done:false};
+ FC.session={origin:o.origin||null,deck:SW.shuffle(pool).map(function(c){return c.id;}),total:pool.length,flipped:false,got:0,again:0,done:false};
  if(location.hash!=='#/cards') location.hash='#/cards'; else V.cards($('#main'));
 };
 V.cards=function(main){
@@ -4814,7 +4828,7 @@ function cardRunner(main){
 function fitCard(){var fc=$('.fc');if(!fc)return;var a=fc.querySelector('.front'),b=fc.querySelector('.back');var h=Math.max(a.scrollHeight,b.scrollHeight,260);fc.style.minHeight=h+'px';}
 function cardDone(main){
  window.__keys=null; var s=FC.session;
- var h='<h1>Session done</h1><div class="card"><div class="row"><span class="score">'+s.got+'</span><span class="muted">cards you knew<br>'+s.again+' "again" taps</span></div></div><div class="row" style="margin-top:16px">'+(SW.weakCards().length?'<button class="btn primary" data-weak>Study weak cards ('+SW.weakCards().length+')</button>':'')+'<button class="btn" data-new>New session</button></div>';
+ var h='<h1>Session done</h1><div class="card"><div class="row"><span class="score">'+s.got+'</span><span class="muted">cards you knew<br>'+s.again+' "again" taps</span></div></div><div class="row" style="margin-top:16px">'+(s.origin?'<a class="btn primary" href="'+s.origin+'">'+(s.origin.indexOf('#/weak')===0?'Back to your review':'Back')+' →</a>':'')+(SW.weakCards().length?'<button class="btn '+(s.origin?'':'primary')+'" data-weak>Study weak cards ('+SW.weakCards().length+')</button>':'')+'<button class="btn" data-new>New session</button></div>';
  main.innerHTML=h;
  main.onclick=function(e){ if(e.target.closest('[data-weak]'))window.__startCards({mods:'all',weak:true}); if(e.target.closest('[data-new]')){FC.session=null;cardSetup(main);} };
 }
@@ -4826,37 +4840,127 @@ window.addEventListener('resize',fitCard);
 var SW=window.__SW, I=SW.I, esc=SW.esc, $=SW.$, V=window.__VIEWS;
 
 /* ---------- WEAK SPOTS ---------- */
-V.weak=function(main){
+V.weak=function(main,parts){
  var S=SW.S, wq=SW.weakQs(), wc=SW.weakCards(), o=SW.overall();
- var h='<h1>Weak spots</h1><p class="sub">Questions you got wrong or flagged, and cards you marked "Again". A question leaves this list when you answer it correctly (and it isn\'t flagged). A card leaves when you mark it "Got it".</p>';
- h+='<div class="stats">'+st(wq.length,'weak questions')+st(wc.length,'weak cards')+st(o.seen,'questions tried')+st(o.acc===null?'—':o.acc+'%','overall accuracy')+'</div>';
- h+='<div class="row" style="margin:14px 0 6px"><button class="btn primary" data-wq'+(wq.length?'':' disabled')+'>'+I.target+'Quiz weak questions</button><button class="btn" data-wc'+(wc.length?'':' disabled')+'>'+I.cards+'Study weak cards</button></div>';
- var rows=SW.QUIZ_MODS.map(function(m){var s=SW.modStats(m.id);return {m:m,s:s};}).filter(function(r){return r.s.att>0;});
+ /* ---- analysis ---- */
+ var RULES='A section is flagged only with enough evidence: <b>under 70% accuracy over at least 5 answers</b>, <b>3+ questions currently wrong</b>, <b>3+ flashcards marked "Again"</b>, or <b>2+ topics with a low recall score</b> (under 50%). One wrong answer never flags a section.';
+ function latestRecall(key){var a=(S.recall||{})[key];return a&&a.length?a[a.length-1].p:null;}
+ function topicStats(m,t){
+  var qs=SW.QS.filter(function(q){return q.m===m.id&&q.t===t.id;}), a=0,c=0,miss=[],seen=0;
+  qs.forEach(function(q){var r=S.q[q.id];if(!r)return;seen++;a+=r.a;c+=r.c;if(SW.qWeak(q.id))miss.push(q);});
+  var acc=a?Math.round(100*c/a):null, rc=latestRecall(t.key);
+  var weak=miss.length>=2||(a>=3&&acc<60)||(rc!==null&&rc<50&&miss.length>=1)||(rc!==null&&rc<35);
+  return {t:t,qs:qs,a:a,c:c,acc:acc,miss:miss,seen:seen,rc:rc,weak:weak};
+ }
+ function secStats(m){
+  var ts=m.topics.map(function(t){return topicStats(m,t);}), a=0,c=0,miss=[];
+  ts.forEach(function(x){a+=x.a;c+=x.c;miss=miss.concat(x.miss);});
+  var acc=a?Math.round(100*c/a):null;
+  var cards=SW.CARDS.filter(function(x){return x.m===m.id;}), wcards=cards.filter(function(x){return SW.cWeak(x.id);});
+  var lowRc=ts.filter(function(x){return x.rc!==null&&x.rc<50;});
+  var why=[];
+  if(a>=5&&acc<70) why.push(acc+'% accuracy over '+a+' answers');
+  if(miss.length>=3) why.push(miss.length+' questions currently wrong');
+  if(wcards.length>=3) why.push(wcards.length+' flashcards marked "Again"');
+  if(lowRc.length>=2) why.push(lowRc.length+' topics with recall under 50%');
+  var weak=why.length>0;
+  var watch=!weak&&(miss.length===2||(a>=5&&acc<80)||wcards.length===2||lowRc.length===1);
+  var score=miss.length*2+(acc===null?0:(100-acc)/10)+wcards.length+lowRc.length*2;
+  function pri(x){return (x.weak?100:0)+x.miss.length*2+(x.rc!==null&&x.rc<50?2:0);}
+  var wts=ts.filter(function(x){return x.weak||x.miss.length||(x.rc!==null&&x.rc<50);});
+  wts.sort(function(p,q){return pri(q)-pri(p);});
+  if(0)wts.sort(function(p,q){return (q.miss.length*2+(q.rc!==null&&q.rc<50?2:0))-(p.miss.length*2+(p.rc!==null&&p.rc<50?2:0));});
+  return {m:m,ts:ts,a:a,c:c,acc:acc,miss:miss,cards:cards,wcards:wcards,lowRc:lowRc,why:why,weak:weak,watch:watch,score:score,wts:wts};
+ }
+ var all=SW.MODULES.map(secStats);
+ function tone(p){return p===null?'':p>=75?'good':p>=60?'warn':'bad';}
+ function st(v,l){return '<div class="stat"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>';}
+ function evidence(x){var b=[];if(x.miss.length)b.push(x.miss.length+' wrong');if(x.acc!==null)b.push(x.acc+'%');if(x.rc!==null)b.push('recall '+x.rc+'%');return b.join(' · ')||'not tried yet';}
+ function drillIds(sx){
+  var ids=[],seen={};function add(q){if(!seen[q.id]){seen[q.id]=1;ids.push(q.id);}}
+  sx.miss.forEach(add);
+  sx.wts.forEach(function(x){x.qs.forEach(function(q){var r=S.q[q.id];if(!r||r.last===0)add(q);});});
+  if(ids.length<10){var rest=SW.QS.filter(function(q){return q.m===sx.m.id&&!seen[q.id];}).sort(function(p,q){var a=S.q[p.id],b=S.q[q.id];var sa=a?a.c/a.a:-1,sb=b?b.c/b.a:-1;return sa-sb;});rest.slice(0,10-ids.length).forEach(add);}
+  return ids.slice(0,20);
+ }
+
+ /* ---- focused review for one section ---- */
+ if(parts&&parts[1]&&SW.MOD[parts[1]]){
+  var sx=secStats(SW.MOD[parts[1]]), m=sx.m, ids=drillIds(sx), origin='#/weak/'+m.id;
+  var h='<div class="crumb"><a href="#/weak">Weak spots</a> ›</div><h1>Review: '+esc(m.title)+'</h1>';
+  h+='<p class="sub">'+(m.src==='beyond'?'<span class="ext">Beyond the guide</span> ':'')+(sx.weak?'Flagged because: '+sx.why.join('; ')+'.':'Not flagged right now, but here is everything worth a second look.')+'</p>';
+  h+='<div class="stats">'+st(sx.acc===null?'—':sx.acc+'%','section accuracy')+st(sx.miss.length,'questions wrong now')+st(sx.wcards.length,'cards to redo')+st(sx.wts.length,'topics to review')+'</div>';
+  h+='<ol class="rv-steps">';
+  // step 1
+  h+='<li><div class="rv-h"><b>Re-read the weak topics</b><span class="muted small">Use Recall mode: type what you remember before reading</span></div>';
+  if(!sx.wts.length) h+='<p class="muted small">No single topic stands out. Skim the section list instead: <a href="#/learn/'+m.id+'">'+esc(m.title)+'</a>.</p>';
+  else h+=sx.wts.map(function(x){
+   var mm=x.miss.length?'<details class="missed rv-miss"><summary><span class="mk">✕</span><span>What you got wrong ('+x.miss.length+')</span></summary><div class="body">'+x.miss.map(function(q){return '<div class="rv-q"><p><b>'+q.stem+'</b></p><p class="ans">Answer: '+q.opts[0]+'</p><p>'+q.exp+'</p></div>';}).join('')+'</div></details>':'';
+   return '<div class="rv-topic"><div class="rv-tt"><a href="#/learn/'+m.id+'/'+x.t.id+'"><b>'+esc(x.t.title)+'</b></a><span class="rv-ev '+tone(x.acc===null&&x.rc!==null?x.rc:x.acc)+'">'+evidence(x)+'</span></div><div class="row"><a class="btn" href="#/learn/'+m.id+'/'+x.t.id+'">'+I.book+'Read</a>'+(x.qs.length?'<button class="btn" data-tq="'+x.t.id+'">'+I.quiz+'Quiz topic ('+x.qs.length+')</button>':'')+'</div>'+mm+'</div>';
+  }).join('');
+  h+='</li>';
+  // step 2
+  var nCards=sx.wcards.length||sx.cards.length;
+  h+='<li><div class="rv-h"><b>Flashcards</b><span class="muted small">'+(sx.wcards.length?'Your "Again" cards from this section':'All cards in this section')+'</span></div>'+(nCards?'<button class="btn" data-rcards>'+I.cards+'Study '+nCards+' card'+(nCards===1?'':'s')+'</button>':'<p class="muted small">No flashcards for this section.</p>')+'</li>';
+  // step 3
+  h+='<li><div class="rv-h"><b>Drill it</b><span class="muted small">Your misses first, then untried or weak questions from these topics</span></div>'+(ids.length?'<button class="btn primary" data-drill>'+I.target+'Start drill ('+ids.length+' questions)</button>':'<p class="muted small">No questions in this section.</p>')+'</li>';
+  // step 4
+  h+='<li><div class="rv-h"><b>Check</b><span class="muted small">Come back here after the drill. The section drops off the list once the evidence is gone.</span></div></li>';
+  h+='</ol>';
+  var next=all.filter(function(x){return x.weak&&x.m.id!==m.id;}).sort(function(p,q){return q.score-p.score;})[0];
+  h+='<div class="row" style="margin-top:14px"><a class="btn" href="#/weak">← All weak spots</a>'+(next?'<a class="btn" href="#/weak/'+next.m.id+'">Next weak section: '+esc(next.m.title)+' →</a>':'')+'</div>';
+  main.innerHTML=h;
+  main.onclick=function(e){
+   var tq=e.target.closest('[data-tq]'); if(tq){var tid=tq.getAttribute('data-tq');window.__startQuiz({mods:[m.id],topic:tid,n:999,type:'mixed',origin:origin});return;}
+   if(e.target.closest('[data-rcards]')){ if(sx.wcards.length) window.__startCards({mods:[m.id],weak:true,origin:origin}); else window.__startCards({mods:[m.id],origin:origin}); return;}
+   if(e.target.closest('[data-drill]')){window.__startQuiz({ids:ids,origin:origin,label:'Focused review: '+m.title});return;}
+  };
+  return;
+ }
+
+ /* ---- overview ---- */
+ var weakSecs=all.filter(function(x){return x.weak;}).sort(function(p,q){return q.score-p.score;});
+ var watch=all.filter(function(x){return x.watch;}).sort(function(p,q){return q.score-p.score;});
+ var h='<h1>Weak spots</h1><p class="sub">Where to spend your remaining time, based on your quizzes, flashcards and recall scores.</p>';
+ h+='<div class="stats">'+st(weakSecs.length,'sections to review')+st(wq.length,'questions wrong now')+st(wc.length,'cards to redo')+st(o.acc===null?'—':o.acc+'%','overall accuracy')+'</div>';
+ h+='<h2>Focused review</h2>';
+ if(!o.seen&&!wc.length) h+='<div class="card empty">Take a few quizzes first. Sections show up here once there\'s enough evidence of weakness.</div>';
+ else if(!weakSecs.length) h+='<div class="card empty">No section has enough evidence of weakness right now. Nice. Keep quizzing new sections to be sure.</div>';
+ else{
+  h+='<button class="btn primary block" data-go="'+weakSecs[0].m.id+'" style="margin-bottom:12px">'+I.target+'Start with your weakest: '+esc(weakSecs[0].m.title)+'</button>';
+  h+='<div class="rv-list">'+weakSecs.map(function(x,i){
+   return '<a class="rv-sec" href="#/weak/'+x.m.id+'"><span class="rk">'+(i+1)+'</span><span style="min-width:0"><b>'+esc(SW.mt(x.m))+'</b><span class="small muted rv-why">'+esc(x.why.join(' · '))+'</span>'+(x.acc!==null?'<div class="bar '+tone(x.acc)+'"><i style="width:'+x.acc+'%"></i></div>':'')+(x.wts.length?'<span class="small rv-tops">Topics: '+x.wts.slice(0,3).map(function(y){return esc(y.t.title);}).join(', ')+(x.wts.length>3?' +'+(x.wts.length-3)+' more':'')+'</span>':'')+'</span><span class="chev">'+I.chev+'</span></a>';
+  }).join('')+'</div>';
+ }
+ h+='<p class="muted small">'+RULES+'</p>';
+ if(watch.length) h+='<h2>Keep an eye on</h2><div class="card">'+watch.map(function(x){return '<div class="acc"><span class="nm">'+esc(SW.mt(x.m))+'<div class="small muted">'+evidence({miss:x.miss,acc:x.acc,rc:null})+(x.wcards.length?' · '+x.wcards.length+' cards':'')+'</div></span><a class="btn" href="#/weak/'+x.m.id+'">Review</a></div>';}).join('')+'</div>';
+ h+='<h2>Quick drills</h2><div class="row" style="margin:0 0 6px"><button class="btn" data-wq'+(wq.length?'':' disabled')+'>'+I.target+'All wrong questions ('+wq.length+')</button><button class="btn" data-wc'+(wc.length?'':' disabled')+'>'+I.cards+'All "Again" cards ('+wc.length+')</button></div>';
+ var rows=all.filter(function(x){return x.a>0;});
  h+='<h2>Accuracy by section</h2>';
  if(!rows.length) h+='<div class="card empty">Take a quiz and your section-by-section accuracy will show up here.</div>';
  else{
-  rows.sort(function(a,b){return a.s.acc-b.s.acc;});
-  h+='<div class="card">'+rows.map(function(r){var p=r.s.acc;return '<div class="acc"><span class="nm">'+esc(r.m.title)+' <span class="muted small">· '+r.s.seen+'/'+r.s.total+' seen</span><div class="bar '+(p>=75?'good':p>=60?'warn':'bad')+'"><i style="width:'+p+'%"></i></div></span><span class="pc">'+p+'%</span><button class="btn" data-qm="'+r.m.id+'">Quiz</button></div>';}).join('')+'</div>';
+  rows.sort(function(a,b){return a.acc-b.acc;});
+  h+='<div class="card">'+rows.map(function(r){var p=r.acc;return '<div class="acc"><span class="nm">'+esc(SW.mt(r.m))+' <span class="muted small">· '+r.a+' answer'+(r.a===1?'':'s')+'</span><div class="bar '+tone(p)+'"><i style="width:'+p+'%"></i></div></span><span class="pc">'+p+'%</span><a class="btn" href="#/weak/'+r.m.id+'">Review</a></div>';}).join('')+'</div>';
   var unseen=SW.QUIZ_MODS.filter(function(m){return SW.modStats(m.id).att===0;});
-  if(unseen.length) h+='<p class="muted small">Not quizzed yet: '+unseen.map(function(m){return esc(m.title);}).join(', ')+'.</p>';
+  if(unseen.length) h+='<details class="missed"><summary><span>Not quizzed yet ('+unseen.length+')</span></summary><div class="body">'+unseen.map(function(m){return esc(SW.mt(m));}).join(' · ')+'</div></details>';
  }
  if(wq.length){
-  h+='<h2>Weak questions ('+wq.length+')</h2>';
+  h+='<details class="missed"><summary><span>Every wrong question ('+wq.length+')</span></summary><div class="body">';
   var by={}; wq.forEach(function(q){(by[q.m]=by[q.m]||[]).push(q);});
   SW.MODULES.forEach(function(m){ if(!by[m.id])return;
-   h+='<h3>'+esc(m.title)+'</h3>'+by[m.id].map(function(q){var r=S.q[q.id];return '<details class="missed"><summary><span class="mk">'+(r.flag?'⚑':'✕')+'</span><span>'+q.stem+'</span></summary><div class="body"><p class="ans">Answer: '+q.opts[0]+'</p><p>'+q.exp+'</p><p class="small muted">Tried '+r.a+'×, correct '+r.c+'×'+(r.flag?' · flagged':'')+'</p><a href="#/learn/'+q.m+'/'+q.t+'">Review topic →</a></div></details>';}).join('');
+   h+='<h3>'+esc(SW.mt(m))+'</h3>'+by[m.id].map(function(q){var r=S.q[q.id];return '<div class="rv-q"><p><b>'+(r.flag?'⚑ ':'')+q.stem+'</b></p><p class="ans">Answer: '+q.opts[0]+'</p><p>'+q.exp+'</p><p class="small muted">Tried '+r.a+'×, correct '+r.c+'× · <a href="#/learn/'+q.m+'/'+q.t+'">Review topic →</a></p></div>';}).join('');
   });
+  h+='</div></details>';
  }
  if(wc.length){
-  h+='<h2>Weak cards ('+wc.length+')</h2><div class="card">'+wc.map(function(c){return '<div class="acc"><span class="nm"><b>'+esc(c.f)+'</b><div class="small muted">'+esc(c.b)+'</div></span></div>';}).join('')+'</div>';
+  h+='<details class="missed"><summary><span>Every "Again" card ('+wc.length+')</span></summary><div class="body">'+wc.map(function(c){return '<div class="acc"><span class="nm"><b>'+esc(c.f)+'</b><div class="small muted">'+esc(c.b)+'</div></span></div>';}).join('')+'</div></details>';
  }
  main.innerHTML=h;
  main.onclick=function(e){
-  if(e.target.closest('[data-wq]')) window.__startQuiz({weak:true});
-  if(e.target.closest('[data-wc]')) window.__startCards({mods:'all',weak:true});
-  var m=e.target.closest('[data-qm]'); if(m) window.__startQuiz({mods:[m.getAttribute('data-qm')],n:20,type:'mixed'});
+  var g=e.target.closest('[data-go]'); if(g){location.hash='#/weak/'+g.getAttribute('data-go');return;}
+  if(e.target.closest('[data-wq]')) window.__startQuiz({weak:true,origin:'#/weak'});
+  if(e.target.closest('[data-wc]')) window.__startCards({mods:'all',weak:true,origin:'#/weak'});
  };
- function st(v,l){return '<div class="stat"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>';}
 };
 
 /* ---------- PLAN ---------- */
