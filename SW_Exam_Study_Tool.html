@@ -4411,7 +4411,7 @@ V.learn=function(main,parts){
   var r=SW.reviewedCount(m.id), n=m.topics.length, st=SW.modStats(m.id);
   h+='<a class="mod'+(r===n?' done':'')+(m.src==='beyond'?' bx':'')+'" href="#/learn/'+m.id+'"><span class="num">'+m.n+'</span><span style="min-width:0"><b>'+esc(m.title)+'</b><span class="meta">'+r+'/'+n+' reviewed'+(st.acc!==null?' · '+st.acc+'% quiz accuracy':'')+'</span><div class="bar"><i style="width:'+SW.pct(r,n)+'%"></i></div></span><span class="chev">'+I.chev+'</span></a>';
  });
- h+='</div>';
+ h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 22 Sep 2026, 3:05 pm</p>';
  main.innerHTML=h;
  var inp=$('#q'); inp.addEventListener('input',function(){search(inp.value);});
  var key='_lastSearch_'+src;
@@ -4443,7 +4443,7 @@ function moduleView(main,m){
   h+='<a class="topic'+(SW.S.reviewed[t.key]?' done':'')+'" href="#/learn/'+m.id+'/'+t.id+'"><span class="ck">'+(SW.S.reviewed[t.key]?I.check:'')+'</span><span>'+esc(t.title)+(t.pe?'<span class="pe pe-row">Practice exam</span>':'')+'</span>'+(rl?'<span class="rc '+rcTone(rl.p)+'" title="Latest recall score">'+rl.p+'% recall</span>':'')+(n?'<span class="qn">'+n+' Q</span>':'')+'</a>';});
  h+='</div>';
  main.innerHTML=h;
- main.onclick=function(e){var q=e.target.closest('[data-quizmod]');if(q)window.__startQuiz({mods:[q.getAttribute('data-quizmod')],n:20,type:'mixed',section:q.getAttribute('data-quizmod')});var c=e.target.closest('[data-cardmod]');if(c)window.__startCards({mods:[c.getAttribute('data-cardmod')]});};
+ main.onclick=function(e){var q=e.target.closest('[data-quizmod]');if(q)var qm=q.getAttribute('data-quizmod');window.__startQuiz({mods:[qm],n:20,type:'mixed',section:qm,origin:'#/learn/'+qm});var c=e.target.closest('[data-cardmod]');if(c)window.__startCards({mods:[c.getAttribute('data-cardmod')]});};
 }
 /* ---------- RECALL GRADING (key-term matching, offline) ---------- */
 var RC=(function(){
@@ -4611,7 +4611,7 @@ function reader(main,t){
   }
   if(e.target.closest('[data-rc-again]')){result=null;revealed=false;draft='';draw();var ta=$('#rcin');if(ta)ta.focus();return;}
   if(e.target.closest('[data-done]')){if(S.reviewed[t.key])delete S.reviewed[t.key];else S.reviewed[t.key]=true;SW.save();draw();return;}
-  if(e.target.closest('[data-quiztopic]')){window.__startQuiz({mods:[t.mod],topic:t.id,n:999,type:'mixed'});return;}
+  if(e.target.closest('[data-quiztopic]')){window.__startQuiz({mods:[t.mod],topic:t.id,n:999,type:'mixed',topicKey:t.key,origin:'#/learn/'+t.mod+'/'+t.id});return;}
  };
 }
 })();
@@ -4642,8 +4642,8 @@ window.__startQuiz=function(o){
  if(!o.weak&&!o.ids&&!o.topic){pool.sort(function(a,b){return (SW.S.q[a.id]?1:0)-(SW.S.q[b.id]?1:0);});}
  var n=Math.min(o.n||pool.length,pool.length);
  var items=pool.slice(0,n).map(function(q){return {id:q.id,order:SW.shuffle(q.opts.map(function(_,i){return i;})),sel:null,checked:false,correct:null,flag:!!(SW.S.q[q.id]&&SW.S.q[q.id].flag)};});
- var oneSec=o.section||(!o.weak&&!o.ids&&!o.topic&&o.mods&&o.mods!=='all'&&o.mods.length===1?o.mods[0]:null);
- QZ.session={section:oneSec,items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
+ var oneSec=o.topicKey?null:(o.section||(!o.weak&&!o.ids&&!o.topic&&o.mods&&o.mods!=='all'&&o.mods.length===1?o.mods[0]:null));
+ QZ.session={section:oneSec,topicKey:o.topicKey||(o.topic&&o.mods&&o.mods.length===1?o.mods[0]+'/'+o.topic:null),origin:o.origin||null,items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
  if(location.hash!=='#/quiz') location.hash='#/quiz'; else V.quiz($('#main'));
 };
 
@@ -4691,7 +4691,7 @@ function runner(main){
  if(it.checked){
   h+='<div class="feedback '+(it.correct?'ok':'no')+'" role="status"><div class="verdict">'+(it.correct?'Correct':'Not quite')+'</div><div>'+q.exp+'</div><div class="src">Review: <a href="#/learn/'+q.m+'/'+q.t+'">'+esc(SW.mt(m))+' › '+esc(t.title)+'</a></div></div>';
  }
- h+='<div class="qfoot"><button class="btn ghost" data-end>End</button><span class="spacer"></span>'+(it.checked?'<button class="btn primary" data-next>'+(s.i+1<s.items.length?'Next question':'See results')+'</button>':'<button class="btn primary" data-check'+(it.sel===null?' disabled':'')+'>Check answer</button>')+'</div>';
+ h+='<div class="qfoot"><button class="btn ghost" data-end>'+(s.origin?'End · back to Learn':'End')+'</button><span class="spacer"></span>'+(it.checked?'<button class="btn primary" data-next>'+(s.i+1<s.items.length?'Next question':'See results')+'</button>':'<button class="btn primary" data-check'+(it.sel===null?' disabled':'')+'>Check answer</button>')+'</div>';
  h+='<p class="kbd">Keys: 1–4 to choose · Enter to check / next · F to flag</p>';
  main.innerHTML=h;
  main.onclick=function(e){
@@ -4713,7 +4713,9 @@ function runner(main){
  }
  function next(){ if(s.i+1<s.items.length){s.i++;runner(main);window.scrollTo(0,0);} else finish(); }
  function flag(){ it.flag=!it.flag; if(SW.S.q[it.id]){SW.S.q[it.id].flag=it.flag;SW.save();SW.updateChrome();} runner(main); }
- function end(){ var answered=s.items.filter(function(x){return x.checked;}).length; if(!answered){QZ.session=null;window.__keys=null;setup(main);return;} s.items=s.items.filter(function(x){return x.checked;}); finish(); }
+ function end(){ var answered=s.items.filter(function(x){return x.checked;}).length;
+  if(s.origin){ if(answered){var c2=s.items.filter(function(x){return x.checked&&x.correct;}).length;SW.S.sessions.push({d:SW.isoDate(new Date()),n:answered,c:c2,label:s.label});if(SW.S.sessions.length>50)SW.S.sessions.shift();SW.save();} var back=s.origin; QZ.session=null; window.__keys=null; location.hash=back; return; }
+  if(!answered){QZ.session=null;window.__keys=null;setup(main);return;} s.items=s.items.filter(function(x){return x.checked;}); finish(); }
 }
 function finish(){
  var s=QZ.session; s.done=true; window.__keys=null;
@@ -4736,14 +4738,20 @@ function results(main){
   secNext=si>=0?sl[si+1]||null:null;
   h+='<div class="card sec-next" style="margin-top:16px"><div class="small muted" style="margin-bottom:8px">Section quiz: '+esc(SW.MOD[s.section].title)+'</div><div class="row">'+
    (secNext?'<button class="btn primary" data-secnext="'+secNext.id+'">Next section: '+esc(secNext.title)+' →</button>':'<span class="small muted">That was the last section.</span>')+
-   '<a class="btn" href="#/learn/'+secSrc+'">Back to all sections</a></div></div>';
+   '<a class="btn" href="#/learn/'+secSrc+'">Back to all sections</a><a class="btn" href="#/learn/'+s.section+'">'+esc(SW.MOD[s.section].title)+' topics</a></div></div>';
  }
- h+='<div class="row" style="margin:16px 0">'+(missed.length?'<button class="btn '+(s.section?'':'primary')+'" data-retry>Retry the '+missed.length+' missed</button>':'')+'<button class="btn" data-new>New quiz</button></div>';
+ if(s.topicKey&&SW.TOPIC[s.topicKey]){
+  var tt=SW.TOPIC[s.topicKey], tm=SW.MOD[tt.mod], ti=tm.topics.indexOf(tt), tn=tm.topics[ti+1];
+  h+='<div class="card sec-next" style="margin-top:16px"><div class="small muted" style="margin-bottom:8px">Topic quiz: '+esc(tt.title)+'</div><div class="row">'+
+   (tn?'<a class="btn primary" href="#/learn/'+tm.id+'/'+tn.id+'">Next topic: '+esc(tn.title)+' →</a>':'<a class="btn primary" href="#/learn/'+SW.srcOf(tm.id)+'">Finish section → all sections</a>')+
+   '<a class="btn" href="#/learn/'+tt.mod+'/'+tt.id+'">Back to topic</a><a class="btn" href="#/learn/'+tm.id+'">'+esc(tm.title)+' topics</a></div></div>';
+ }
+ h+='<div class="row" style="margin:16px 0">'+(missed.length?'<button class="btn '+(s.section||s.topicKey?'':'primary')+'" data-retry>Retry the '+missed.length+' missed</button>':'')+'<button class="btn" data-new>New quiz</button></div>';
  if(missed.length){h+='<h2>Review what you missed</h2>'+missed.map(function(x){var q=SW.QBYID[x.id];return '<details class="missed"><summary><span class="mk">✕</span><span>'+q.stem+'</span></summary><div class="body"><p><span class="muted">You chose:</span> '+q.opts[x.order[x.sel]]+'</p><p class="ans">Answer: '+q.opts[0]+'</p><p>'+q.exp+'</p><a href="#/learn/'+q.m+'/'+q.t+'">Review topic →</a></div></details>';}).join('');}
  main.innerHTML=h;
  main.onclick=function(e){
-  var sn=e.target.closest('[data-secnext]'); if(sn){var nid=sn.getAttribute('data-secnext');window.__startQuiz({mods:[nid],n:20,type:'mixed',section:nid});window.scrollTo(0,0);return;}
-  if(e.target.closest('[data-retry]')) window.__startQuiz({ids:missed.map(function(x){return x.id;})});
+  var sn=e.target.closest('[data-secnext]'); if(sn){var nid=sn.getAttribute('data-secnext');window.__startQuiz({mods:[nid],n:20,type:'mixed',section:nid,origin:'#/learn/'+nid});window.scrollTo(0,0);return;}
+  if(e.target.closest('[data-retry]')) window.__startQuiz({ids:missed.map(function(x){return x.id;}),section:s.section,topicKey:s.topicKey,origin:s.origin});
   if(e.target.closest('[data-new]')){QZ.session=null;setup(main);window.scrollTo(0,0);}
  };
 }
