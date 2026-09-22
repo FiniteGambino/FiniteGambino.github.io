@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2c5f63">
-<meta name="description" content="Offline study tool for the social work licensing exam: guide content with simplified explanations, quizzes, flashcards, weak-spot tracking and a 3-day plan.">
+<meta name="description" content="Offline study tool for the social work licensing exam: guide content with simplified explanations, quizzes, flashcards, weak-spot tracking and a study plan to exam day.">
 <title>SW Exam Prep</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232c5f63'/%3E%3Cpath d='M18 20h28M18 32h28M18 44h18' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
@@ -241,7 +241,7 @@ td+td,th+th{border-left:1px solid var(--border)}
 .field>label,.field>.lab{display:block;font-weight:700;font-size:14px;margin-bottom:8px}
 .check{display:flex;align-items:center;gap:10px;font-size:15px;min-height:44px}
 .check input{width:20px;height:20px;accent-color:var(--accent)}
-input[type=date]{height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:0 10px}
+input[type=date],input[type=time]{height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:0 10px}
 textarea{width:100%;min-height:90px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:10px;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;color:var(--text)}
 /* Quiz */
 .qhead{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-bottom:8px}
@@ -3316,38 +3316,33 @@ C('mnem',"Just released from involuntary hospitalization","Increased suicide ris
 C('mnem',"Client gives away a valued possession","Suicide red flag → ask about the item's significance and why they're giving it away");
 
 window.PLAN = [
-{offset:-3, label:'Tonight', title:'Baseline + how to answer', time:'~2–2.5 hrs', items:[
+{offset:-2, label:'Today', title:'How to answer, ethics & diversity', time:'Afternoon + evening · ~4 hrs in 45–60 min blocks', items:[
  {id:'d0a', text:'Take a 20-question mixed quiz "cold" across every section. The score doesn\'t matter; it tells you where to spend your time.', act:{t:'quiz', mods:'all', n:20, type:'mixed'}},
  {id:'d0b', text:'Learn: <b>How to Answer Questions (THINK)</b>. This is the logic behind most scenario questions.', act:{t:'learn', mod:'think'}},
  {id:'d0c', text:'Learn: <b>NASW Code of Ethics</b>.', act:{t:'learn', mod:'ethics'}},
  {id:'d0d', text:'Learn: <b>Mnemonics</b> (FARM GRITS ROAD and SAULS HARM give you the exceptions and red flags).', act:{t:'learn', mod:'mnem'}},
- {id:'d0e', text:'Quiz: THINK + Ethics + Mnemonics, 20 questions. Read every explanation, including for the ones you got right.', act:{t:'quiz', mods:['think','ethics','mnem'], n:20, type:'mixed'}},
+ {id:'p1a', text:'Beyond the guide: <b>Values &amp; Ethics</b>. Diversity, social justice and ethics topics the guide skips. This is the biggest exam domain (about 35%).', act:{t:'learn', mod:'bx-ethics'}},
+ {id:'d0e', text:'Quiz: THINK + Ethics + Mnemonics + Beyond Values &amp; Ethics, 30 questions. Read every explanation, including for the ones you got right.', act:{t:'quiz', mods:['think','ethics','mnem','bx-ethics'], n:30, type:'mixed'}},
  {id:'d0f', text:'Stop and get a full night\'s sleep. Sleep after studying helps lock in what you learned.', act:null}
 ]},
-{offset:-2, label:'Day 2', title:'Theory & development', time:'~4–5 hrs, in 45–60 min blocks', items:[
- {id:'d1a', text:'Warm-up: re-quiz last night\'s weak spots. Spacing them out like this is what makes them stick.', act:{t:'weakquiz'}},
+{offset:-1, label:'Tomorrow', title:'Theory, practice, DSM & full test', time:'Full day · ~6–7 hrs in 45–60 min blocks with real breaks', items:[
+ {id:'d1a', text:'Warm-up: re-quiz today\'s weak spots. Spacing them out like this is what makes them stick.', act:{t:'weakquiz'}},
  {id:'d1b', text:'Learn: <b>Human Development</b> (Erikson, Piaget, Freud, defenses, attachment, Mahler, parenting, Maslow).', act:{t:'learn', mod:'dev'}},
- {id:'d1c', text:'Flashcards: Human Development.', act:{t:'cards', mods:['dev']}},
- {id:'d1d', text:'Learn: <b>Behavioral Theory</b> + <b>Trauma &amp; Resilience</b>.', act:{t:'learn', mod:'beh'}},
- {id:'d1e', text:'Learn: <b>Theories Behind Interventions</b>.', act:{t:'learn', mod:'interv'}},
- {id:'d1f', text:'Quiz: Development, Behavioral, Trauma, Interventions, 30 questions.', act:{t:'quiz', mods:['dev','beh','trauma','interv'], n:30, type:'mixed'}},
- {id:'d1g', text:'Evening: mixed 20-question quiz across <b>everything learned so far</b>. Mixing topics trains you to tell them apart.', act:{t:'quiz', mods:['think','ethics','mnem','dev','beh','trauma','interv'], n:20, type:'mixed'}},
- {id:'d1h', text:'Full night\'s sleep.', act:null}
-]},
-{offset:-1, label:'Day 3', title:'Practice, DSM & meds, full mixed test', time:'~4–5 hrs, in 45–60 min blocks', items:[
- {id:'d2a', text:'Warm-up: weak-spot quiz.', act:{t:'weakquiz'}},
- {id:'d2b', text:'Learn: <b>Family</b>, <b>Group</b>, <b>Communities</b>, <b>Organizational</b>.', act:{t:'learn', mod:'family'}},
- {id:'d2c', text:'Learn: <b>Research</b> + <b>Assessment Tools</b> (MSE terms).', act:{t:'learn', mod:'research'}},
+ {id:'d1d', text:'Learn: <b>Behavioral Theory</b>, <b>Trauma &amp; Resilience</b> and <b>Theories Behind Interventions</b>.', act:{t:'learn', mod:'beh'}},
+ {id:'p2a', text:'Beyond the guide: <b>Intervention &amp; Practice</b> (case management and referral, harm reduction, task-centered, crisis steps, grief, group models).', act:{t:'learn', mod:'bx-interv'}},
+ {id:'d1f', text:'Quiz: Development, Behavioral, Trauma, Interventions + Beyond Intervention &amp; Practice, 30 questions.', act:{t:'quiz', mods:['dev','beh','trauma','interv','bx-interv'], n:30, type:'mixed'}},
+ {id:'d2b', text:'Learn: <b>Family</b>, <b>Group</b>, <b>Communities</b>, <b>Organizational</b>, then <b>Research</b> + <b>Assessment Tools</b> (MSE terms).', act:{t:'learn', mod:'family'}},
+ {id:'p2b', text:'Beyond the guide: <b>Assessment &amp; Planning</b> (ecomap, psychological tests, family life cycle, trafficking, co-occurring disorders, capacity).', act:{t:'learn', mod:'bx-assess'}},
  {id:'d2d', text:'Learn: <b>DSM-5</b> (start with "All DSM timeframes on one page"), <b>Medication</b>, <b>Supervision</b>.', act:{t:'learn', mod:'dsm'}},
  {id:'d2e', text:'Flashcards: DSM-5 + Medication + Assessment.', act:{t:'cards', mods:['dsm','meds','assess']}},
- {id:'d2f', text:'Full mixed quiz: <b>all sections, 40 questions</b>.', act:{t:'quiz', mods:'all', n:40, type:'mixed'}},
+ {id:'d2f', text:'Full mixed test: <b>all sections, guide + beyond, 40 questions</b>.', act:{t:'quiz', mods:'all', n:40, type:'mixed'}},
  {id:'d2g', text:'Open Weak spots, read every miss, then re-quiz them.', act:{t:'weak'}},
  {id:'d2h', text:'Stop early. No cramming late at night. Get a full night\'s sleep.', act:null}
 ]},
-{offset:0, label:'Exam day', title:'Light review only', time:'15–30 min', items:[
+{offset:0, label:'Exam morning', title:'Light review only · exam at 12:00', time:'~30 min, done by about 10:00', items:[
  {id:'d3a', text:'Weak flashcards only, about 15 minutes.', act:{t:'weakcards'}},
  {id:'d3b', text:'Read <b>THINK at a glance</b> once.', act:{t:'topic', mod:'think', topic:'glance'}},
- {id:'d3c', text:'No new material today. Trust the work you\'ve done.', act:null}
+ {id:'d3c', text:'No new material today. Eat, bring your ID, and leave time to get to the test centre early. Trust the work you\'ve done.', act:null}
 ]}
 ];
 
@@ -4277,7 +4272,7 @@ var SEARCH=[]; MODULES.forEach(function(m){m.topics.forEach(function(t){SEARCH.p
 
 /* ---------- state ---------- */
 var KEY='swexam.v1';
-var DEFAULT={examDate:'2026-09-24',theme:'auto',view:'guide',reviewed:{},q:{},c:{},plan:{},last:null,sessions:[],recall:{},learnSrc:'guide'};
+var DEFAULT={examDate:'2026-09-24',examTime:'12:00',theme:'auto',view:'guide',reviewed:{},q:{},c:{},plan:{},last:null,sessions:[],recall:{},learnSrc:'guide'};
 var S=load();
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}var o=JSON.parse(JSON.stringify(DEFAULT));if(s&&typeof s==='object'){for(var k in s)o[k]=s[k];}return o;}
 var storageOK=true;
@@ -4295,6 +4290,10 @@ function reviewedCount(mid){var m=MOD[mid];return m.topics.filter(function(t){re
 function totalReviewed(){var n=0;MODULES.forEach(function(m){if(m.src!=='beyond')n+=reviewedCount(m.id);});return n;}
 var TOTAL_TOPICS=0; MODULES.forEach(function(m){if(m.src!=='beyond')TOTAL_TOPICS+=m.topics.length;});
 function daysLeft(){var e=parseDate(S.examDate);if(!e)return null;return daysBetween(today0(),e);}
+function examAt(){var e=parseDate(S.examDate);if(!e)return null;var t=(S.examTime||'12:00').split(':');e.setHours(+t[0]||0,+t[1]||0,0,0);return e;}
+function timeLeft(){var e=examAt();if(!e)return null;var ms=e-new Date();if(ms<=0)return {past:true,d:0,h:0,m:0};var m=Math.floor(ms/60000);return {past:false,d:Math.floor(m/1440),h:Math.floor((m%1440)/60),m:m%60};}
+function fmtLeft(t){if(!t)return 'Set exam date';if(t.past)return 'Exam done';if(t.d===0&&t.h===0)return t.m+' min to exam';return (t.d?t.d+'d ':'')+t.h+'h to exam';}
+function fmtTime(s){var t=(s||'12:00').split(':'),h=+t[0],m=t[1]||'00';return (h%12||12)+':'+m+(h<12?' am':' pm');}
 function planDayIndex(){var d=daysLeft();if(d===null)return 0;if(d<0)return -1;var off=-d;var idx=0;PLAN.forEach(function(p,i){if(p.offset<=off)idx=i;});if(off<PLAN[0].offset)idx=0;return idx;}
 
 /* ---------- icons ---------- */
@@ -4326,7 +4325,7 @@ function renderShell(){
  $('#themeBtn').addEventListener('click',function(){S.theme=S.theme==='auto'?'light':S.theme==='light'?'dark':'auto';save();applyTheme();updateChrome();toast('Theme: '+(S.theme==='auto'?'match device':S.theme));});
 }
 function updateChrome(){
- var d=daysLeft(); $('#cd').textContent=d===null?'Set exam date':d>1?d+' days to exam':d===1?'Exam tomorrow':d===0?'Exam today':'Exam done';
+ $('#cd').textContent=fmtLeft(timeLeft());
  $('#themeBtn').innerHTML=S.theme==='auto'?I.auto:S.theme==='light'?I.sun:I.moon;
  var route=(location.hash.replace(/^#\/?/,'').split('/')[0])||'home';
  var wn=weakQs().length+weakCards().length;
@@ -4338,7 +4337,7 @@ function toast(msg){var el=$('.toast');if(!el){el=document.createElement('div');
 window.__SW={hash:hash,$:$,esc:esc,strip:strip,shuffle:shuffle,pct:pct,fmtDate:fmtDate,parseDate:parseDate,isoDate:isoDate,today0:today0,daysBetween:daysBetween,
  MODULES:MODULES,QS:QS,CARDS:CARDS,srcOf:srcOf,mt:mt,srcMods:srcMods,MOD:MOD,TOPIC:TOPIC,QBYID:QBYID,CBYID:CBYID,QUIZ_MODS:QUIZ_MODS,SEARCH:SEARCH,
  get S(){return S;},set S(v){S=v;},DEFAULT:DEFAULT,KEY:KEY,save:save,applyTheme:applyTheme,storageOK:function(){return storageOK;},
- qWeak:qWeak,cWeak:cWeak,weakQs:weakQs,weakCards:weakCards,modStats:modStats,overall:overall,reviewedCount:reviewedCount,totalReviewed:totalReviewed,TOTAL_TOPICS:TOTAL_TOPICS,daysLeft:daysLeft,planDayIndex:planDayIndex,
+ qWeak:qWeak,cWeak:cWeak,weakQs:weakQs,weakCards:weakCards,modStats:modStats,overall:overall,reviewedCount:reviewedCount,totalReviewed:totalReviewed,TOTAL_TOPICS:TOTAL_TOPICS,daysLeft:daysLeft,timeLeft:timeLeft,fmtTime:fmtTime,examAt:examAt,planDayIndex:planDayIndex,
  I:I,renderShell:renderShell,updateChrome:updateChrome,toast:toast};
 })();
 
@@ -4354,8 +4353,9 @@ V.home=function(main){
  var exam=SW.parseDate(S.examDate);
  var h='';
  h+='<h1>'+(d===null?'Let\'s get you ready':d>0?'You\'ve got this.':d===0?'Exam day. Breathe.':'Exam complete')+'</h1>';
- h+='<p class="sub">'+(exam?'Exam: <b>'+SW.fmtDate(exam)+'</b> · <a href="#/plan">change</a>':'<a href="#/plan">Set your exam date</a>')+'</p>';
- h+='<div class="card"><div class="countdown"><span class="n">'+(d===null?'—':Math.max(d,0))+'</span><span class="muted">'+(d===1?'day left':'days left')+'</span></div>';
+ h+='<p class="sub">'+(exam?'Exam: <b>'+SW.fmtDate(exam)+' at '+SW.fmtTime(S.examTime)+'</b> · <a href="#/plan">change</a>':'<a href="#/plan">Set your exam date</a>')+'</p>';
+ var tl=SW.timeLeft();
+ h+='<div class="card"><div class="countdown">'+(tl===null?'<span class="n">—</span>':tl.past?'<span class="n">0</span><span class="muted">exam done</span>':(tl.d?'<span class="n">'+tl.d+'</span><span class="muted">'+(tl.d===1?'day':'days')+'</span>':'')+'<span class="n">'+tl.h+'</span><span class="muted">'+(tl.h===1?'hour':'hours')+' left</span>')+'</div>';
  var reviewed=SW.totalReviewed();
  h+='<div class="stats" style="margin-top:14px">'+
   stat(reviewed+'/'+SW.TOTAL_TOPICS,'topics reviewed')+
@@ -4411,7 +4411,7 @@ V.learn=function(main,parts){
   var r=SW.reviewedCount(m.id), n=m.topics.length, st=SW.modStats(m.id);
   h+='<a class="mod'+(r===n?' done':'')+(m.src==='beyond'?' bx':'')+'" href="#/learn/'+m.id+'"><span class="num">'+m.n+'</span><span style="min-width:0"><b>'+esc(m.title)+'</b><span class="meta">'+r+'/'+n+' reviewed'+(st.acc!==null?' · '+st.acc+'% quiz accuracy':'')+'</span><div class="bar"><i style="width:'+SW.pct(r,n)+'%"></i></div></span><span class="chev">'+I.chev+'</span></a>';
  });
- h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 22 Sep 2026, 3:05 pm</p>';
+ h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 22 Sep 2026, 3:40 pm</p>';
  main.innerHTML=h;
  var inp=$('#q'); inp.addEventListener('input',function(){search(inp.value);});
  var key='_lastSearch_'+src;
@@ -4875,9 +4875,9 @@ window.__planGo=function(id){
 var resetArm=false;
 V.plan=function(main){
  var S=SW.S, exam=SW.parseDate(S.examDate), di=SW.planDayIndex();
- var h='<h1>Plan</h1><p class="sub">A 3-day plan built around research-backed study methods. Tap <b>Go</b> to jump straight to each step.</p>';
- h+='<div class="card row"><label for="ed" style="font-weight:700">Exam date</label><input type="date" id="ed" value="'+esc(S.examDate||'')+'"><span class="muted small">'+(SW.daysLeft()!==null?(SW.daysLeft()>=0?SW.daysLeft()+' day'+(SW.daysLeft()===1?'':'s')+' away':'past'):'')+'</span></div>';
- h+='<h2>Your 3 days</h2>';
+ var h='<h1>Plan</h1><p class="sub">From today to exam day, built around research-backed study methods. Tap <b>Go</b> to jump straight to each step.</p>';
+ h+='<div class="card row"><label for="ed" style="font-weight:700">Exam</label><input type="date" id="ed" value="'+esc(S.examDate||'')+'"><input type="time" id="et" value="'+esc(S.examTime||'12:00')+'" aria-label="Exam time"><span class="muted small">'+(SW.daysLeft()!==null?(SW.daysLeft()>=0?SW.daysLeft()+' day'+(SW.daysLeft()===1?'':'s')+' away':'past'):'')+'</span></div>';
+ h+='<h2>Your plan to '+(exam?SW.fmtDate(exam)+', '+SW.fmtTime(S.examTime):'exam day')+'</h2>';
  PLAN.forEach(function(d,i){
   var date=exam?new Date(exam.getFullYear(),exam.getMonth(),exam.getDate()+d.offset):null;
   var done=d.items.filter(function(x){return S.plan[x.id];}).length;
@@ -4892,6 +4892,7 @@ V.plan=function(main){
  h+='<h2>Reset</h2><div class="card"><button class="btn bad" data-reset>'+(resetArm?'Tap again to erase all progress':'Erase all progress')+'</button></div>';
  main.innerHTML=h;
  $('#ed').addEventListener('change',function(e){if(e.target.value){S.examDate=e.target.value;SW.save();SW.updateChrome();V.plan(main);}});
+ $('#et').addEventListener('change',function(e){if(e.target.value){S.examTime=e.target.value;SW.save();SW.updateChrome();V.plan(main);}});
  main.onclick=function(e){
   var ck=e.target.closest('[data-ck]'); if(ck){var id=ck.getAttribute('data-ck');if(ck.checked)S.plan[id]=true;else delete S.plan[id];SW.save();V.plan(main);return;}
   var g=e.target.closest('[data-go]'); if(g){window.__planGo(g.getAttribute('data-go'));return;}
