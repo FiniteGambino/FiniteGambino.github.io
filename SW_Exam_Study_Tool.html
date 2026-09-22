@@ -178,6 +178,23 @@ td+td,th+th{border-left:1px solid var(--border)}
 .recall-cover{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:2;padding:16px}
 .recall-wrap.hidden .recall-cover{display:flex}
 .recall-cover .card{max-width:340px;text-align:center}
+/* Beyond the guide */
+.src-seg{margin:2px 0 16px;display:flex}
+.src-seg a{white-space:nowrap;flex:1;text-align:center;text-decoration:none;border:0;border-radius:9px;padding:9px 12px;font-weight:650;font-size:14.5px;color:var(--muted);min-height:40px;display:flex;align-items:center;justify-content:center;gap:6px}
+.src-seg a[aria-current="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.src-seg .cnt{font-size:12px;font-weight:700;color:var(--faint)}
+.bx-note{background:var(--accent-weak);color:var(--accent-text);border-radius:10px;padding:10px 12px;font-size:14px;margin:0 0 14px}
+.bx-note b{color:inherit}
+.mod.bx .num{background:var(--accent-weak);color:var(--accent-text)}
+.pe{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--good);background:var(--good-bg);border-radius:99px;padding:1px 8px;vertical-align:2px;white-space:nowrap}
+.pe-row{display:table;margin-top:4px}
+.xtip{border-left:3px solid var(--accent);background:var(--accent-weak);border-radius:0 10px 10px 0;padding:10px 12px;margin:14px 0 6px}
+.xtip .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--accent-text);margin-bottom:2px}
+.xrefs{margin:12px 0 4px;font-size:13px;color:var(--muted)}
+.xrefs .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--faint);margin-bottom:4px}
+.xrefs ul{margin:0;padding-left:18px}.xrefs li{margin:3px 0}
+.xrefs a{color:var(--accent-text);overflow-wrap:anywhere}
+.title-tags{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 4px}
 /* Typed recall */
 .recall-wrap.hidden .content{max-height:170px;overflow:hidden}
 .recall-wrap.hidden .recall-cover{position:static;display:block;padding:0;margin-bottom:12px}
@@ -3334,6 +3351,884 @@ window.PLAN = [
 ]}
 ];
 
+// ================= BEYOND THE GUIDE: VALUES & ETHICS =================
+MODULES.push({
+id:'bx-ethics', n:'B1', src:'beyond', title:'Values & Ethics', blurb:'Diversity, social justice and ethics topics on the 2026 outline that the guide skips',
+intro:'Values &amp; Ethics is the heaviest domain on the 2026 Bachelors exam (about 35%). Most of this section is Diversity &amp; Social Justice, which the guide barely covers.',
+topics:[
+{id:'aop', title:'Anti-oppressive practice & power',
+guide:`<p><b>Anti-oppressive practice</b> looks at how <b>systems and institutions</b> (laws, agencies, policies) create disadvantage. It isn't only about how one worker treats one client.</p>
+<div class="tbl"><table><tr><th>Idea</th><th>What it means</th></tr>
+<tr><td><b>Anti-oppressive practice</b></td><td>Name and challenge <b>structural</b> power and oppression (racism, sexism, ableism, classism, etc.)</td></tr>
+<tr><td><b>Anti-racist practice</b></td><td>Anti-oppressive practice focused specifically on <b>racism</b> and its effects</td></tr>
+<tr><td><b>Power differential</b></td><td>The worker holds institutional power: records, referrals, reports, access to resources. Be <b>transparent</b> about it; never pretend it isn't there</td></tr>
+<tr><td><b>Internalized oppression</b></td><td>A client absorbs society's negative messages about their group. Frame it as a product of the environment, not a personal failing</td></tr>
+<tr><td><b>Cultural mistrust</b></td><td>Wariness of institutions that have harmed people like the client. A <b>reasonable reading</b> of history, not pathology or "resistance"</td></tr>
+<tr><td><b>Critical consciousness</b></td><td>Seeing problems as shaped by social, political and economic conditions, then acting on that (reflection + action)</td></tr></table></div>`,
+simple:'', tip:`Ask whether the problem in the question is <b>individual or systemic</b>. Wrong answers often treat a reasonable response to discrimination (like distrust) as a symptom, or make the client educate the worker about their culture.`,
+refs:[['SWTP: Anti-oppressive and anti-racist approaches (2026)','https://socialworktestprep.com/blog/2026/august/13/anti-oppressive-and-anti-racist-approaches/']]},
+
+{id:'intersect', title:'Intersectionality',
+guide:`<p><b>Intersectionality</b> (term coined by <b>Kimberlé Crenshaw</b>) means a person's identities (race, gender, class, disability, sexual orientation, immigration status…) <b>overlap</b> and create a <b>distinct</b> experience of privilege or oppression.</p>
+<ul><li>The effects are <b>not additive</b>. A Black disabled woman doesn't face "racism + sexism + ableism" as three separate streams; she faces one combined experience.</li>
+<li>In assessment: ask about <b>all</b> of a client's identities and how they interact, instead of focusing on one.</li>
+<li>The same person can hold privilege in one identity and face oppression in another.</li></ul>`,
+simple:'', tip:`If an answer choice looks at only one part of a client's identity when several are in play, it's usually weaker than the one that considers how they combine.`,
+refs:[['SWTP: Anti-oppressive and anti-racist approaches (2026)','https://socialworktestprep.com/blog/2026/august/13/anti-oppressive-and-anti-racist-approaches/'],['Columbia Law School: Crenshaw on intersectionality','https://www.law.columbia.edu/news/archive/kimberle-crenshaw-intersectionality-more-two-decades-later']]},
+
+{id:'bias', title:'Privilege, implicit bias & microaggressions',
+guide:`<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>Privilege</b></td><td>Unearned advantages that come from belonging to a dominant group</td></tr>
+<tr><td><b>Implicit bias</b></td><td>Attitudes or stereotypes that affect decisions <b>without conscious awareness</b>. Everyone has them, so the fix is ongoing <b>self-reflection</b> and supervision</td></tr>
+<tr><td><b>Microaggressions</b> (Derald Wing Sue)</td><td>Everyday slights that send a demeaning message to someone because of their group</td></tr></table></div>
+<p><b>Sue's three types</b></p>
+<div class="tbl"><table><tr><th>Type</th><th>What it is</th><th>Example</th></tr>
+<tr><td><b>Microassault</b></td><td>Explicit, deliberate slur or exclusion</td><td>A racist joke, then "just kidding"</td></tr>
+<tr><td><b>Microinsult</b></td><td>Rude or insensitive, often <b>unintentional</b>, message that demeans</td><td>"You're so articulate" said in surprise</td></tr>
+<tr><td><b>Microinvalidation</b></td><td>Denies or dismisses the person's lived experience</td><td>"I don't see color"; "Racism isn't a thing anymore"</td></tr></table></div>`,
+simple:'', tip:`If a worker commits or witnesses a microaggression, the right answer <b>addresses it</b> (acknowledge, repair, explore the impact). It doesn't ignore it or turn the moment into the worker's guilt.`,
+refs:[['SWTP: Anti-oppressive and anti-racist approaches (2026)','https://socialworktestprep.com/blog/2026/august/13/anti-oppressive-and-anti-racist-approaches/'],['PBS: Microassaults, microinsults and microinvalidations','https://www.pbslearningmedia.org/resource/cb19-ss-types.microaggressions/microassult-microinsults-and-microinvalidation/']]},
+
+{id:'culture', title:'Cultural humility & ethnocentrism', pe:true,
+guide:`<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>Ethnocentrism</b></td><td>Judging another culture by the standards of <b>your own</b> culture, and seeing yours as the norm or superior</td></tr>
+<tr><td><b>Cultural relativism</b></td><td>Understanding a culture by <b>its own standards</b>, not through your own lens (the opposite of ethnocentrism)</td></tr>
+<tr><td><b>Xenocentrism</b></td><td>Believing another culture is superior to your own</td></tr>
+<tr><td><b>Culture shock</b></td><td>Disorientation when facing an unfamiliar way of life</td></tr>
+<tr><td><b>Cultural humility</b></td><td>Lifelong <b>self-reflection</b> and learning; the client is the expert on their own culture</td></tr></table></div>
+<p><b>NASW Code 1.05</b> (2021 revision) was retitled from "Cultural Competence" to "<b>Cultural Awareness and Social Diversity</b>." The idea: you never finish becoming competent; you keep learning, reflect on your own biases, and provide culturally informed services.</p>`,
+simple:'', tip:`On your practice exam, ethnocentrism came up as a straight definition (recall) question. If an answer choice judges a client's practice as wrong just because it differs from the worker's culture, that's ethnocentrism.`,
+refs:[['Lumen: Ethnocentrism and cultural relativism','https://courses.lumenlearning.com/wm-introductiontosociology/chapter/ethnocentrism-and-cultural-relativism/'],['NASW: 1.05 Cultural Awareness and Social Diversity','https://www.socialworkers.org/About/Ethics/Ethics-Education-and-Resources/Ethical-Standard-of-the-Month/Cultural-Awareness-and-Social-Diversity']]},
+
+{id:'lang', title:'Language access & interpreters',
+guide:`<p>Clients have a right to understand their services. The NASW Code (1.03) says to use a <b>qualified interpreter</b> or translator when a client has trouble understanding the language used.</p>
+<div class="tbl"><table><tr><th>Do</th><th>Don't</th></tr>
+<tr><td>Use a <b>trained professional interpreter</b></td><td>Use <b>children</b> as interpreters, ever</td></tr>
+<tr><td><b>Speak directly to the client</b> and keep eye contact with them</td><td>Talk to the interpreter ("Tell her that…")</td></tr>
+<tr><td><b>Brief the interpreter</b> before the session</td><td>Rely on family or friends unless there's no alternative or the client insists</td></tr>
+<tr><td>Speak in <b>short segments</b>; allow extra time</td><td>Talk for a long time without pausing</td></tr>
+<tr><td>Review <b>confidentiality</b> with the interpreter</td><td>Assume the interpreter knows the rules</td></tr></table></div>`,
+simple:'', tip:`Family members, and especially children, are the classic wrong answer: they break confidentiality, shift family roles, and may filter what's said (for example in abuse or medical situations).`,
+refs:[['KSDE: Tips for using interpreters','https://www.ksde.gov/Portals/0/Title/ESOL/Interpreter-TipsforUsing.pdf'],['SWTP: Principles and techniques of interviewing','https://socialworktestprep.com/blog/2024/september/20/the-principles-and-techniques-of-interviewing/'],['NASW Code of Ethics: Responsibilities to clients','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'access', title:'Neurodiversity, disability & Deaf culture',
+guide:`<ul><li><b>Neurodiversity</b>: natural variation in how brains work (autism, ADHD, dyslexia…). It frames these as <b>differences</b>, not only deficits.</li>
+<li><b>Person-first language</b> ("person with a disability") vs <b>identity-first language</b> ("autistic person"). Many autistic adults prefer identity-first. Best practice: <b>ask the person</b> what they prefer.</li>
+<li><b>Deaf</b> (capital D) = a cultural and linguistic community that shares <b>American Sign Language (ASL)</b>, a full language with its own grammar. Lowercase "deaf" refers to the hearing condition.</li>
+<li>Use a <b>qualified ASL interpreter</b>, not writing notes back and forth or a family member.</li>
+<li><b>Accessibility</b> covers physical (ramps, space), communication (interpreters, plain language, alternate formats) and cultural access.</li>
+<li>Assess <b>communication ability</b> (hearing, vision, literacy, cognition) early and adapt, rather than assuming the client didn't understand or isn't cooperating.</li></ul>`,
+simple:'', tip:`Look for the answer that adapts the service to the client (accommodation, interpreter, the client's preferred language) rather than asking the client to adapt to the agency.`,
+refs:[['Disability Rights Texas: Identity-first vs people-first language','https://disabilityrightstx.org/en/2023/04/13/identity-first-language-vs-people-first-language/'],['National Association of the Deaf: Community and culture FAQ','https://www.nad.org/resources/american-sign-language/community-and-culture-frequently-asked-questions/']]},
+
+{id:'immig', title:'Immigrants, refugees & acculturation',
+guide:`<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>Refugee</b></td><td>Outside their country with a <b>well-founded fear of persecution</b> (race, religion, nationality, social group, political opinion)</td></tr>
+<tr><td><b>Asylum seeker</b></td><td>Has asked for protection; the claim hasn't been decided yet</td></tr>
+<tr><td><b>Economic migrant</b></td><td>Moves mainly for better economic opportunity, not to flee persecution</td></tr></table></div>
+<p><b>Berry's acculturation strategies</b>: do you keep your heritage culture, and do you take on the host culture?</p>
+<div class="tbl"><table><tr><th>Strategy</th><th>Heritage culture</th><th>Host culture</th></tr>
+<tr><td><b>Integration</b> (biculturalism; <b>best outcomes</b>)</td><td>Keep</td><td>Adopt</td></tr>
+<tr><td><b>Assimilation</b></td><td>Give up</td><td>Adopt</td></tr>
+<tr><td><b>Separation</b></td><td>Keep</td><td>Reject</td></tr>
+<tr><td><b>Marginalization</b> (worst outcomes)</td><td>Give up</td><td>Reject</td></tr></table></div>
+<p>Watch for <b>acculturation gaps</b> in families: children often adapt faster than parents, which can cause conflict and role reversal (e.g., a child interpreting for parents).</p>`,
+simple:'', tip:`Explore the client's own migration story and cultural values before assuming a problem. Don't make immigration status a condition for help unless the question makes it legally necessary.`,
+refs:[['Maricopa Open: Berry\'s model of acculturation','https://open.maricopa.edu/culturepsychology/chapter/berrys-model-of-acculturation/'],['Wikipedia: Refugee (1951 Convention definition)','https://en.wikipedia.org/wiki/Refugee']]},
+
+{id:'indig', title:'Indigenous peoples & historical oppression',
+guide:`<ul><li><b>Historical trauma</b> (Maria Yellow Horse <b>Brave Heart</b>): cumulative, collective wounding across generations from colonization, forced removal, boarding and <b>residential schools</b>, and lost language and ceremony. It's shared by a community and ongoing, not just one person's PTSD.</li>
+<li><b>MMIW / MMIWG</b>: Missing and Murdered Indigenous Women (and Girls). Canada's National Inquiry (2019 final report) called the violence a genocide.</li>
+<li><b>Indian Child Welfare Act (ICWA, US, 1978)</b>: when a Native child is involved in child welfare, it requires <b>active efforts</b> to keep the family together and <b>prioritizes placement with extended family and the tribe</b>. The tribe can take part in the case or move it to tribal court.</li>
+<li><b>Truth and reconciliation</b>: harmed people's testimony comes first. Reconciliation is a possible outcome, not a requirement, and it is <b>not the same as forgiveness</b>.</li></ul>`,
+simple:'', tip:`Right answers keep decisions with the community, partner with cultural leaders, and pair acknowledgment of harm with concrete action. Wrong answers rush to closure or put the institution's comfort first.`,
+refs:[['SWTP: Truth, reconciliation and restorative practices (2026)','https://socialworktestprep.com/blog/2026/september/15/truth-reconciliation-and-restorative-practices/'],['NICWA: What is ICWA?','https://www.nicwa.org/what-is-icwa/'],['CBC: National inquiry calls MMIWG a Canadian genocide','https://www.cbc.ca/news/indigenous/genocide-murdered-missing-indigenous-women-inquiry-report-1.5157580']]},
+
+{id:'lgbtq', title:'Sexual orientation, gender identity & relationships',
+guide:`<ul><li><b>Sexual orientation</b> (who you're attracted to) and <b>gender identity</b> (your internal sense of gender) are different things.</li>
+<li><b>Coming out</b> is the client's decision: <b>they choose the timing and who to tell</b>. Help them explore feelings, <b>assess safety</b> first (family reaction, housing, school, work), and plan for coping.</li>
+<li><b>Pronouns</b>: ask; don't assume. If you get it wrong, correct yourself briefly and move on.</li>
+<li><b>Don't pathologize</b>: LGBTQ+ identity is not a disorder. Conversion therapy is harmful and not supported.</li>
+<li><b>LGBTQ+ youth</b> face higher rates of <b>homelessness</b> and family rejection; family acceptance is protective.</li>
+<li><b>Diverse relationship structures</b> (e.g., polyamory): assess the relationship without treating the structure itself as the problem.</li></ul>`,
+simple:'', tip:`Answers built on <b>self-determination</b> and <b>safety</b> win. Wrong answers push the client to come out, tell the family for them, or treat the identity as the problem.`,
+refs:[['Agents of Change: Working with LGBTQ+ populations','https://agentsofchangeprep.com/blog/working-with-lgbtq-populations-cultural-competency-tips-for-the-aswb-exam/'],['Agents of Change: 10 new topics in the 2026 blueprint','https://agentsofchangeprep.com/blog/10-new-topics-in-the-2026-aswb-blueprint/']]},
+
+{id:'restor', title:'Restorative practices',
+guide:`<div class="tbl"><table><tr><th>Retributive (punitive)</th><th>Restorative</th></tr>
+<tr><td>What rule was broken? What does the person deserve?</td><td><b>Who was harmed</b>, what do they need, and <b>whose obligation</b> is it to meet that need?</td></tr></table></div>
+<p><b>Three key features</b></p><ul><li><b>Voluntary, informed participation</b>, especially from the harmed person</li><li><b>Acknowledging the harm</b> (not fact-finding or blame)</li><li><b>Negotiated repair agreements</b>, not assigned penalties</li></ul>
+<p><b>Forms</b>: peacemaking/healing circles, victim–offender dialogue, <b>family group conferencing</b> (from Māori practice in New Zealand), restorative school discipline.</p>
+<p><b>Not appropriate face to face</b> when there's ongoing danger, coercive control or a big power imbalance, such as <b>intimate partner violence</b>. Safety comes before repair.</p>`,
+simple:'', tip:`If a restorative option appears in a case involving ongoing abuse, it's probably a trap. Safety first.`,
+refs:[['SWTP: Truth, reconciliation and restorative practices (2026)','https://socialworktestprep.com/blog/2026/september/15/truth-reconciliation-and-restorative-practices/']]},
+
+{id:'consent', title:'Informed consent in depth',
+guide:`<p>NASW Code <b>1.03</b>. Use <b>clear, understandable language</b> to explain:</p>
+<ul><li>The <b>purpose</b> of services, <b>risks</b>, limits due to third-party payers, <b>costs</b>, reasonable <b>alternatives</b>, the <b>right to refuse or withdraw</b>, and the <b>time frame</b></li>
+<li>Give the client a chance to <b>ask questions</b></li></ul>
+<div class="tbl"><table><tr><th>Situation</th><th>What the Code says</th></tr>
+<tr><td>Literacy or language barrier</td><td>Explain verbally or arrange a <b>qualified interpreter</b></td></tr>
+<tr><td>Client lacks capacity</td><td>Get permission from an <b>appropriate third party</b>, and still inform the client at their level</td></tr>
+<tr><td><b>Involuntary client</b></td><td>Explain the <b>nature and extent of services</b> and the <b>extent of their right to refuse</b></td></tr>
+<tr><td>Electronic services</td><td><b>Verify identity and location</b>; discuss tech risks; assess if remote work suits the client</td></tr></table></div>`,
+simple:'', tip:`Consent is a process, not a single signature. If the client doesn't understand, the consent isn't informed.`,
+refs:[['NASW Code of Ethics: Responsibilities to clients','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'tech', title:'Technology & telehealth ethics',
+guide:`<p>From the <b>NASW/ASWB/CSWE/CSWA Standards for Technology in Social Work Practice</b> and the 2021 Code:</p>
+<ul><li><b>Informed consent</b> covers tech-specific risks: technology failure, interruptions, privacy breaches</li>
+<li><b>Verify the client's identity and location</b> at the start of each electronic contact (needed for emergencies)</li>
+<li>Follow the laws of <b>both</b> the worker's and the <b>client's jurisdiction</b> (licensure)</li>
+<li>Have an <b>emergency plan</b> and a backup way to communicate</li>
+<li>Protect records: <b>encryption</b>, firewalls, secure platforms</li>
+<li><b>No personal social media</b> relationships with clients (Code 1.06); never post identifying client information</li>
+<li>Don't search clients online without consent, except in <b>emergencies</b> with serious safety concerns</li></ul>`,
+simple:'', tip:`A client Googled by curiosity, a friend request, or a telehealth session with no emergency plan are all ethics red flags on the exam.`,
+refs:[['NASW: Standards for Technology in Social Work Practice','https://www.socialworkers.org/Practice/NASW-Practice-Standards-Guidelines/Standards-for-Technology-in-Social-Work-Practice'],['NASW Code of Ethics: Responsibilities to clients','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'billing', title:'Billing & fees',
+guide:`<div class="tbl"><table><tr><th>Standard</th><th>Rule</th></tr>
+<tr><td><b>3.05 Billing</b></td><td>Bills must <b>accurately reflect</b> the nature and extent of services and <b>who provided them</b></td></tr>
+<tr><td><b>1.13 Payment</b></td><td>Fees must be <b>fair, reasonable</b> and match the service, considering the client's ability to pay</td></tr>
+<tr><td><b>Bartering</b></td><td>Only in limited cases: accepted practice in the community, essential to providing services, negotiated without coercion, and at the client's initiative with informed consent. The worker carries full responsibility</td></tr>
+<tr><td><b>1.16 Termination for non-payment</b></td><td>Allowed in fee-for-service settings if the arrangement was clear, it was discussed, and the client isn't a danger to self or others</td></tr></table></div>
+<p><b>Examples of fraud</b>: billing for sessions that didn't happen, billing a longer or different service than delivered, billing under another provider's name.</p>`,
+simple:'', tip:`Any answer that "adjusts" a bill or diagnosis to get insurance to pay is wrong, even if it helps the client.`,
+refs:[['NASW Code: Practice settings (3.05)','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-in-Practice-Settings'],['NASW Code: Responsibilities to clients (1.13, 1.16)','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'eol', title:'End-of-life ethics',
+guide:`<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>Advance directive</b></td><td>Document stating health care wishes for a time the person can't communicate them</td></tr>
+<tr><td><b>Living will</b></td><td>Type of advance directive listing which treatments the person wants or refuses</td></tr>
+<tr><td><b>Health care power of attorney / proxy</b></td><td>Names a <b>person</b> to make medical decisions if the client loses capacity</td></tr>
+<tr><td><b>Palliative care</b></td><td>Comfort and quality of life at <b>any stage</b> of serious illness; <b>curative treatment can continue</b></td></tr>
+<tr><td><b>Hospice</b></td><td>Comfort care near the end of life (prognosis about <b>6 months or less</b>); curative treatment stops</td></tr></table></div>
+<p><b>NASW position</b>: respect client <b>self-determination</b> in end-of-life decisions, including access to <b>medical aid in dying</b> where it's legal. Don't impose your own values. A worker who objects on moral grounds should <b>transfer care</b> to another worker, not block the client.</p>`,
+simple:'', tip:`Your role is to support an informed decision, explore the client's values and connect family and team, not to decide for them or talk them out of it.`,
+refs:[['NASW: End-of-life decision making and care (policy)','https://www.socialworkers.org/LinkClick.aspx?fileticket=JWAkKetOeW0%3D&portalid=0'],['NIA: Palliative care vs hospice','https://www.nia.nih.gov/health/hospice-and-palliative-care/what-are-palliative-care-and-hospice-care'],['Wikipedia: Advance healthcare directive','https://en.wikipedia.org/wiki/Advance_healthcare_directive']]},
+
+{id:'colleagues', title:'Colleagues, impairment & self-care',
+guide:`<p><b>Impaired, incompetent or unethical colleague</b> (NASW 2.08–2.10). Same order every time:</p>
+<ol class="ladder"><li><b>Talk to the colleague first</b> when feasible, and help them take corrective action</li><li>If that doesn't work, go through <b>formal channels</b>: employer, agency, licensing or regulatory board, NASW</li></ol>
+<p>Also defend colleagues who are <b>unjustly</b> accused.</p>
+<div class="tbl"><table><tr><th>Term</th><th>Cause</th><th>Looks like</th></tr>
+<tr><td><b>Burnout</b></td><td>Prolonged <b>workplace</b> stress and overload; builds gradually</td><td>Exhaustion, cynicism, detachment, feeling ineffective</td></tr>
+<tr><td><b>Secondary / vicarious trauma</b></td><td>Exposure to <b>clients' trauma</b></td><td>Intrusive thoughts, numbness, anxiety; changed worldview</td></tr>
+<tr><td><b>Compassion fatigue</b></td><td>Cost of ongoing <b>empathic caring</b> for suffering people</td><td>Depleted empathy, numbness, hopelessness</td></tr></table></div>
+<p>The 2021 Code added that <b>professional self-care is paramount</b> for competent, ethical practice. Prevention is personal (boundaries, support) <b>and organizational</b> (supervision, debriefing, manageable caseloads).</p>`,
+simple:'', tip:`Going straight to the licensing board is usually wrong unless the client is in immediate danger. Talk to the colleague first.`,
+refs:[['NASW Code: Responsibilities to colleagues','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Colleagues'],['SWTP: Burnout, secondary trauma and compassion fatigue','https://socialworktestprep.com/blog/2024/march/04/burnout-secondary-trauma-and-compassion-fatigue/']]}
+]});
+
+// ================= BEYOND THE GUIDE: ASSESSMENT & PLANNING =================
+MODULES.push({
+id:'bx-assess', n:'B2', src:'beyond', title:'Assessment & Planning', blurb:'Assessment concepts, tools and populations on the 2026 outline that the guide skips',
+intro:'About 33% of the 2026 Bachelors exam. This fills in social problems, special populations, and the assessment tools and terms from your practice exam.',
+topics:[
+{id:'sdoh', title:'Social determinants, poverty & homelessness',
+guide:`<p><b>Social determinants of health (SDOH)</b>: the conditions where people are born, live, learn, work, play, worship and age that affect health and quality of life.</p>
+<p><b>Healthy People 2030's five domains</b></p>
+<div class="tbl"><table><tr><th>Domain</th><th>Examples</th></tr>
+<tr><td><b>Economic stability</b></td><td>Income, employment, food and housing security</td></tr>
+<tr><td><b>Education access and quality</b></td><td>Literacy, school quality, early childhood education</td></tr>
+<tr><td><b>Health care access and quality</b></td><td>Insurance, having a regular provider</td></tr>
+<tr><td><b>Neighborhood and built environment</b></td><td>Safe housing, transportation, clean air and water</td></tr>
+<tr><td><b>Social and community context</b></td><td>Discrimination, social support, incarceration, civic participation</td></tr></table></div>
+<p><b>Housing First</b>: give people experiencing homelessness <b>permanent housing without preconditions</b> (no sobriety or treatment required first). Support services are <b>voluntary</b> and offered alongside.</p>`,
+simple:'', tip:`When a client's "noncompliance" is really about transportation, cost, housing or child care, the right answer addresses the <b>barrier</b>, not the client's motivation.`,
+refs:[['Healthy People 2030: Social determinants of health','https://odphp.health.gov/healthypeople/priority-areas/social-determinants-health'],['National Alliance to End Homelessness: Housing First','https://endhomelessness.org/resources/policy-information/protecting-the-use-of-housing-first/']]},
+
+{id:'traffick', title:'Human trafficking',
+guide:`<p><b>Human trafficking</b> = using <b>force, fraud or coercion</b> to get someone to perform <b>labor</b> or <b>commercial sex</b>.</p>
+<div class="tbl"><table><tr><th>Key fact</th><th>Detail</th></tr>
+<tr><td><b>Minors</b></td><td>Any commercial sex involving someone <b>under 18</b> is sex trafficking. <b>No force, fraud or coercion needs to be shown</b></td></tr>
+<tr><td><b>Movement</b></td><td><b>Not required</b>. People can be trafficked in their own hometown</td></tr>
+<tr><td><b>Kidnapping</b></td><td>Rare. Control is usually psychological: debt bondage, threats, manipulation, romance</td></tr>
+<tr><td><b>Self-identification</b></td><td>Victims often <b>don't see themselves</b> as victims, out of fear, shame, loyalty or language barriers</td></tr></table></div>
+<p><b>Red flags</b>: someone else holds their ID or passport; they're not allowed to speak alone; debt to an employer; living where they work; scripted answers; signs of fear, injuries, or not knowing their address.</p>`,
+simple:'', tip:`Interview the person <b>privately</b> and use a trauma-informed approach. Don't expect them to label it "trafficking." Safety comes before gathering details.`,
+refs:[['FBI: Human trafficking','https://www.fbi.gov/investigate/violent-crime/human-trafficking'],['DHS Blue Campaign: What is human trafficking?','https://www.dhs.gov/blue-campaign/what-human-trafficking'],['SWTP CEUs: What human trafficking really looks like','https://blog.swtpceus.com/what-human-trafficking-really-looks-like/']]},
+
+{id:'cooccur', title:'Co-occurring disorders',
+guide:`<p><b>Co-occurring disorders</b> = a substance use disorder <b>and</b> a mental health disorder at the same time.</p>
+<ul><li><b>Integrated treatment</b>: treat both <b>at the same time</b>, by the same team or in a coordinated way, not one after the other</li>
+<li><b>"No wrong door"</b>: whichever service the person walks into first should respond to both needs</li>
+<li><b>Screen for both</b>: one condition often hides or worsens the other</li>
+<li><b>Don't require sobriety</b> before offering mental health treatment</li></ul>`,
+simple:'', tip:`"Refer them to substance use treatment and address the depression once they're sober" is the classic wrong answer. Integrated care is the right one.`,
+refs:[['SAMHSA Advisory: SUD treatment for people with co-occurring disorders (TIP 42)','https://www.samhsa.gov/resource/ebp/advisory-substance-use-disorder-treatment-people-co-occurring-disorders-based-tip-42']]},
+
+{id:'ipv', title:'Domestic violence dynamics', pe:true,
+guide:`<p><b>Walker's cycle of violence</b> (1979). Violence tends to escalate over time, and the gaps between phases shorten.</p>
+<ol class="ladder"><li><b>Tension-building</b>: stress and conflict build up</li><li><b>Incident</b>: the abusive episode</li><li><b>Reconciliation / "honeymoon"</b>: apologies, affection, promises to change</li><li><b>Calm</b>: a quieter period that keeps hope alive</li></ol>
+<p>Criticism: many survivors never experience a honeymoon phase. The <b>Duluth Power and Control Wheel</b> describes abuse as a pattern of <b>power and control</b> tactics (isolation, economic control, threats, using children, etc.).</p>
+<ul><li><b>Leaving can be the most dangerous time</b>, so plan it with a <b>safety plan</b></li>
+<li><b>Couples counseling is not appropriate</b> while there's abuse. It can lead to retaliation. Use individual sessions and safety planning; refer the abusive partner to a batterer intervention program</li>
+<li>Screen <b>privately</b>, never in front of the partner</li>
+<li>Per the guide's SAULS HARM: children witnessing DV but not in imminent danger → psychoeducation + safety plan, not an automatic CPS call</li></ul>`,
+simple:'', tip:`From your practice exam: if violence comes up, <b>don't move away from it</b>. Stay with the disclosure and assess safety. Changing the subject to the "presenting problem" is wrong.`,
+refs:[['Futures Without Violence: The cycle of domestic violence','https://promising.futureswithoutviolence.org/the-cycle-of-domestic-violence/'],['Psych Central: Why couples counseling doesn\'t work in abusive relationships','https://psychcentral.com/relationships/why-couples-counseling-doesnt-work-in-abusive-relationships'],['Wikipedia: Lenore E. Walker','https://en.wikipedia.org/wiki/Lenore_E._Walker']]},
+
+{id:'placement', title:'Out-of-home placement & permanency',
+guide:`<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>Permanency planning</b></td><td>Getting a child into a <b>safe, stable, lasting</b> family as quickly as possible</td></tr>
+<tr><td><b>Reunification</b></td><td>Returning the child to their parents: the <b>usual first goal</b> when it's safe</td></tr>
+<tr><td><b>Kinship care</b></td><td>Placement with <b>relatives or close family friends</b>; generally preferred over non-relative foster care</td></tr>
+<tr><td><b>Foster care</b></td><td>Temporary care by licensed caregivers</td></tr>
+<tr><td><b>Guardianship / adoption</b></td><td>Permanent options when reunification isn't possible</td></tr>
+<tr><td><b>Concurrent planning</b></td><td>Working on reunification <b>and</b> a backup permanent plan <b>at the same time</b>, from the moment the child enters care</td></tr></table></div>
+<p>Removal is a last resort (the guide covers "family preservation first"). For Native children, <b>ICWA</b> requires active efforts and prioritizes extended family and tribe.</p>`,
+simple:'', tip:`Children in care often grieve their parents even after abuse. Validate loyalty and loss; don't expect them to be relieved.`,
+refs:[['Child Welfare Information Gateway: Concurrent planning','https://www.childwelfare.gov/resources/concurrent-planning-timely-permanence/'],['NICWA: What is ICWA?','https://www.nicwa.org/what-is-icwa/']]},
+
+{id:'caregiving', title:'Caregiving & a dementia diagnosis in the family', pe:true,
+guide:`<p>From your practice exam: when a family hears an <b>Alzheimer's diagnosis</b>, <b>denial usually comes first</b>. It's also the first of the Alzheimer's Association's warning signs of caregiver stress.</p>
+<p><b>Signs of caregiver stress</b> (Alzheimer's Association): denial, anger, social withdrawal, anxiety, depression, exhaustion, sleeplessness, irritability, poor concentration, health problems.</p>
+<div class="tbl"><table><tr><th>Support</th><th>What it does</th></tr>
+<tr><td><b>Respite care</b></td><td>Short-term care for the person so the caregiver gets a <b>break</b></td></tr>
+<tr><td><b>Support groups</b></td><td>Connection with others in the same situation</td></tr>
+<tr><td><b>Psychoeducation</b></td><td>What to expect as the disease progresses; reduces blame and conflict</td></tr>
+<tr><td><b>Caregiver self-care</b></td><td>Their own medical care, sleep, exercise</td></tr></table></div>`,
+simple:'', tip:`Meet the family where they are: acknowledge the shock and denial before jumping to care planning. A stressed, exhausted caregiver is also an elder-abuse risk factor, so assess caregiver strain.`,
+refs:[['Alzheimer\'s Association: Caregiver stress','https://www.alz.org/help-support/caregiving/caregiver-health/caregiver-stress']]},
+
+{id:'aging', title:'Normal aging vs dementia',
+guide:`<div class="tbl"><table><tr><th>Normal aging</th><th>Possible dementia</th></tr>
+<tr><td>Forgets which day it is, <b>remembers later</b></td><td>Loses track of the date or <b>season</b></td></tr>
+<tr><td>Makes a bad decision <b>once in a while</b></td><td>Poor judgment <b>much of the time</b></td></tr>
+<tr><td>Occasionally misplaces things</td><td>Misplaces things often and <b>can't retrace steps</b></td></tr>
+<tr><td>Misses a monthly payment</td><td>Can't manage bills</td></tr>
+<tr><td>Slower to recall a word</td><td>Trouble holding a conversation; repeats questions; gets lost in familiar places</td></tr></table></div>
+<p>The key difference: normal changes <b>don't interfere with daily functioning</b>; dementia does. Sudden confusion in an older adult → <b>rule out medical causes first</b> (delirium, infection, medication), as the guide says.</p>
+<p><b>Ageism</b> = stereotypes and discrimination based on age. Don't assume depression, confusion or loss of sexuality is "just getting old."</p>`,
+simple:'', tip:`Depression in older adults can look like dementia. Assess before labelling.`,
+refs:[['National Institute on Aging: Memory problems, forgetfulness and aging','https://www.nia.nih.gov/health/memory-loss-and-forgetfulness/memory-problems-forgetfulness-and-aging']]},
+
+{id:'eating', title:'Eating disorders & body image',
+guide:`<div class="tbl"><table><tr><th>Disorder</th><th>Key features</th></tr>
+<tr><td><b>Anorexia nervosa</b></td><td>Severe <b>restriction</b>, intense fear of weight gain, distorted body image. <b>One of the highest death rates</b> of any mental disorder</td></tr>
+<tr><td><b>Bulimia nervosa</b></td><td><b>Binge eating + purging</b> or other compensation (vomiting, laxatives, excessive exercise). Weight is often normal. Dental damage, electrolyte imbalance</td></tr>
+<tr><td><b>Binge-eating disorder</b></td><td>Binges with loss of control, shame and secrecy, <b>no purging</b></td></tr>
+<tr><td><b>ARFID</b></td><td>Avoids or restricts food because of sensory issues or fear of consequences (choking, vomiting), <b>not body image</b></td></tr></table></div>
+<p>Treatment is a <b>team</b>: <b>medical monitoring</b>, therapy and nutrition counselling. Eating disorders often co-occur with depression, anxiety, substance use and suicide risk.</p>`,
+simple:'', tip:`With signs of an eating disorder, a <b>medical evaluation</b> comes first. Physical danger outranks insight work.`,
+refs:[['NIMH: Eating disorders','https://www.nimh.nih.gov/health/publications/eating-disorders']]},
+
+{id:'identity', title:'Racial & cultural identity development',
+guide:`<p><b>Atkinson, Morten &amp; Sue's Racial/Cultural Identity Development model</b> (five stages)</p>
+<ol class="ladder"><li><b>Conformity</b>: prefers the dominant culture and devalues their own group</li><li><b>Dissonance</b>: an experience shakes that view; confusion and questioning</li><li><b>Resistance and immersion</b>: embraces their own group and rejects the dominant culture</li><li><b>Introspection</b>: questions rigid "us vs them" views; looks inward</li><li><b>Integrative awareness</b>: secure in their own identity and appreciates other groups</li></ol>
+<p>Why it matters: a client's stage affects how they see a worker from the dominant group. Distrust in the resistance stage isn't aimed at you personally.</p>`,
+simple:'', tip:`Knowing the stage helps you read the client's reaction. The right answer explores their identity experience rather than arguing with it.`,
+refs:[['Psych with Keegan: Racial and cultural identity development stages','https://psychwithkeegan.com/2025/04/what-are-the-stages-of-racial-cultural-identity-development-nce-cpce-study-guide/']]},
+
+{id:'capacity', title:'Capacity, competence & substitute decision-makers',
+guide:`<div class="tbl"><table><tr><th></th><th>Capacity</th><th>Competence</th></tr>
+<tr><td>Who decides</td><td>A <b>clinician</b></td><td>A <b>court</b> (legal ruling)</td></tr>
+<tr><td>Scope</td><td><b>Decision-specific</b>: "Can they make <i>this</i> decision?"</td><td>Global legal status</td></tr>
+<tr><td>Can it change?</td><td>Yes, it <b>fluctuates</b> (delirium, medication, time of day)</td><td>Stays until a court changes it</td></tr></table></div>
+<ul><li>Adults are <b>presumed competent</b>. "No social worker declares anyone incompetent."</li>
+<li><b>Disagreeing is not incapacity.</b> Refusing a recommendation can be self-determination.</li>
+<li>Use the <b>least restrictive</b> option first: supported decision-making, <b>power of attorney</b>, <b>health care proxy</b>, advance directive. <b>Guardianship</b> is the last resort.</li>
+<li>NASW 1.14: when a client lacks capacity, take reasonable steps to <b>safeguard their interests and rights</b>.</li></ul>`,
+simple:'', tip:`Word clues: "adjudicated," "court," "guardian" = competence. "Assess," "fluctuating," "able to understand this choice" = capacity.`,
+refs:[['SWTP: Capacity vs competence on the ASWB exam (2026)','https://socialworktestprep.com/blog/2026/july/30/capacity-vs-competence-on-the-aswb-exam/'],['NASW Code: Responsibilities to clients (1.14)','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'techenv', title:'Technology, social media & environmental hazards',
+guide:`<p><b>Cyberbullying</b>: bullying through phones, computers, social media, gaming or messaging. What makes it different:</p>
+<ul><li><b>Persistent</b>: can happen 24/7; hard to escape</li><li><b>Permanent</b>: content can stay online</li><li><b>Hard to notice</b>: adults often miss it</li></ul>
+<p>Also assess screen use, online exploitation risk and social media's effect on self-image.</p>
+<p><b>Environmental hazards and climate</b>: disasters (fires, floods, heat) cause displacement, loss and trauma. <b>Eco-anxiety</b> = chronic fear or distress about environmental harm and climate change.</p>
+<p><b>Psychological First Aid</b> after a disaster (NCTSN core actions): contact and engagement → safety and comfort → stabilization → information gathering → <b>practical assistance</b> → connection with social supports → information on coping → linkage with services.</p>`,
+simple:'', tip:`Right after a disaster, meet basic needs and safety before any emotional processing or trauma work.`,
+refs:[['StopBullying.gov: What is cyberbullying?','https://www.stopbullying.gov/cyberbullying/what-is-it'],['NCTSN: About Psychological First Aid','https://www.nctsn.org/treatments-and-practices/psychological-first-aid-and-skills-for-psychological-recovery/about-pfa'],['Wikipedia: Eco-anxiety','https://en.wikipedia.org/wiki/Eco-anxiety']]},
+
+{id:'history', title:'Social history & sources of information', pe:true,
+guide:`<p>A <b>social history</b> (psychosocial history) gathers the client's background (family, development, education, work, health, relationships, culture, strengths) to understand the client <b>in context</b>.</p>
+<p>From your practice exam: the <b>most important reason</b> to get a social history is to understand the <b>client's goals</b>, so planning is built around what the client wants.</p>
+<div class="tbl"><table><tr><th>Type of information</th><th>Meaning</th></tr>
+<tr><td><b>Primary / direct</b></td><td>From the client themselves (interview, self-report)</td></tr>
+<tr><td><b>Collateral</b></td><td>From <b>other people or records</b>: family, teachers, doctors, school, medical and employment records. Needs the client's <b>consent</b> (except emergencies/legal mandates). Key when insight is impaired</td></tr>
+<tr><td><b>Subjective</b></td><td>What the client reports: feelings, symptoms</td></tr>
+<tr><td><b>Objective</b></td><td>What is observed or measured: behavior, test results, records</td></tr></table></div>
+<ul><li><b>Start where the client is</b>: let the client help <b>define the problem</b>; don't impose your own agenda.</li>
+<li>Assess <b>communication ability</b> (hearing, vision, literacy, cognition, language) before judging answers.</li></ul>`,
+simple:'', tip:`When a question asks what to do first with a new client, answers that involve the client in defining their own problem and goals beat worker-led fact gathering.`,
+refs:[['Classace: "Start where the client is"','https://www.classace.io/answers/in-social-work-what-is-the-meaning-of-start-where-the-client-is'],['NASW Case Management Standards (assessment)','https://www.nycourts.gov/reporter/webdocs/nasw_standards_socialwork_casemgt.htm']]},
+
+{id:'ecomap', title:'Ecomaps & genograms', pe:true,
+guide:`<div class="tbl"><table><tr><th></th><th>Ecomap</th><th>Genogram</th></tr>
+<tr><td>Developed by</td><td><b>Ann Hartman</b> (1975)</td><td>Bowen family systems tradition</td></tr>
+<tr><td>Shows</td><td>The client/family's relationships with <b>outside systems</b>: school, work, church, health care, friends, agencies</td><td>The <b>family tree</b> over <b>3+ generations</b>: relationships, patterns, illness, trauma, cutoffs</td></tr>
+<tr><td>Layout</td><td>Client/family circle in the <b>centre</b>, systems around it</td><td>□ male, ○ female, X death</td></tr>
+<tr><td>Lines</td><td>Thick = strong; dashed = weak/tenuous; hatched/jagged = <b>stressful</b>; <b>arrows</b> = flow of energy or resources</td><td>Lines show marriage, divorce, closeness, conflict</td></tr>
+<tr><td>Best for</td><td>Seeing <b>resources and stressors</b> in the environment now</td><td>Seeing <b>multigenerational patterns</b></td></tr></table></div>`,
+simple:'', tip:`Question about the client's supports, community resources or environment → ecomap. Question about family patterns across generations → genogram.`,
+refs:[['Wikipedia: Eco-map','https://en.wikipedia.org/wiki/Eco-map'],['Encyclopedia.com: Family diagrammatic assessment','https://www.encyclopedia.com/reference/encyclopedias-almanacs-transcripts-and-maps/family-diagrammatic-assessment']]},
+
+{id:'flc', title:'Family life cycle', pe:true,
+guide:`<p><b>Carter &amp; McGoldrick's family life cycle</b>: each stage brings predictable tasks and transitions. Families often show stress or symptoms <b>at the transitions</b>.</p>
+<ol class="ladder"><li><b>Leaving home: single young adults</b>. Becoming emotionally and financially responsible for yourself</li><li><b>Joining of families through marriage: the new couple</b>. Committing to a new system; realigning with both families</li><li><b>Families with young children</b>. Making room for children; taking on parenting roles</li><li><b>Families with adolescents</b>. More flexible boundaries for teens' growing independence</li><li><b>Launching children and moving on</b>. Accepting exits from and entries into the family (empty nest, in-laws, grandchildren)</li><li><b>Families in later life</b>. Retirement, aging, caring for elders, loss of spouse and peers</li></ol>`,
+simple:'', tip:`If a family's problem appears right when a child reaches adolescence or leaves home, think "life cycle transition" and normalize it before pathologizing anyone.`,
+refs:[['Leone Centre: Family life cycle in family therapy','https://www.leonecentre.com/glossary/family-life-cycle-in-family-therapy/'],['ScienceDirect Topics: Family cycle','https://www.sciencedirect.com/topics/social-sciences/family-cycle']]},
+
+{id:'tests', title:'Psychological tests & inventories', pe:true,
+guide:`<div class="tbl"><table><tr><th>Type</th><th>Measures</th><th>Examples</th></tr>
+<tr><td><b>Intelligence scale</b></td><td>Cognitive ability / <b>IQ</b> (average = 100)</td><td>WAIS (adults), WISC (children), Stanford-Binet</td></tr>
+<tr><td><b>Personality inventory</b> (objective)</td><td>Personality traits and psychopathology through <b>self-report</b> items (e.g., true/false)</td><td><b>MMPI</b></td></tr>
+<tr><td><b>Projective test</b></td><td>Personality through responses to <b>ambiguous</b> stimuli</td><td>Rorschach inkblots, <b>TAT</b> (Thematic <b>Apperception</b> Test)</td></tr>
+<tr><td><b>Perception / perceptual-motor test</b></td><td>How a person <b>perceives and reproduces</b> what they see; screens for developmental or neurological problems</td><td>Bender Visual-Motor Gestalt</td></tr>
+<tr><td><b>Vocational (interest) inventory</b></td><td>Career <b>interests</b>, not ability</td><td>Strong Interest Inventory (Holland's RIASEC codes)</td></tr></table></div>
+<p>Social workers usually <b>refer</b> for psychological testing (psychologists administer most of these), but need to know what each one is for.</p>`,
+simple:'', tip:`Match the question's goal to the tool: career direction → vocational inventory; intellectual disability question → intelligence scale; personality or diagnosis → personality inventory.`,
+refs:[['Wikipedia: Wechsler Adult Intelligence Scale','https://en.wikipedia.org/wiki/Wechsler_Adult_Intelligence_Scale'],['Wikipedia: MMPI','https://en.wikipedia.org/wiki/Minnesota_Multiphasic_Personality_Inventory'],['Wikipedia: Bender-Gestalt Test','https://en.wikipedia.org/wiki/Bender-Gestalt_Test'],['Wikipedia: Strong Interest Inventory','https://en.wikipedia.org/wiki/Strong_Interest_Inventory']]},
+
+{id:'socialization', title:'Socialization, internalization & recruitment', pe:true,
+guide:`<div class="tbl"><table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td><b>Recruitment</b></td><td>Finding and bringing in <b>new members</b> (to a group, program or organization). In group work it's part of <b>planning</b>, along with composition, orientation and contracting</td></tr>
+<tr><td><b>Socialization</b></td><td>How newcomers <b>learn</b> the norms, values and roles of a group or society so they can think and act as members do</td></tr>
+<tr><td><b>Internalization</b></td><td>Taking those norms and values <b>into yourself</b>, so they become your own and guide you without outside pressure</td></tr>
+<tr><td><b>Resocialization</b></td><td>Unlearning old norms and learning new ones (e.g., rehab programs)</td></tr></table></div>
+<p>Order to remember: <b>recruit</b> (bring them in) → <b>socialize</b> (teach the norms) → <b>internalize</b> (they own the norms).</p>
+<p><b>Agents of socialization</b>: family (first and most influential), school, peers, media, community.</p>`,
+simple:'', tip:`Internalization is the deepest level: the person follows the norm because they believe it, not because they're watched or rewarded.`,
+refs:[['American Sociological Association: Socialization reading','https://www.asanet.org/wp-content/uploads/savvy/introtosociology/Documents/PersellSocializationReading37.htm'],['Toseland &amp; Rivas planning stage notes (Studocu)','https://www.studocu.com/en-za/document/university-of-south-africa/social-group-work/study-unit-3-planningthe-group-notes/11418949']]}
+]});
+
+// ================= BEYOND THE GUIDE: INTERVENTION & PRACTICE =================
+MODULES.push({
+id:'bx-interv', n:'B3', src:'beyond', title:'Intervention & Practice', blurb:'Practice methods and techniques on the 2026 outline that the guide skips',
+intro:'About 32% of the 2026 Bachelors exam. These are the named methods the outline lists but the guide never mentions, plus the practice-exam lessons on interviewing, referral and crisis.',
+topics:[
+{id:'generalist', title:'Generalist practice & problem-solving', pe:true,
+guide:`<div class="tbl"><table><tr><th>Level</th><th>Works with</th><th>Examples</th></tr>
+<tr><td><b>Micro</b></td><td>Individuals and families</td><td>Case management, counselling</td></tr>
+<tr><td><b>Mezzo</b></td><td>Groups, small communities, organizations</td><td>Support, therapy, education and task groups</td></tr>
+<tr><td><b>Macro</b></td><td>Communities, systems, policy</td><td>Advocacy, program development, policy change</td></tr></table></div>
+<p><b>Planned change (problem-solving) process</b>: <b>Engagement → Assessment → Planning → Implementation → Evaluation → Termination → Follow-up</b>. The guide lists most of these as the helping process.</p>
+<p><b>Helen Harris Perlman's problem-solving model</b>: life is problem-solving, and clients can do it with help. Steps: <b>clarify the facts</b> of the problem → <b>think them through</b> → <b>make a choice</b> and act. <b>Partialization</b> (break a big problem into smaller parts and start with one) builds confidence.</p>`,
+simple:'', tip:`Crisis questions often end with problem-solving: once the client is safe and stable, help them identify the problem, list options, and choose a next step themselves.`,
+refs:[['UTA Pressbooks: Generalist practice','https://uta.pressbooks.pub/introtosocialwork/chapter/generalist-practice/'],['Allison Murdach: Perlman and the problem-solving model','https://allisonmurdach.wordpress.com/2011/05/05/helen-harris-perlman-and-the-problem-solving-model/']]},
+
+{id:'interview', title:'Structuring the interview', pe:true,
+guide:`<p><b>Beginning phase</b> (from your practice exam: structuring includes <b>clarifying roles</b>)</p>
+<ul><li>Introduce yourself and <b>build rapport</b></li>
+<li>Explain the <b>purpose</b> of the meeting and <b>your role</b>, and ask what the client expects: <b>clarify roles</b></li>
+<li>Explain <b>confidentiality and its limits</b></li>
+<li>Agree on how you'll work together (collaborative, not top-down)</li></ul>
+<div class="tbl"><table><tr><th>Question type</th><th>Use</th></tr>
+<tr><td><b>Open-ended</b></td><td>Default; lets the client tell their story</td></tr>
+<tr><td><b>Closed</b></td><td>When you need a specific fact (e.g., "Do you have a plan?")</td></tr>
+<tr><td><b>"Why" questions</b></td><td><b>Avoid</b>: they sound accusatory. Ask "what" or "how" instead</td></tr></table></div>
+<p>Other skills: supporting, clarifying, focusing, validating, reflecting, confronting gently, redirecting back to the main issue.</p>`,
+simple:'', tip:`If the client seems confused about why they're there or what the worker does, the first step is to clarify purpose and roles, before assessment or intervention.`,
+refs:[['SWTP: Principles and techniques of interviewing','https://socialworktestprep.com/blog/2024/september/20/the-principles-and-techniques-of-interviewing/']]},
+
+{id:'listening', title:'Active listening & assuming good faith', pe:true,
+guide:`<p><b>SOLER</b> (Gerard Egan), nonverbal attending:</p>
+<div class="tbl"><table><tr><th>Letter</th><th>Meaning</th></tr>
+<tr><td><b>S</b></td><td>Sit <b>squarely</b> facing the client</td></tr>
+<tr><td><b>O</b></td><td><b>Open</b> posture (no crossed arms)</td></tr>
+<tr><td><b>L</b></td><td><b>Lean</b> slightly toward the client</td></tr>
+<tr><td><b>E</b></td><td><b>Eye contact</b> (culturally appropriate)</td></tr>
+<tr><td><b>R</b></td><td><b>Relaxed</b></td></tr></table></div>
+<p><b>Active listening</b> = attending + responding: reflect feelings, paraphrase content, summarize, and check your understanding.</p>
+<p>From your practice exam: <b>don't assume a client is purposely inaccurate</b>. Inconsistent or wrong details can come from trauma, memory, stress, cognition, language or culture. <b>Clarify</b> gently instead of accusing.</p>`,
+simple:'', tip:`Answers that treat the client as lying ("confront the client about the lie") are usually wrong. Explore and clarify first.`,
+refs:[['Counselling Tutor: Egan\'s SOLER model','https://counsellingtutor.com/active-listening-in-counselling-egan-soler-model/']]},
+
+{id:'involuntary', title:'Involuntary & mandated clients',
+guide:`<ul><li><b>Be honest</b> about why you're involved and your authority, including any <b>dual role</b> (helper and reporter/investigator)</li>
+<li>Spell out what is <b>non-negotiable</b> (court conditions, reporting) and what is <b>negotiable</b> (goals, schedule, methods)</li>
+<li>Offer <b>real choices</b> within the limits, and explain the client's <b>right to refuse</b> and its consequences (NASW 1.03(d))</li>
+<li><b>Start with the client's view</b> of the problem, even if it's "I don't need to be here"</li>
+<li>Don't label them "resistant." Reluctance is a normal reaction to being forced; <b>acknowledge the feelings</b></li>
+<li>Build trust through consistency, follow-through and strengths</li></ul>`,
+simple:'', tip:`With a mandated client who says "I don't want to be here," the best first response acknowledges their feelings and clarifies the situation, not a lecture on consequences.`,
+refs:[['The Social Work Graduate: Working with involuntary clients','https://www.thesocialworkgraduate.com/post/social-work-with-involuntary-clients'],['NASW Code: Responsibilities to clients (1.03)','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'casemgmt', title:'Case management & the referral process', pe:true,
+guide:`<p><b>Case management</b> (NASW): assess the client's needs, then <b>arrange, coordinate, monitor, evaluate and advocate</b> for a package of services.</p>
+<ol class="ladder"><li><b>Assessment</b> (strengths and needs)</li><li><b>Service planning</b> with the client</li><li><b>Linking and coordination</b></li><li><b>Monitoring</b></li><li><b>Advocacy</b></li><li><b>Reassessment</b></li><li><b>Termination</b> with continuity of care</li></ol>
+<p><b>Referral process</b> (from your practice exam)</p>
+<ul><li>Refer when the client needs expertise or services <b>outside your scope</b>, or when progress stalls (NASW 1.16)</li>
+<li><b>Discuss</b> the referral with the client and match it to <b>their</b> needs and goals</li>
+<li>Get <b>consent</b> (release of information) before sharing details</li>
+<li>Prefer a <b>warm handoff</b>: a direct introduction to the new provider (in person, phone or video), not just a phone number</li>
+<li><b>Follow up</b> to confirm the client connected</li></ul>`,
+simple:'', tip:`"Give the client a list of agencies" is weaker than connecting them directly and following up. And a referral doesn't mean dropping the client: stay involved until the transfer is complete.`,
+refs:[['NASW Standards for Social Work Case Management','https://www.nycourts.gov/reporter/webdocs/nasw_standards_socialwork_casemgt.htm'],['NACo: Warm hand-offs','https://www.naco.org/resource/osc-warm-hand-offs'],['NASW Code: Responsibilities to clients (1.16)','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients']]},
+
+{id:'harm', title:'Harm reduction',
+guide:`<p><b>Harm reduction</b> reduces the harms of drug use and other risky behavior <b>without requiring abstinence</b>. "Meet people where they are."</p>
+<ul><li><b>Accepts</b> that drug use exists; focuses on reducing harm rather than condemning</li>
+<li>Success = better <b>quality of life and well-being</b>, not necessarily stopping use</li>
+<li><b>Non-judgmental, non-coercive</b> services</li>
+<li>People who use drugs are the <b>primary agents</b> of their own harm reduction</li>
+<li>Recognizes how poverty, racism and trauma shape risk</li></ul>
+<p><b>Examples</b>: naloxone distribution, syringe services, fentanyl test strips, safer-use education, Housing First.</p>`,
+simple:'', tip:`If a client isn't ready to stop using, the right answer offers safer-use options and keeps them engaged. Refusing services until they're abstinent is wrong.`,
+refs:[['National Harm Reduction Coalition: Principles of harm reduction','https://harmreduction.org/about-us/principles-of-harm-reduction/']]},
+
+{id:'task', title:'Task-centered practice',
+guide:`<p>Developed by <b>William Reid and Laura Epstein</b> (University of Chicago).</p>
+<ul><li><b>Brief and time-limited</b>: usually about <b>8–12 sessions</b></li>
+<li>Works on <b>specific problems the client identifies and agrees to</b> (target problems)</li>
+<li>Breaks goals into small, concrete <b>tasks</b> the client does between sessions</li>
+<li><b>Present-focused</b>, practical and collaborative</li></ul>
+<p><b>Steps</b>: identify target problems → set goals together → plan and carry out tasks → review progress → adjust tasks → terminate and review.</p>`,
+simple:'', tip:`If a client isn't completing tasks, the right move is to <b>review and adjust the task</b> (too big? unclear? barriers?), not to blame the client or end services.`,
+refs:[['SWTP: Task-centered approaches','https://socialworktestprep.com/blog/2024/september/30/task-centered-approaches/']]},
+
+{id:'crisis', title:'Crisis intervention steps', pe:true,
+guide:`<p><b>Roberts' Seven-Stage Crisis Intervention Model</b></p>
+<ol class="ladder"><li><b>Assess</b> lethality, safety and biopsychosocial needs</li><li><b>Establish rapport</b> and psychological contact quickly</li><li><b>Identify the major problems</b>, including what triggered the crisis</li><li><b>Explore feelings and emotions</b> (active listening, validation)</li><li><b>Generate and explore alternatives</b> and coping strategies</li><li><b>Develop and carry out an action plan</b></li><li><b>Follow up</b></li></ol>
+<p>This fits the guide: <b>safety and stabilization first</b>; the goal is to <b>restore the previous level of functioning</b>. The later stages are the <b>problem-solving process</b> in action (from your practice exam).</p>`,
+simple:'', tip:`Stage 1 is always safety/lethality. Exploring the past or long-term therapy goals during an active crisis is wrong.`,
+refs:[['AIHCP: Roberts\' seven-stage crisis intervention model','https://aihcp.net/2024/06/20/crisis-intervention-model-essential-steps-for-effective-response/'],['APA PsycNet: The seven-stage crisis intervention model (Roberts & Ottens)','https://psycnet.apa.org/record/2005-14106-001']]},
+
+{id:'grief', title:'Grief work: acknowledge the loss first', pe:true,
+guide:`<p>From your practice exam: the first step in grief work is <b>acknowledging the loss</b>. Do that <b>before</b> moving to coping methods.</p>
+<p><b>Worden's four tasks of mourning</b> (unlike stages, the griever actively works on them)</p>
+<ol class="ladder"><li><b>Accept the reality of the loss</b></li><li><b>Work through the pain</b> of grief</li><li><b>Adjust</b> to a world without the deceased</li><li>Find an <b>enduring connection</b> with the deceased while moving on with life</li></ol>
+<p>Worden says the tasks have "some natural order": later tasks build on accepting the reality first. This also matches the guide's RUSAFE and SFAREAFI: <b>feelings/acknowledgment</b> come before problem-solving.</p>`,
+simple:'', tip:`With a grieving client, pick the answer that acknowledges and explores the loss and feelings. Teaching coping skills or making referrals comes later.`,
+refs:[['What\'s Your Grief: Worden\'s four tasks of mourning','https://whatsyourgrief.com/wordens-four-tasks-of-mourning/']]},
+
+{id:'behavioral', title:'Behavioral techniques & role play', pe:true,
+guide:`<p><b>Reinforcement schedules</b> (the guide covers positive vs negative reinforcement; this adds timing)</p>
+<div class="tbl"><table><tr><th>Schedule</th><th>Reward comes after…</th><th>Example</th></tr>
+<tr><td><b>Continuous</b></td><td>Every response. <b>Fastest learning</b>, but fades quickly</td><td>Praise every time</td></tr>
+<tr><td><b>Fixed ratio</b></td><td>A set number of responses</td><td>Paid per 5 items made</td></tr>
+<tr><td><b>Variable ratio</b></td><td>An unpredictable number of responses. <b>Most resistant to extinction</b></td><td>Slot machines</td></tr>
+<tr><td><b>Fixed interval</b></td><td>A set amount of time</td><td>Weekly paycheque</td></tr>
+<tr><td><b>Variable interval</b></td><td>Unpredictable time</td><td>Surprise inspections</td></tr></table></div>
+<div class="tbl"><table><tr><th>Term</th><th>What it is</th></tr>
+<tr><td><b>Modeling</b></td><td>Learning by watching someone else (Bandura). The worker or group demonstrates the behavior</td></tr>
+<tr><td><b>Role playing</b></td><td>Acting out a situation to practise or explore it</td></tr>
+<tr><td><b>Behavioral rehearsal</b></td><td>Practising a new behavior (e.g., saying no) before using it in real life</td></tr>
+<tr><td><b>Reenacting</b></td><td>Acting out a <b>past</b> event to <b>explore past behavior</b> and gain insight (psychodrama)</td></tr>
+<tr><td><b>Transference</b></td><td>The client redirects feelings from past relationships onto the worker. A <b>phenomenon, not a technique</b></td></tr></table></div>`,
+simple:'', tip:`From your practice exam: if "transference" appears in a list of techniques, it doesn't belong. It's something that happens, not something the worker does.`,
+refs:[['Lumen: Reinforcement schedules','https://content.one.lumenlearning.com/introductiontopsychology/chapter/reading-reinforcement-schedules/'],['Wikipedia: Psychodrama','https://en.wikipedia.org/wiki/Psychodrama']]},
+
+{id:'assert', title:'Assertiveness & anger management',
+guide:`<p><b>Assertiveness training</b> teaches clients to express needs and feelings <b>directly and respectfully</b>.</p>
+<div class="tbl"><table><tr><th>Style</th><th>Looks like</th></tr>
+<tr><td><b>Passive</b></td><td>Gives up own needs to avoid conflict</td></tr>
+<tr><td><b>Aggressive</b></td><td>Meets own needs by overriding others</td></tr>
+<tr><td><b>Assertive</b></td><td>Respects <b>both</b> own and others' needs</td></tr></table></div>
+<p>Techniques: <b>"I" statements</b> ("I feel… when… I need…"), <b>role play and behavioral rehearsal</b>, body language, saying no, setting boundaries.</p>
+<p><b>Anger management</b> (SAMHSA CBT model)</p>
+<ul><li><b>Anger meter</b> (1–10) to rate intensity</li>
+<li>Know your <b>cues</b>: physical, behavioral, emotional, cognitive</li>
+<li><b>Aggression cycle</b>: escalation → explosion → post-explosion. Intervene during <b>escalation</b></li>
+<li><b>Anger control plan</b>: <b>timeouts</b>, deep breathing, exercise</li>
+<li><b>Cognitive restructuring</b> (A-B-C-D: event, belief, consequence, dispute)</li></ul>`,
+simple:'', tip:`A timeout is agreed on ahead of time and used during escalation, not after the explosion.`,
+refs:[['SWTP: Assertiveness training','https://socialworktestprep.com/blog/2024/may/22/assertiveness-training/'],['SAMHSA: Anger management CBT manual','https://library.samhsa.gov/product/anger-management-substance-use-disorder-and-mental-health-clients-cognitive-behavioral-therapy-manual/pep19-02-01-001']]},
+
+{id:'groupmodels', title:'Group work models', pe:true,
+guide:`<p><b>Papell &amp; Rothman's three models</b> (from your practice exam's "group intervention theory")</p>
+<div class="tbl"><table><tr><th>Model</th><th>Purpose</th><th>Worker role</th><th>Examples</th></tr>
+<tr><td><b>Social goals</b></td><td><b>Social change</b>, civic participation, social consciousness</td><td>Enabler; promotes democratic participation</td><td>Community action groups</td></tr>
+<tr><td><b>Remedial</b></td><td><b>Treat</b> individual problems and change behavior</td><td>Expert / therapist; directive</td><td>Therapy groups, rehab, corrections</td></tr>
+<tr><td><b>Reciprocal</b> (mediating)</td><td><b>Mutual aid</b>: members help each other</td><td>Mediator between members and between the group and the agency</td><td>Self-help and support groups</td></tr></table></div>
+<p>Group planning tasks (Toseland &amp; Rivas): purpose, <b>recruitment</b>, <b>composition</b> (size, open vs closed, inclusion criteria), <b>orientation</b> and screening, <b>contracting</b>.</p>`,
+simple:'', tip:`Mutual aid or "members helping each other" → reciprocal. Treatment or changing individual behavior → remedial. Changing society → social goals.`,
+refs:[['Research Korner: Papell & Rothman\'s three models compared','http://researchkorner.blogspot.com/2014/02/comparison-and-contrast-of-three-group.html'],['Toseland & Rivas planning stage notes (Studocu)','https://www.studocu.com/en-za/document/university-of-south-africa/social-group-work/study-unit-3-planningthe-group-notes/11418949']]},
+
+{id:'family', title:'Family sessions: frame the conflict as shared', pe:true,
+guide:`<p>From your practice exam:</p>
+<ul><li><b>Don't link the problem to the parent or the child alone.</b> In family therapy questions, look for the answer that frames the <b>conflict as involving both</b> (the interaction), not one person as the cause.</li>
+<li><b>Don't move away from violence</b> if it comes up in a family session. Stay with it and assess safety.</li></ul>
+<p>Why (from the guide's systems theory): <b>circular causality</b>: behavior is mutual and cyclical, so the problem "lives in the relationships." Blaming one member (<b>scapegoating</b>, the "identified patient") keeps the pattern going.</p>
+<p>Related tools: <b>reframing</b> (a new, less blaming view of the behavior), focusing on <b>interaction patterns</b>, and a <b>family life cycle</b> view (see Assessment & Planning).</p>`,
+simple:'', tip:`Compare "The mother is too controlling" with "The mother and daughter are in conflict over curfew." The second is usually the better answer.`,
+refs:[['Built on the guide\'s Systems theory topic, plus your practice-exam notes','#/learn/family/sys']]},
+
+{id:'teams', title:'Interdisciplinary teams & conflict resolution',
+guide:`<div class="tbl"><table><tr><th>Team type</th><th>How members work</th></tr>
+<tr><td><b>Multidisciplinary</b></td><td>Each profession works <b>separately</b> in parallel, then shares results</td></tr>
+<tr><td><b>Interdisciplinary</b></td><td>Professions <b>work together</b> and share knowledge toward shared goals</td></tr>
+<tr><td><b>Transdisciplinary</b></td><td>Boundaries blur; roles are shared across disciplines</td></tr></table></div>
+<p>NASW 2.03: on a team, bring the <b>social work perspective and values</b>. If there's an ethical disagreement, resolve it through <b>appropriate channels</b> first.</p>
+<p><b>Mediation</b>: a <b>neutral third party</b> helps both sides reach their <b>own</b> agreement; the mediator doesn't decide.</p>
+<p><b>Principled (interest-based) negotiation</b> (Fisher &amp; Ury, <i>Getting to Yes</i>): separate the <b>people from the problem</b>; focus on <b>interests, not positions</b>; create options for mutual gain; use objective criteria.</p>`,
+simple:'', tip:`As a mediator, taking sides or imposing a solution is wrong. Facilitate the parties' own agreement.`,
+refs:[['NASW Code: Responsibilities to colleagues (2.03)','https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Colleagues'],['Rehabilitation Matters: Multi-, inter- or transdisciplinary?','https://rehabilitationmatters.com/multidisciplinary-interdisciplinary-or-transdisciplinary/'],['Atlas of Public Management: Fisher and Ury\'s four principles','https://www.atlas101.ca/pm/concepts/fisher-and-urys-four-principles-of-negotiation/']]}
+]});
+
+// ================= BEYOND THE GUIDE: QUESTIONS =================
+// VALUES & ETHICS
+Q('bx-ethics','aop','v',"A client who is Black tells a new social worker that she doesn't trust \"the system\" because her family was mistreated by child welfare. What should the social worker do?",
+["Acknowledge that her distrust is understandable given her experience, and be transparent about the worker's role and power","Note the distrust as a sign of resistance to services","Reassure her that the agency treats everyone equally","Ask her to explain her culture so the worker can understand her better"],
+"Distrust of institutions that have harmed people like the client is <b>cultural mistrust</b>: a reasonable reading of history, not pathology or resistance. Anti-oppressive practice means being <b>transparent about power</b>. Asking the client to educate the worker puts the burden on her.");
+Q('bx-ethics','aop','r',"Anti-oppressive practice focuses mainly on:",
+["Structural and institutional sources of oppression and power","Improving the worker's individual rapport skills","Treating the client's internal symptoms","Keeping the worker politically neutral"],
+"Anti-oppressive practice looks at <b>systems and institutions</b> (laws, policies, agencies) that create disadvantage, not only the one-to-one relationship.");
+Q('bx-ethics','intersect','r',"The idea that a person's race, gender, class and disability overlap to create a unique experience of oppression is called:",
+["Intersectionality","Cultural relativism","Acculturation","Internalized oppression"],
+"<b>Intersectionality</b> (Crenshaw): identities combine into a distinct experience. The effects are not simply added together.");
+Q('bx-ethics','intersect','v',"A social worker is assessing a lesbian immigrant woman with a physical disability who is struggling to find work. Which approach reflects intersectionality?",
+["Explore how her identities together shape the barriers she faces","Focus on her disability, since it most directly affects employment","Focus on her immigration status first, then address the rest later","Avoid discussing identity so she doesn't feel singled out"],
+"Intersectionality means looking at how <b>all</b> her identities interact, not picking one.");
+Q('bx-ethics','bias','r',"A coworker tells a Latina colleague, \"You speak English so well!\" This is an example of a:",
+["Microinsult","Microassault","Microinvalidation","Macroaggression"],
+"A <b>microinsult</b> is an often <b>unintentional</b> comment that carries a demeaning assumption (here, that she wouldn't speak English well). A microassault is deliberate; a microinvalidation denies someone's experience.");
+Q('bx-ethics','bias','v',"A client tells the social worker, \"When you said you don't see color, it felt like you were dismissing what I go through.\" What should the social worker do?",
+["Acknowledge the impact, take responsibility and explore the client's experience","Explain that the comment was meant to show the worker isn't biased","Apologize repeatedly and discuss the worker's own guilt","Move on so the session stays focused on the client's goals"],
+"\"I don't see color\" is a <b>microinvalidation</b>. The right response <b>addresses it</b>: acknowledge the impact, repair and explore. Defending intent, centering the worker's guilt or skipping past it are the typical wrong answers.");
+Q('bx-ethics','culture','r',"Judging another culture's practices by the standards of one's own culture is called:",
+["Ethnocentrism","Cultural relativism","Xenocentrism","Acculturation"],
+"<b>Ethnocentrism</b> = judging others by your own cultural norms. Cultural relativism is the opposite; xenocentrism is thinking another culture is superior.");
+Q('bx-ethics','culture','v',"A social worker thinks a family's practice of having three generations share one home is \"enmeshed\" because that isn't how families work in the worker's culture. The worker is showing:",
+["Ethnocentrism","Cultural humility","Cultural relativism","Countertransference toward the grandparents"],
+"Labelling a family arrangement as a problem because it differs from your own culture is <b>ethnocentrism</b>. Cultural humility would mean asking the family what this arrangement means to them.");
+Q('bx-ethics','lang','v',"A mother who speaks limited English brings her 10-year-old son to interpret at an intake about family conflict. What should the social worker do?",
+["Arrange a qualified professional interpreter","Proceed with the son interpreting since the mother chose him","Use simple English and gestures instead","Ask the son to wait outside and continue in English"],
+"Children should <b>never</b> interpret. It risks confidentiality, burdens the child and may distort what's said. Use a <b>qualified interpreter</b> (NASW 1.03).");
+Q('bx-ethics','lang','r',"When working with an interpreter, the social worker should:",
+["Speak directly to the client and maintain eye contact with the client","Speak to the interpreter and ask them to relay each point","Let the interpreter summarize long answers in their own words","Avoid briefing the interpreter to prevent bias"],
+"Address the <b>client</b>, not the interpreter; brief the interpreter beforehand; speak in short segments.");
+Q('bx-ethics','access','v',"A Deaf client who uses ASL arrives for an appointment. No interpreter was booked. What is the best action?",
+["Reschedule with a qualified ASL interpreter, or use one right away if available","Communicate by writing notes back and forth","Ask the client's hearing sister to interpret","Speak slowly so the client can lip-read"],
+"ASL is a full language; notes and lip-reading aren't equivalent access, and family members shouldn't interpret. Use a <b>qualified ASL interpreter</b>.");
+Q('bx-ethics','access','r',"A social worker is unsure whether to say \"autistic person\" or \"person with autism.\" The best approach is to:",
+["Ask the client which they prefer","Always use person-first language","Always use identity-first language","Avoid mentioning autism"],
+"Preferences vary; many autistic adults prefer identity-first language. Best practice is to <b>ask the person</b>.");
+Q('bx-ethics','immig','r',"According to Berry's model, an immigrant who keeps their heritage culture while also adopting the host culture is using which strategy?",
+["Integration","Assimilation","Separation","Marginalization"],
+"<b>Integration</b> (biculturalism) = keep heritage + adopt host culture, and it's linked to the best outcomes. Assimilation drops the heritage culture.");
+Q('bx-ethics','immig','v',"A refugee family's teenage daughter has adopted local customs quickly and argues often with her parents, who hold to their traditions. The social worker should FIRST:",
+["Explore how each family member experiences the move and the cultural differences","Encourage the parents to adapt to the new culture faster","Support the daughter's right to follow the host culture","Refer the daughter for individual counselling"],
+"This is an <b>acculturation gap</b>. Start by exploring each member's experience before taking sides or referring.");
+Q('bx-ethics','indig','r',"Collective, cross-generational wounding of a community from colonization, forced removal and residential or boarding schools is called:",
+["Historical trauma","Vicarious trauma","Complex PTSD","Acculturative stress"],
+"<b>Historical trauma</b> (Brave Heart) is shared by a community, builds across generations and is ongoing, unlike one person's PTSD.");
+Q('bx-ethics','indig','v',"A Native American child must be removed from home for safety. Under ICWA, which placement should the social worker look for first?",
+["The child's extended family or tribe","The first available licensed foster home","A group home near the child's school","An adoptive family ready to take the child permanently"],
+"ICWA requires <b>active efforts</b> and <b>prioritizes placement with extended family and the tribe</b>.");
+Q('bx-ethics','lgbtq','v',"A 16-year-old tells the school social worker he is gay and wants to tell his very religious parents this weekend. What should the social worker do FIRST?",
+["Explore his feelings and assess his safety and supports if he tells them","Tell him to wait until he is 18","Contact his parents to prepare them","Encourage him to tell them as soon as possible to reduce stress"],
+"Coming out is the client's choice of timing, but <b>safety comes first</b>: explore feelings, likely reactions, housing and supports. Telling the parents for him breaks confidentiality and self-determination.");
+Q('bx-ethics','lgbtq','r',"Which statement about sexual orientation and gender identity is accurate?",
+["They are separate aspects of identity","Gender identity is a type of sexual orientation","Sexual orientation is determined by gender identity","Both are usually diagnosed as disorders"],
+"Sexual orientation is <b>who you're attracted to</b>; gender identity is <b>your sense of your own gender</b>. Neither is a disorder.");
+Q('bx-ethics','restor','r',"Which question best reflects a restorative (rather than punitive) approach?",
+["Who was harmed, and what is needed to repair it?","Which rule was broken?","What punishment fits the offense?","How can we prevent the person from returning?"],
+"Restorative practice asks <b>who was harmed, what they need, and whose obligation</b> it is to meet that need.");
+Q('bx-ethics','restor','v',"A school proposes a face-to-face restorative circle between a student and the partner who has been physically abusing her. The social worker should:",
+["Advise against it because of the abuse and power imbalance","Support it because restorative practices reduce suspensions","Facilitate it but let the victim leave early if upset","Require both students to attend"],
+"Face-to-face restorative processes are <b>not appropriate</b> with ongoing danger, coercive control or intimate partner violence. <b>Safety comes before repair.</b>");
+Q('bx-ethics','consent','r',"When a client is legally mandated to receive services, the social worker should:",
+["Explain the nature of the services and the extent of the client's right to refuse","Skip informed consent because the court ordered services","Tell the client they have no choices","Get consent only from the court"],
+"NASW 1.03(d): with involuntary clients, explain the <b>nature and extent of services</b> and the <b>extent of their right to refuse</b>.");
+Q('bx-ethics','consent','v',"A client signs a consent form but later says she didn't understand what she agreed to. What does this mean?",
+["Informed consent wasn't obtained, and the worker should explain again in clear language","The signed form means consent is valid","The client is being manipulative","The worker should end services to avoid liability"],
+"Consent is a <b>process</b>. If the client didn't understand, it wasn't <b>informed</b>. Explain in clear language and answer questions.");
+Q('bx-ethics','tech','v',"At the start of a video session, what should the social worker confirm?",
+["The client's identity and current location","The client's internet speed","That the client is using a computer rather than a phone","That the client has no one else in their household"],
+"The Technology Standards say to <b>verify identity and location</b> at each electronic contact, which is essential if there's an emergency.");
+Q('bx-ethics','tech','r',"A client sends the social worker a friend request on a personal social media account. The worker should:",
+["Decline and explain the policy on social media contact","Accept but avoid posting personal content","Accept only after the case closes","Ignore it without discussing it"],
+"NASW 1.06: <b>no personal social media relationships</b> with clients. Decline, and explain why so the client doesn't feel rejected.");
+Q('bx-ethics','billing','v',"An insurer won't pay for couples counselling. The client asks the social worker to bill it as individual therapy for depression. What should the worker do?",
+["Refuse and explain that billing must accurately reflect the services provided","Agree, since the client does have some depressive symptoms","Bill it as individual therapy but document the couples work","Reduce the fee and bill part of it to insurance"],
+"NASW 3.05: billing must <b>accurately reflect the nature and extent of services</b>. Anything else is fraud, even if it helps the client.");
+Q('bx-ethics','billing','r',"Under the NASW Code, bartering for services is:",
+["Allowed only in very limited circumstances, with the worker responsible for any harm","Always prohibited","Allowed whenever the client can't pay","Allowed if the supervisor approves"],
+"Bartering is permitted only when it's accepted practice in the community, essential to providing services, non-coercive and client-initiated. The worker bears <b>full responsibility</b>.");
+Q('bx-ethics','eol','r',"Palliative care differs from hospice care in that palliative care:",
+["Can be given alongside curative treatment at any stage of illness","Requires a prognosis of six months or less","Is provided only in hospitals","Ends all treatment except pain medication"],
+"<b>Palliative</b> = comfort and quality of life at any stage, and <b>curative treatment can continue</b>. Hospice is for about six months or less, with curative treatment stopped.");
+Q('bx-ethics','eol','v',"A terminally ill client in a jurisdiction where medical aid in dying is legal asks for help exploring that option. The social worker is morally opposed. What should the worker do?",
+["Arrange for the client's care to transfer to another worker who can help","Explain the worker's religious objection and suggest palliative care instead","Refuse the request and document the client's statement","Tell the client's family so they can talk to the client"],
+"NASW: respect <b>self-determination</b> and don't impose your values. A worker who objects should <b>transfer care</b>, not block access.");
+Q('bx-ethics','colleagues','v',"A social worker notices a colleague often smells of alcohol at work and has missed client appointments. What should the worker do FIRST?",
+["Talk with the colleague about the concern","Report the colleague to the licensing board","Tell the colleague's clients","Ignore it unless a client is harmed"],
+"NASW 2.08: <b>consult with the colleague first</b> when feasible and help them take remedial action. Use formal channels if that doesn't work.");
+Q('bx-ethics','colleagues','r',"Emotional exhaustion, cynicism and feeling ineffective caused by prolonged workplace stress best describes:",
+["Burnout","Vicarious trauma","Compassion satisfaction","Countertransference"],
+"<b>Burnout</b> comes from workplace conditions and builds gradually. Vicarious trauma comes from exposure to clients' trauma.");
+// ASSESSMENT & PLANNING
+Q('bx-assess','sdoh','v',"A client with diabetes keeps missing medical appointments. The team calls her \"noncompliant.\" What should the social worker do FIRST?",
+["Ask about practical barriers such as transportation, cost, work hours and child care","Explain the health risks of missing appointments","Refer her to a diabetes education class","Close the case until she is ready to engage"],
+"Think <b>social determinants of health</b>: \"noncompliance\" often reflects barriers like transportation or cost. Assess barriers before blaming motivation.");
+Q('bx-assess','sdoh','r',"The Housing First model provides:",
+["Permanent housing without requiring sobriety or treatment first","Housing only after 90 days of sobriety","Emergency shelter while treatment is completed","Housing to people who complete job training"],
+"Housing First = <b>permanent housing without preconditions</b>, with <b>voluntary</b> support services.");
+Q('bx-assess','traffick','r',"Which statement about human trafficking is accurate?",
+["A minor in commercial sex is a trafficking victim even without force, fraud or coercion","Trafficking requires moving the person across a border","Most victims are kidnapped by strangers","Victims usually identify themselves as trafficked"],
+"For anyone <b>under 18</b> in commercial sex, <b>no force, fraud or coercion</b> needs to be shown. Movement isn't required, kidnapping is rare, and victims often don't self-identify.");
+Q('bx-assess','traffick','v',"A young woman comes to a clinic with a man who answers every question for her and holds her ID. What should the social worker do?",
+["Find a way to speak with her privately","Ask the man how they are related","Ask her directly, in front of him, whether she is being trafficked","Call the police right away"],
+"Someone else speaking for her and holding her ID are <b>trafficking red flags</b>. Speak to her <b>privately</b> and safely; direct questions in front of him could put her at risk.");
+Q('bx-assess','cooccur','v',"A client with depression is also drinking heavily. The intake worker suggests treating the alcohol use first and addressing the depression once he is sober. The best approach is:",
+["Integrated treatment of both conditions at the same time","Treat the alcohol use first as suggested","Treat the depression first, since it may be causing the drinking","Refer him to two separate agencies and let him choose"],
+"For <b>co-occurring disorders</b>, treat both <b>at the same time</b> in an integrated way. Don't require sobriety before mental health care.");
+Q('bx-assess','cooccur','r',"The \"no wrong door\" principle means:",
+["Clients should get help for both conditions wherever they first seek services","Clients must start with substance use treatment","Clients can be referred anywhere without a follow-up","Every agency offers the same services"],
+"Whichever service the person enters first should respond to <b>both</b> their substance use and mental health needs.");
+Q('bx-assess','ipv','v',"A woman discloses that her husband hits her. She asks if couples counselling would help. The social worker should:",
+["Explain that couples counselling isn't recommended while there's violence, and offer individual support and safety planning","Refer them to couples counselling since both want to save the marriage","Invite the husband to the next session to hear his side","Suggest she leave immediately"],
+"Couples counselling is <b>not appropriate</b> while there's abuse; it can lead to retaliation. Offer <b>individual</b> work and a <b>safety plan</b>. Leaving can be the most dangerous time, so it needs planning.");
+Q('bx-assess','ipv','r',"In Walker's cycle of violence, the phase with apologies, affection and promises to change is:",
+["Reconciliation (honeymoon)","Tension-building","Incident","Calm"],
+"After the incident comes <b>reconciliation</b>: apologies and promises, which keep hope alive.");
+Q('bx-assess','placement','r',"Working toward reunification with the parents while also preparing a backup permanent plan is called:",
+["Concurrent planning","Kinship care","Family preservation","Permanency hearing"],
+"<b>Concurrent planning</b> pursues reunification <b>and</b> an alternative permanent plan at the same time, to shorten time in care.");
+Q('bx-assess','placement','v',"A child must be removed from home. A grandmother is willing and able to care for the child safely. Generally, the preferred placement is:",
+["Kinship care with the grandmother","A non-relative foster home","A group home","An adoptive home"],
+"<b>Kinship care</b> with relatives is generally preferred: it keeps family and cultural connections.");
+Q('bx-assess','caregiving','v',"A family has just learned that their father has Alzheimer's disease. The son says, \"The doctors are wrong; he's just tired.\" This most likely reflects:",
+["Denial, a common first reaction to the diagnosis","A need for a second medical opinion","Caregiver burnout","Anticipatory grief that is resolved"],
+"From your practice exam: families usually respond to an Alzheimer's diagnosis with <b>denial first</b>. Acknowledge it before care planning.");
+Q('bx-assess','caregiving','r',"A service that gives family caregivers a short break while the person is cared for by others is called:",
+["Respite care","Hospice care","Adult protective services","Case management"],
+"<b>Respite care</b> gives caregivers temporary relief.");
+Q('bx-assess','aging','v',"An 80-year-old man who was sharp last week is suddenly confused and agitated. What should the social worker do FIRST?",
+["Arrange a medical evaluation","Refer him for a dementia assessment","Explain to the family that this is normal aging","Suggest a memory care facility"],
+"Sudden confusion in an older adult → <b>rule out medical causes first</b> (delirium, infection, medication).");
+Q('bx-assess','aging','r',"Which is most consistent with normal aging rather than dementia?",
+["Forgetting a name and remembering it later","Getting lost on the way home from a familiar store","Being unable to manage monthly bills","Repeating the same question many times"],
+"Normal aging: occasional lapses that <b>don't interfere with daily functioning</b>. The others suggest dementia.");
+Q('bx-assess','eating','v',"A college student who is severely underweight says she feels fat and exercises for hours a day. What should the social worker do FIRST?",
+["Arrange a medical evaluation","Start CBT for body image","Explore family dynamics around food","Refer her to a nutrition class"],
+"Anorexia has one of the highest death rates of any mental disorder. <b>Medical danger comes first</b>.");
+Q('bx-assess','eating','r',"Binge eating followed by self-induced vomiting or laxative use, usually at a normal weight, best describes:",
+["Bulimia nervosa","Anorexia nervosa","Binge-eating disorder","ARFID"],
+"<b>Bulimia</b> = binge + compensatory behavior. Binge-eating disorder has <b>no</b> compensation.");
+Q('bx-assess','identity','r',"In the Racial/Cultural Identity Development model, a person who strongly embraces their own culture and rejects the dominant culture is in which stage?",
+["Resistance and immersion","Conformity","Introspection","Integrative awareness"],
+"<b>Resistance and immersion</b> = embrace own group, reject the dominant culture. Conformity is the opposite.");
+Q('bx-assess','identity','v',"A young Asian American client says she has always wanted to be \"like the white kids\" and feels embarrassed by her family's customs. Which stage does this suggest?",
+["Conformity","Dissonance","Resistance and immersion","Integrative awareness"],
+"<b>Conformity</b>: preferring the dominant culture and devaluing one's own.");
+Q('bx-assess','capacity','v',"A 78-year-old woman with mild memory problems refuses to move into assisted living, as her daughter wants. What should the social worker do?",
+["Assess whether she understands the risks of this specific decision, and respect it if she does","Support the daughter, since the client has memory problems","Seek guardianship so the move can happen","Tell the client she is not competent to decide"],
+"Capacity is <b>decision-specific</b>, and <b>disagreeing is not incapacity</b>. Social workers don't declare competence; courts do. Guardianship is the last resort.");
+Q('bx-assess','capacity','r',"Competence (as opposed to capacity) is:",
+["A legal determination made by a court","A clinical judgment made by the social worker","Specific to one decision and changes day to day","Assessed with the Mini-Mental State Exam"],
+"<b>Competence</b> is legal, decided by a court. <b>Capacity</b> is clinical and decision-specific.");
+Q('bx-assess','techenv','r',"Compared with in-person bullying, cyberbullying is more:",
+["Persistent and permanent, and harder for adults to notice","Likely to involve physical injury","Easily escaped by going home","Limited to school hours"],
+"Cyberbullying is <b>persistent</b> (24/7), <b>permanent</b> (content stays online) and <b>hard for adults to notice</b>.");
+Q('bx-assess','techenv','v',"A social worker arrives at a shelter the day after a wildfire destroyed a family's home. What should the worker do FIRST?",
+["Make sure the family is safe and help with immediate practical needs","Assess the children for PTSD","Help the family process their feelings about the loss","Give them a referral list for trauma therapy"],
+"<b>Psychological First Aid</b>: safety, comfort and <b>practical assistance</b> come first after a disaster.");
+Q('bx-assess','history','r',"According to your practice exam, the most important reason to obtain a social history is to:",
+["Understand the client's goals","Complete the agency's paperwork","Diagnose the client","Identify who is to blame for the problem"],
+"The social history puts the client in context so the plan can be built around <b>the client's goals</b>.");
+Q('bx-assess','history','v',"A social worker wants to talk with a client's teacher and doctor to better understand his situation. Before contacting them, the worker should:",
+["Get the client's written consent","Contact them, since they are professionals","Contact them, but share only the client's name","Ask the client's parents instead of the client"],
+"Talking to others is gathering <b>collateral information</b>, which requires the client's <b>consent</b> except in emergencies or legal mandates.");
+Q('bx-assess','ecomap','r',"A diagram placing the family in the centre and showing its relationships with school, work, church and agencies is a(n):",
+["Ecomap","Genogram","Sociogram","Timeline"],
+"The <b>ecomap</b> (Hartman) shows the family's connections to <b>outside systems</b>; the genogram shows the family tree across generations.");
+Q('bx-assess','ecomap','v',"A social worker wants to see which community resources support a family and which relationships are stressful. Which tool fits best?",
+["Ecomap","Genogram","MMPI","Family life cycle chart"],
+"Resources and stressors in the <b>environment</b> → <b>ecomap</b>. Multigenerational patterns → genogram.");
+Q('bx-assess','flc','r',"In Carter and McGoldrick's family life cycle, the stage where parents adjust as adult children leave home is:",
+["Launching children and moving on","Families with adolescents","Families in later life","Leaving home: single young adults"],
+"<b>Launching children and moving on</b>: accepting exits from and entries into the family (empty nest, in-laws, grandchildren).");
+Q('bx-assess','flc','v',"A family's conflict started when the oldest child turned 14 and began demanding more independence. The social worker should view this mainly as:",
+["A normal family life cycle transition that requires adjusting boundaries","Evidence that the teen has oppositional defiant disorder","A sign that the parents are too permissive","A problem the teen should address in individual therapy"],
+"Stress often shows up at <b>life cycle transitions</b>. Families with adolescents need more <b>flexible boundaries</b>. Normalize before pathologizing.");
+Q('bx-assess','tests','r',"A client wants help choosing a career. Which instrument is most appropriate?",
+["A vocational (interest) inventory","An intelligence scale","A personality inventory such as the MMPI","A perceptual-motor test"],
+"<b>Vocational inventories</b> (e.g., Strong Interest Inventory) measure career interests, not ability.");
+Q('bx-assess','tests','r',"The MMPI is best described as a(n):",
+["Objective self-report personality inventory","Projective personality test","Intelligence scale","Vocational interest inventory"],
+"The <b>MMPI</b> is an <b>objective personality inventory</b> with true/false self-report items. Projective tests (Rorschach, TAT) use ambiguous stimuli.");
+Q('bx-assess','socialization','r',"When a person adopts a group's values so completely that they follow them without outside pressure, this is:",
+["Internalization","Socialization","Recruitment","Compliance"],
+"<b>Internalization</b> = the norms become your own. <b>Socialization</b> is the learning process; <b>recruitment</b> brings new members in.");
+Q('bx-assess','socialization','r',"The process by which newcomers learn the norms, values and roles of a group is:",
+["Socialization","Internalization","Recruitment","Acculturation"],
+"<b>Socialization</b> teaches members how to think and act as the group does. It comes after recruitment and before internalization.");
+// INTERVENTION & PRACTICE
+Q('bx-interv','generalist','r',"Running a support group for grieving parents is an example of which level of practice?",
+["Mezzo","Micro","Macro","Clinical"],
+"<b>Mezzo</b> = groups and small communities. Micro = individuals and families; macro = communities and policy.");
+Q('bx-interv','generalist','v',"A client who feels overwhelmed by several problems at once is helped to pick one small problem to work on first. This is:",
+["Partialization","Reframing","Confrontation","Universalization"],
+"<b>Partialization</b> (Perlman) breaks a large problem into smaller parts to build confidence.");
+Q('bx-interv','interview','v',"At a first meeting, a client asks, \"So are you going to tell me what to do?\" What should the social worker do?",
+["Clarify the worker's role, the purpose of meeting, and how they will work together","Begin the assessment questions","Reassure the client that the worker is an expert","Ask why the client thinks that"],
+"From your practice exam: structuring the interview includes <b>clarifying roles</b> and purpose early. Also avoid \"why\" questions; they can sound accusatory.");
+Q('bx-interv','interview','r',"Which type of question is generally best avoided in social work interviews?",
+["\"Why\" questions","Open-ended questions","Clarifying questions","Closed questions about safety"],
+"<b>\"Why\"</b> questions can sound accusatory and make clients defensive. Use \"what\" or \"how.\"");
+Q('bx-interv','listening','v',"A client's account of events changes between sessions. What should the social worker do?",
+["Gently clarify the details without assuming the client is lying","Confront the client about lying","Document that the client is unreliable","End services because trust has been broken"],
+"From your practice exam: <b>don't assume a client is purposely inaccurate</b>. Trauma, memory, stress or language can explain inconsistencies. Clarify.");
+Q('bx-interv','listening','r',"In SOLER, the \"L\" stands for:",
+["Lean toward the client","Listen reflectively","Limit distractions","Look away occasionally"],
+"SOLER: Sit squarely, Open posture, <b>Lean</b> toward the client, Eye contact, Relaxed.");
+Q('bx-interv','involuntary','v',"A court-mandated client says, \"I don't need to be here. This is a waste of time.\" What is the best response?",
+["Acknowledge the frustration and clarify what is required and what the client can choose","Explain the legal consequences of not attending","Document that the client is resistant","Tell the client that everyone feels that way at first"],
+"With involuntary clients: <b>acknowledge feelings</b>, be honest about <b>non-negotiable vs negotiable</b> parts, and offer real choices.");
+Q('bx-interv','involuntary','r',"With a mandated client, which item is usually negotiable?",
+["The goals and methods of the work within the mandate","Whether the social worker must report non-attendance","The conditions set by the court","The worker's duty to report abuse"],
+"Court conditions and reporting duties are <b>non-negotiable</b>; goals, schedule and methods often are negotiable.");
+Q('bx-interv','casemgmt','v',"A client needs legal help the agency doesn't offer. What is the best way to refer?",
+["Discuss options with the client, get consent, connect them directly with the service, and follow up","Give the client a list of legal aid phone numbers","Tell the client to search online for a lawyer","Close the case once the client says they will call"],
+"From your practice exam: learn the <b>referral process</b>. Match it to the client, get <b>consent</b>, use a <b>warm handoff</b>, and <b>follow up</b>.");
+Q('bx-interv','casemgmt','r',"Checking regularly that services in the plan are delivered and still meet the client's needs is which case management function?",
+["Monitoring","Linking","Advocacy","Assessment"],
+"<b>Monitoring</b> tracks whether services are delivered and still fit the client's needs.");
+Q('bx-interv','harm','v',"A client who injects opioids says she isn't ready to stop. What should the social worker do?",
+["Provide naloxone and safer-use information, and keep her engaged in services","Tell her services will start once she is ready to quit","Refer her to detox immediately","Explain that continued use shows she isn't serious about change"],
+"<b>Harm reduction</b> meets people where they are: reduce harm without requiring abstinence, and keep them engaged.");
+Q('bx-interv','harm','r',"Which is a core principle of harm reduction?",
+["Success is measured by improved well-being, not necessarily abstinence","Abstinence is required to receive services","Drug use should be ignored in assessment","Services should be mandatory"],
+"Harm reduction measures success by <b>quality of life and well-being</b>, with non-judgmental, non-coercive services.");
+Q('bx-interv','task','r',"Task-centered practice is best described as:",
+["Brief, time-limited work on client-identified problems broken into specific tasks","Long-term insight-oriented therapy","A crisis model focused on lethality","A family therapy model focused on boundaries"],
+"Task-centered (Reid &amp; Epstein): <b>brief, time-limited</b> (about 8–12 sessions), <b>client-agreed target problems</b>, concrete tasks.");
+Q('bx-interv','task','v',"In task-centered work, a client hasn't completed the agreed task for two weeks. The social worker should FIRST:",
+["Review the task with the client to find barriers and adjust it","Point out that the client agreed to the task","End services due to lack of progress","Assign a larger task to increase motivation"],
+"If tasks aren't getting done, <b>review and adjust the task</b>. It may be too big or unclear, or face barriers.");
+Q('bx-interv','crisis','r',"In Roberts' seven-stage crisis model, the FIRST stage is to:",
+["Assess lethality and safety","Establish rapport","Explore feelings","Develop an action plan"],
+"Stage 1 is a <b>lethality and safety assessment</b> (along with a biopsychosocial assessment).");
+Q('bx-interv','crisis','v',"A client in crisis after a job loss is now safe and calmer. Which step comes next in the problem-solving process?",
+["Identify the main problems and explore options with the client","Begin long-term therapy on childhood issues","Close the case since the crisis has passed","Tell the client which job to apply for"],
+"After safety and rapport, identify the <b>problems</b> and <b>generate alternatives</b> with the client: the problem-solving part of crisis work.");
+Q('bx-interv','grief','v',"A client whose husband died two weeks ago says, \"I can't believe he's gone.\" What should the social worker do FIRST?",
+["Acknowledge the loss and explore her feelings","Teach her coping skills for grief","Refer her to a bereavement group","Help her plan how to manage the household alone"],
+"From your practice exam: <b>acknowledge the loss first</b>, then move to coping. This matches Worden's first task, accepting the reality of the loss.");
+Q('bx-interv','grief','r',"The first of Worden's tasks of mourning is to:",
+["Accept the reality of the loss","Work through the pain of grief","Adjust to a world without the deceased","Find an enduring connection with the deceased"],
+"Worden's tasks start with <b>accepting the reality of the loss</b>.");
+Q('bx-interv','behavioral','r',"Which reinforcement schedule produces behavior most resistant to extinction?",
+["Variable ratio","Fixed ratio","Fixed interval","Continuous reinforcement"],
+"<b>Variable ratio</b> (e.g., slot machines). Continuous reinforcement gives the fastest learning but fades quickly.");
+Q('bx-interv','behavioral','r',"Which of the following is NOT an intervention technique?",
+["Transference","Role playing","Behavioral rehearsal","Modeling"],
+"From your practice exam: <b>transference</b> is a phenomenon (the client redirecting feelings onto the worker), <b>not a technique</b>.");
+Q('bx-interv','behavioral','v',"A group member acts out an argument she had with her father years ago so the group can explore what happened. This is:",
+["Reenacting","Modeling","Behavioral rehearsal","Transference"],
+"<b>Reenacting</b> = acting out a <b>past</b> event to explore past behavior (psychodrama). Rehearsal practises a <b>future</b> behavior.");
+Q('bx-interv','assert','v',"A client who always agrees to extra shifts wants to learn to say no to her boss. Which intervention fits best?",
+["Assertiveness training with behavioral rehearsal","Anger management","Systematic desensitization","Psychodynamic exploration of her childhood"],
+"<b>Assertiveness training</b>: \"I\" statements, role play and rehearsal to express needs respectfully.");
+Q('bx-interv','assert','r',"In the SAMHSA anger management model, when should a client take a timeout?",
+["During escalation, before reaching an explosion","After an explosion, to reflect","Only when the other person agrees","Only in group sessions"],
+"The aggression cycle is escalation → explosion → post-explosion. <b>Intervene during escalation</b>.");
+Q('bx-interv','groupmodels','r',"A self-help group where members support each other and the worker acts as a mediator reflects which model?",
+["Reciprocal","Remedial","Social goals","Psychoeducational"],
+"<b>Reciprocal</b> = mutual aid; worker as mediator. Remedial = treatment; social goals = social change.");
+Q('bx-interv','groupmodels','r',"A group run by a worker acting as therapist to change members' problem behaviors follows which model?",
+["Remedial","Reciprocal","Social goals","Task"],
+"<b>Remedial</b> groups treat individual problems; the worker is the expert/therapist.");
+Q('bx-interv','family','v',"In a family session, a mother says her son is \"the problem\" because he breaks curfew. Which response best reflects a family systems view?",
+["Explore how the mother and son interact around curfew and the conflict between them","Agree that the son needs individual counselling","Tell the mother she is being too strict","Set consequences for the son with the mother's input"],
+"From your practice exam: don't pin the problem on the parent or the child. Frame it as a <b>conflict involving both</b> (circular causality).");
+Q('bx-interv','family','v',"During a family session about a teen's grades, the father mentions that he pushed the mother last week. What should the social worker do?",
+["Address the violence and assess everyone's safety","Note it and return to the grades, since that's the presenting problem","Suggest discussing it at a later session","Ask the mother whether she wants to talk about it"],
+"From your practice exam: <b>don't move away from violence</b> when it comes up. Safety comes before the presenting problem.");
+Q('bx-interv','teams','r',"A team in which professionals work together and share knowledge toward common goals is:",
+["Interdisciplinary","Multidisciplinary","Intradisciplinary","Parallel"],
+"<b>Interdisciplinary</b> = working together and sharing knowledge. Multidisciplinary members work separately in parallel.");
+Q('bx-interv','teams','v',"A social worker is asked to mediate a conflict between two neighbours. What is the worker's main role?",
+["Help both sides reach their own agreement as a neutral third party","Decide who is right","Recommend a solution and persuade both to accept it","Advocate for the neighbour with less power"],
+"A mediator is a <b>neutral third party</b> who helps the parties reach their <b>own</b> agreement.");
+
+// ================= BEYOND THE GUIDE: FLASHCARDS =================
+C('bx-ethics',"Anti-oppressive practice","Challenges structural and institutional power and oppression, not just one-to-one interactions");
+C('bx-ethics',"Cultural mistrust","A reasonable wariness of institutions that have harmed one's group; not pathology or resistance");
+C('bx-ethics',"Intersectionality (Crenshaw)","Overlapping identities create a distinct, combined experience of privilege or oppression, not an additive one");
+C('bx-ethics',"Implicit bias","Stereotypes or attitudes that affect decisions without conscious awareness");
+C('bx-ethics',"Microassault","Explicit, deliberate slur or exclusion");
+C('bx-ethics',"Microinsult","Often unintentional comment that carries a demeaning assumption");
+C('bx-ethics',"Microinvalidation","Dismisses or denies a person's lived experience (\"I don't see color\")");
+C('bx-ethics',"Ethnocentrism","Judging another culture by the standards of your own");
+C('bx-ethics',"Cultural relativism","Understanding a culture by its own standards");
+C('bx-ethics',"NASW 1.05 (2021 title)","Cultural Awareness and Social Diversity (was 'Cultural Competence')");
+C('bx-ethics',"Working with interpreters","Qualified interpreter, never children; speak directly to the client; brief first; short segments");
+C('bx-ethics',"Deaf (capital D)","A cultural and linguistic community that shares American Sign Language");
+C('bx-ethics',"Person-first vs identity-first","'Person with autism' vs 'autistic person'. Ask the client which they prefer");
+C('bx-ethics',"Refugee","Outside their country with a well-founded fear of persecution");
+C('bx-ethics',"Berry: integration","Keep heritage culture + adopt host culture (best outcomes)");
+C('bx-ethics',"Berry: marginalization","Lose heritage culture and reject host culture (worst outcomes)");
+C('bx-ethics',"Historical trauma (Brave Heart)","Collective, cross-generational wounding from colonization and forced removal");
+C('bx-ethics',"ICWA placement preference","Extended family and tribe first; requires active efforts to keep families together");
+C('bx-ethics',"Coming out","Client decides timing and who to tell; assess safety first");
+C('bx-ethics',"Restorative question","Who was harmed, what do they need, and whose obligation is it to meet it?");
+C('bx-ethics',"Restorative practices: when NOT to use","Ongoing danger, coercive control or intimate partner violence");
+C('bx-ethics',"Informed consent: involuntary clients","Explain the nature and extent of services and the extent of the right to refuse");
+C('bx-ethics',"Telehealth: start of each session","Verify the client's identity and location");
+C('bx-ethics',"Licensure for telehealth","Follow the laws of both the worker's and the client's jurisdiction");
+C('bx-ethics',"NASW 3.05 Billing","Bills must accurately reflect the nature and extent of services and who provided them");
+C('bx-ethics',"Palliative vs hospice","Palliative: any stage, curative treatment can continue. Hospice: ≤6 months, curative treatment stops");
+C('bx-ethics',"Health care proxy","Person named to make medical decisions if the client loses capacity");
+C('bx-ethics',"Worker opposed to medical aid in dying","Don't impose values; transfer care to another worker");
+C('bx-ethics',"Impaired colleague: first step","Talk with the colleague; then formal channels if unresolved");
+C('bx-ethics',"Burnout vs vicarious trauma","Burnout = workplace stress. Vicarious trauma = exposure to clients' trauma");
+C('bx-assess',"Healthy People 2030 SDOH domains (5)","Economic stability · Education · Health care · Neighborhood & built environment · Social & community context");
+C('bx-assess',"Housing First","Permanent housing without preconditions; services voluntary");
+C('bx-assess',"Human trafficking","Force, fraud or coercion to obtain labor or commercial sex");
+C('bx-assess',"Trafficking: minors","Any commercial sex under 18 = trafficking; no force, fraud or coercion needed");
+C('bx-assess',"Trafficking: movement required?","No. It can happen in the victim's hometown");
+C('bx-assess',"Co-occurring disorders","SUD + mental disorder together → integrated treatment of both at once");
+C('bx-assess',"Walker's cycle of violence","Tension-building → incident → reconciliation → calm");
+C('bx-assess',"Couples counselling with active abuse?","No. Individual work, safety planning, batterer intervention");
+C('bx-assess',"Concurrent planning","Reunification and a backup permanent plan pursued at the same time");
+C('bx-assess',"Kinship care","Placement with relatives or close family friends; generally preferred");
+C('bx-assess',"Family reaction to Alzheimer's diagnosis","Denial usually comes first");
+C('bx-assess',"Respite care","Short-term care for the person so the caregiver gets a break");
+C('bx-assess',"Normal aging vs dementia","Normal lapses don't interfere with daily functioning; dementia does");
+C('bx-assess',"Anorexia nervosa","Severe restriction, fear of weight gain; one of the highest death rates of any mental disorder");
+C('bx-assess',"Bulimia vs binge-eating disorder","Bulimia = binge + purging/compensation. Binge-eating = no compensation");
+C('bx-assess',"Racial/Cultural Identity Development stages","Conformity → Dissonance → Resistance & immersion → Introspection → Integrative awareness");
+C('bx-assess',"Capacity vs competence","Capacity = clinical, decision-specific, fluctuates. Competence = legal, decided by a court");
+C('bx-assess',"Least restrictive options before guardianship","Supported decision-making, power of attorney, health care proxy, advance directive");
+C('bx-assess',"Cyberbullying: 3 concerns","Persistent, permanent, hard for adults to notice");
+C('bx-assess',"Psychological First Aid first steps","Contact, safety & comfort, stabilization, then practical assistance");
+C('bx-assess',"Social history: main purpose (practice exam)","To understand the client's goals");
+C('bx-assess',"Collateral information","Information from others or records (family, school, doctors); needs client consent");
+C('bx-assess',"Start where the client is","Let the client define the problem; meet them where they are");
+C('bx-assess',"Ecomap (Hartman)","Client/family in the centre; relationships with outside systems; resources and stressors");
+C('bx-assess',"Genogram vs ecomap","Genogram = family across 3+ generations. Ecomap = links to outside systems now");
+C('bx-assess',"Family life cycle stages (Carter & McGoldrick)","Leaving home → New couple → Young children → Adolescents → Launching → Later life");
+C('bx-assess',"Intelligence scale","Measures cognitive ability / IQ (WAIS, WISC, Stanford-Binet)");
+C('bx-assess',"Personality inventory","Objective self-report of traits and psychopathology (MMPI)");
+C('bx-assess',"Projective test","Ambiguous stimuli reveal personality (Rorschach, TAT)");
+C('bx-assess',"Perceptual-motor test","How a person perceives and reproduces designs (Bender-Gestalt)");
+C('bx-assess',"Vocational inventory","Measures career interests, not ability (Strong Interest Inventory)");
+C('bx-assess',"Recruitment → Socialization → Internalization","Bring members in → teach norms → norms become their own");
+C('bx-interv',"Micro / mezzo / macro","Individuals & families / groups & organizations / communities & policy");
+C('bx-interv',"Planned change process","Engagement → Assessment → Planning → Implementation → Evaluation → Termination → Follow-up");
+C('bx-interv',"Perlman's problem-solving steps","Clarify the facts → think them through → make a choice");
+C('bx-interv',"Structuring the interview (start)","Rapport, purpose, clarify roles, confidentiality limits");
+C('bx-interv',"Why avoid 'why' questions?","They sound accusatory; ask 'what' or 'how' instead");
+C('bx-interv',"SOLER","Sit squarely · Open posture · Lean in · Eye contact · Relaxed");
+C('bx-interv',"Client's details don't match","Don't assume they're lying; clarify (trauma, memory, language)");
+C('bx-interv',"Involuntary clients","Acknowledge feelings; separate negotiable from non-negotiable; offer real choices");
+C('bx-interv',"Case management functions","Assess, plan, link/coordinate, monitor, advocate, reassess, terminate");
+C('bx-interv',"Warm handoff","Direct introduction to the new provider, not just giving a phone number");
+C('bx-interv',"Referral steps","Match to client needs, get consent, connect directly, follow up");
+C('bx-interv',"Harm reduction","Reduce harm without requiring abstinence; meet people where they are");
+C('bx-interv',"Task-centered practice","Reid & Epstein; brief (about 8–12 sessions); client-agreed target problems; concrete tasks");
+C('bx-interv',"Roberts' 7 stages","Assess lethality → rapport → identify problems → explore feelings → alternatives → action plan → follow-up");
+C('bx-interv',"Grief work: first step","Acknowledge the loss before coping methods");
+C('bx-interv',"Worden's tasks of mourning","Accept reality → work through pain → adjust → enduring connection");
+C('bx-interv',"Most extinction-resistant schedule","Variable ratio");
+C('bx-interv',"Transference: technique?","No. It's a phenomenon, not a technique");
+C('bx-interv',"Reenacting vs rehearsal","Reenacting explores a past event; rehearsal practises a future behavior");
+C('bx-interv',"Assertive vs passive vs aggressive","Assertive respects both sides; passive gives in; aggressive overrides others");
+C('bx-interv',"Aggression cycle","Escalation → explosion → post-explosion (intervene during escalation)");
+C('bx-interv',"Papell & Rothman group models","Social goals (social change) · Remedial (treatment) · Reciprocal (mutual aid)");
+C('bx-interv',"Family session: who's the problem?","Neither alone. Frame the conflict as involving both");
+C('bx-interv',"Violence mentioned in a family session","Don't move away from it; assess safety");
+C('bx-interv',"Interdisciplinary vs multidisciplinary","Inter = work together, share knowledge. Multi = work separately in parallel");
+C('bx-interv',"Mediator's role","Neutral third party; helps parties reach their own agreement");
+C('bx-interv',"Principled negotiation (Fisher & Ury)","Separate people from problem; interests not positions; options for mutual gain; objective criteria");
+
+
 window.TIPS = [
 {title:'Test yourself (retrieval practice)', body:'Pulling an answer out of memory strengthens it far more than re-reading it. <b>Practice testing</b> was one of only two techniques rated "high utility" in a major review of 10 study techniques.', how:'Quiz and Flashcards tabs. In Learn, turn on <b>Recall mode</b> to blur a topic, try to say it from memory, then tap to check.', ref:'Dunlosky et al., 2013'},
 {title:'Space it out (distributed practice)', body:'The other "high utility" technique. Short sessions spread over several days beat one long cram, and even across 3 days it helps.', how:'The plan brings back your weak spots at the start of each day.', ref:'Dunlosky et al., 2013'},
@@ -3375,11 +4270,14 @@ CARDS.forEach(function(c){c.id='c'+hash(c.m+'|'+c.f);});
 var QBYID={}; QS.forEach(function(q){QBYID[q.id]=q;});
 var CBYID={}; CARDS.forEach(function(c){CBYID[c.id]=c;});
 var QUIZ_MODS=MODULES.filter(function(m){return QS.some(function(q){return q.m===m.id;});});
+function srcOf(mid){var m=MOD[mid];return m&&m.src==='beyond'?'beyond':'guide';}
+function mt(m){return (m&&m.src==='beyond'?'Beyond · ':'')+(m?m.title:'');}
+function srcMods(src){return MODULES.filter(function(m){return src==='both'||srcOf(m.id)===src;});}
 var SEARCH=[]; MODULES.forEach(function(m){m.topics.forEach(function(t){SEARCH.push({t:t,text:(t.title+' '+strip(t.guide)+' '+strip(t.simple)).toLowerCase(),g:strip(t.guide),s:strip(t.simple)});});});
 
 /* ---------- state ---------- */
 var KEY='swexam.v1';
-var DEFAULT={examDate:'2026-09-24',theme:'auto',view:'guide',reviewed:{},q:{},c:{},plan:{},last:null,sessions:[],recall:{}};
+var DEFAULT={examDate:'2026-09-24',theme:'auto',view:'guide',reviewed:{},q:{},c:{},plan:{},last:null,sessions:[],recall:{},learnSrc:'guide'};
 var S=load();
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}var o=JSON.parse(JSON.stringify(DEFAULT));if(s&&typeof s==='object'){for(var k in s)o[k]=s[k];}return o;}
 var storageOK=true;
@@ -3394,8 +4292,8 @@ function weakCards(){return CARDS.filter(function(c){return cWeak(c.id);});}
 function modStats(mid){var a=0,c=0,seen=0,tot=0;QS.forEach(function(q){if(q.m!==mid)return;tot++;var r=S.q[q.id];if(r){seen++;a+=r.a;c+=r.c;}});return {att:a,cor:c,seen:seen,total:tot,acc:a?Math.round(100*c/a):null};}
 function overall(){var a=0,c=0,seen=0;for(var k in S.q){if(!QBYID[k])continue;seen++;a+=S.q[k].a;c+=S.q[k].c;}return {att:a,cor:c,seen:seen,acc:a?Math.round(100*c/a):null};}
 function reviewedCount(mid){var m=MOD[mid];return m.topics.filter(function(t){return S.reviewed[t.key];}).length;}
-function totalReviewed(){var n=0;MODULES.forEach(function(m){n+=reviewedCount(m.id);});return n;}
-var TOTAL_TOPICS=0; MODULES.forEach(function(m){TOTAL_TOPICS+=m.topics.length;});
+function totalReviewed(){var n=0;MODULES.forEach(function(m){if(m.src!=='beyond')n+=reviewedCount(m.id);});return n;}
+var TOTAL_TOPICS=0; MODULES.forEach(function(m){if(m.src!=='beyond')TOTAL_TOPICS+=m.topics.length;});
 function daysLeft(){var e=parseDate(S.examDate);if(!e)return null;return daysBetween(today0(),e);}
 function planDayIndex(){var d=daysLeft();if(d===null)return 0;if(d<0)return -1;var off=-d;var idx=0;PLAN.forEach(function(p,i){if(p.offset<=off)idx=i;});if(off<PLAN[0].offset)idx=0;return idx;}
 
@@ -3438,7 +4336,7 @@ var toastT;
 function toast(msg){var el=$('.toast');if(!el){el=document.createElement('div');el.className='toast';el.setAttribute('role','status');document.body.appendChild(el);}el.textContent=msg;el.style.display='block';clearTimeout(toastT);toastT=setTimeout(function(){el.style.display='none';},1800);}
 
 window.__SW={hash:hash,$:$,esc:esc,strip:strip,shuffle:shuffle,pct:pct,fmtDate:fmtDate,parseDate:parseDate,isoDate:isoDate,today0:today0,daysBetween:daysBetween,
- MODULES:MODULES,QS:QS,CARDS:CARDS,MOD:MOD,TOPIC:TOPIC,QBYID:QBYID,CBYID:CBYID,QUIZ_MODS:QUIZ_MODS,SEARCH:SEARCH,
+ MODULES:MODULES,QS:QS,CARDS:CARDS,srcOf:srcOf,mt:mt,srcMods:srcMods,MOD:MOD,TOPIC:TOPIC,QBYID:QBYID,CBYID:CBYID,QUIZ_MODS:QUIZ_MODS,SEARCH:SEARCH,
  get S(){return S;},set S(v){S=v;},DEFAULT:DEFAULT,KEY:KEY,save:save,applyTheme:applyTheme,storageOK:function(){return storageOK;},
  qWeak:qWeak,cWeak:cWeak,weakQs:weakQs,weakCards:weakCards,modStats:modStats,overall:overall,reviewedCount:reviewedCount,totalReviewed:totalReviewed,TOTAL_TOPICS:TOTAL_TOPICS,daysLeft:daysLeft,planDayIndex:planDayIndex,
  I:I,renderShell:renderShell,updateChrome:updateChrome,toast:toast};
@@ -3497,26 +4395,37 @@ V.home=function(main){
 V.learn=function(main,parts){
  if(parts[1]&&parts[2]&&SW.TOPIC[parts[1]+'/'+parts[2]]) return reader(main,SW.TOPIC[parts[1]+'/'+parts[2]]);
  if(parts[1]&&SW.MOD[parts[1]]) return moduleView(main,SW.MOD[parts[1]]);
- var h='<h1>Learn</h1><p class="sub">The guide, section by section. Every topic has the guide\'s own wording plus a <b>Simplified</b> version.</p>';
- h+='<div class="search">'+I.search+'<input id="q" type="search" placeholder="Search terms, e.g. titration, lithium, subpoena" aria-label="Search the guide" autocomplete="off"></div><div id="results"></div><div class="mods" id="mods">';
- SW.MODULES.forEach(function(m){
+ if(parts[1]==='beyond'||parts[1]==='guide'){ if(SW.S.learnSrc!==parts[1]){SW.S.learnSrc=parts[1];SW.save();} }
+ var src=SW.S.learnSrc==='beyond'?'beyond':'guide', mods=SW.srcMods(src);
+ var ng=0,nb=0; SW.MODULES.forEach(function(m){if(m.src==='beyond')nb+=m.topics.length;else ng+=m.topics.length;});
+ var h='<h1>Learn</h1>';
+ h+='<nav class="seg src-seg" aria-label="Content source"><a href="#/learn/guide" aria-current="'+(src==='guide')+'">Study guide</a><a href="#/learn/beyond" aria-current="'+(src==='beyond')+'">Beyond the guide</a></nav>';
+ if(src==='guide') h+='<p class="sub">The guide, section by section. Every topic has the guide\'s own wording plus a <b>Simplified</b> version.</p>';
+ else {
+  var rv=0; mods.forEach(function(m){rv+=SW.reviewedCount(m.id);});
+  h+='<p class="sub">Topics on the <b>2026 ASWB Bachelors</b> outline, plus items from your practice exam, that the study guide doesn\'t cover. Grouped by exam domain.</p>';
+  h+='<div class="bx-note"><b>Outside the guide.</b> Researched from outside sources and listed under each topic. <span class="pe">Practice exam</span> marks items from your practice-exam notes. '+rv+'/'+nb+' reviewed.</div>';
+ }
+ h+='<div class="search">'+I.search+'<input id="q" type="search" placeholder="'+(src==='guide'?'Search terms, e.g. titration, lithium, subpoena':'Search terms, e.g. ecomap, trafficking, harm reduction')+'" aria-label="Search" autocomplete="off"></div><div id="results"></div><div class="mods" id="mods">';
+ mods.forEach(function(m){
   var r=SW.reviewedCount(m.id), n=m.topics.length, st=SW.modStats(m.id);
-  h+='<a class="mod'+(r===n?' done':'')+'" href="#/learn/'+m.id+'"><span class="num">'+m.n+'</span><span style="min-width:0"><b>'+esc(m.title)+'</b><span class="meta">'+r+'/'+n+' reviewed'+(st.acc!==null?' · '+st.acc+'% quiz accuracy':'')+'</span><div class="bar"><i style="width:'+SW.pct(r,n)+'%"></i></div></span><span class="chev">'+I.chev+'</span></a>';
+  h+='<a class="mod'+(r===n?' done':'')+(m.src==='beyond'?' bx':'')+'" href="#/learn/'+m.id+'"><span class="num">'+m.n+'</span><span style="min-width:0"><b>'+esc(m.title)+'</b><span class="meta">'+r+'/'+n+' reviewed'+(st.acc!==null?' · '+st.acc+'% quiz accuracy':'')+'</span><div class="bar"><i style="width:'+SW.pct(r,n)+'%"></i></div></span><span class="chev">'+I.chev+'</span></a>';
  });
  h+='</div>';
  main.innerHTML=h;
  var inp=$('#q'); inp.addEventListener('input',function(){search(inp.value);});
- if(V._lastSearch){inp.value=V._lastSearch;search(inp.value);}
+ var key='_lastSearch_'+src;
+ if(V[key]){inp.value=V[key];search(inp.value);}
  function search(qs){
-  V._lastSearch=qs; var words=qs.toLowerCase().trim().split(/\s+/).filter(function(w){return w.length>1;});
-  var res=$('#results'), mods=$('#mods');
-  if(!words.length){res.innerHTML='';mods.style.display='';return;}
-  mods.style.display='none';
-  var hits=SW.SEARCH.filter(function(x){return words.every(function(w){return x.text.indexOf(w)>=0;});});
+  V[key]=qs; var words=qs.toLowerCase().trim().split(/\s+/).filter(function(w){return w.length>1;});
+  var res=$('#results'), modsEl=$('#mods');
+  if(!words.length){res.innerHTML='';modsEl.style.display='';return;}
+  modsEl.style.display='none';
+  var hits=SW.SEARCH.filter(function(x){return SW.srcOf(x.t.mod)===src&&words.every(function(w){return x.text.indexOf(w)>=0;});});
   if(!hits.length){res.innerHTML='<p class="empty">No topics match "'+esc(qs)+'".</p>';return;}
   res.innerHTML='<p class="muted small">'+hits.length+' topic'+(hits.length>1?'s':'')+'</p>'+hits.slice(0,40).map(function(x){
-   var src=x.g.toLowerCase().indexOf(words[0])>=0?x.g:x.s; var i=src.toLowerCase().indexOf(words[0]); var a=Math.max(0,i-60);
-   var snip=(a>0?'…':'')+src.slice(a,i+100)+(i+100<src.length?'…':'');
+   var src2=x.g.toLowerCase().indexOf(words[0])>=0?x.g:x.s; var i=src2.toLowerCase().indexOf(words[0]); var a=Math.max(0,i-60);
+   var snip=(a>0?'…':'')+src2.slice(a,i+100)+(i+100<src2.length?'…':'');
    var re=new RegExp('('+words.map(function(w){return w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|')+')','gi');
    return '<a class="result" href="#/learn/'+x.t.mod+'/'+x.t.id+'"><b>'+esc(x.t.title)+'</b><small>'+esc(SW.MOD[x.t.mod].title)+'</small><div class="small">'+esc(snip).replace(re,'<mark>$1</mark>')+'</div></a>';
   }).join('');
@@ -3524,16 +4433,17 @@ V.learn=function(main,parts){
 };
 function moduleView(main,m){
  var st=SW.modStats(m.id), wc=SW.CARDS.filter(function(c){return c.m===m.id;}).length;
- var h='<div class="crumb"><a href="#/learn">Learn</a> ›</div><h1>'+esc(m.title)+'</h1>';
+ var bx=m.src==='beyond';
+ var h='<div class="crumb"><a href="#/learn/'+(bx?'beyond':'guide')+'">Learn'+(bx?' · Beyond the guide':'')+'</a> ›</div><h1>'+esc(m.title)+'</h1>';
  if(m.intro) h+='<div class="intro">'+m.intro+'</div>';
  h+='<div class="row" style="margin:10px 0 16px">'+(st.total?'<button class="btn primary" data-quizmod="'+m.id+'">'+I.quiz+'Quiz this section ('+st.total+')</button>':'')+(wc?'<button class="btn" data-cardmod="'+m.id+'">'+I.cards+'Flashcards ('+wc+')</button>':'')+'</div>';
  h+='<div class="topics">';
  m.topics.forEach(function(t){var n=SW.QS.filter(function(q){return q.m===m.id&&q.t===t.id;}).length;
   var ra=(SW.S.recall||{})[t.key], rl=ra&&ra.length?ra[ra.length-1]:null;
-  h+='<a class="topic'+(SW.S.reviewed[t.key]?' done':'')+'" href="#/learn/'+m.id+'/'+t.id+'"><span class="ck">'+(SW.S.reviewed[t.key]?I.check:'')+'</span><span>'+esc(t.title)+'</span>'+(rl?'<span class="rc '+rcTone(rl.p)+'" title="Latest recall score">'+rl.p+'% recall</span>':'')+(n?'<span class="qn">'+n+' Q</span>':'')+'</a>';});
+  h+='<a class="topic'+(SW.S.reviewed[t.key]?' done':'')+'" href="#/learn/'+m.id+'/'+t.id+'"><span class="ck">'+(SW.S.reviewed[t.key]?I.check:'')+'</span><span>'+esc(t.title)+(t.pe?'<span class="pe pe-row">Practice exam</span>':'')+'</span>'+(rl?'<span class="rc '+rcTone(rl.p)+'" title="Latest recall score">'+rl.p+'% recall</span>':'')+(n?'<span class="qn">'+n+' Q</span>':'')+'</a>';});
  h+='</div>';
  main.innerHTML=h;
- main.onclick=function(e){var q=e.target.closest('[data-quizmod]');if(q)window.__startQuiz({mods:[q.getAttribute('data-quizmod')],n:20,type:'mixed'});var c=e.target.closest('[data-cardmod]');if(c)window.__startCards({mods:[c.getAttribute('data-cardmod')]});};
+ main.onclick=function(e){var q=e.target.closest('[data-quizmod]');if(q)window.__startQuiz({mods:[q.getAttribute('data-quizmod')],n:20,type:'mixed',section:q.getAttribute('data-quizmod')});var c=e.target.closest('[data-cardmod]');if(c)window.__startCards({mods:[c.getAttribute('data-cardmod')]});};
 }
 /* ---------- RECALL GRADING (key-term matching, offline) ---------- */
 var RC=(function(){
@@ -3572,7 +4482,7 @@ var RC=(function(){
  function terms(t,all){
   if(cache[t.key])return cache[t.key];
   if(!IDF)buildIdf(all);
-  var d=strip(t.guide), text=textOf(d), simple=' '+content(words(textOf(strip(t.simple||'')))).map(stem).join(' ')+' ', out=[], have={};
+  var d=strip(t.guide), text=textOf(d), simple=' '+content(words(textOf(strip(t.simple||t.guide||'')))).map(stem).join(' ')+' ', out=[], have={};
   function add(label){
    var ws=termWords(label); if(!ws.length||ws.length>4)return;
    var st=ws.map(stem), id=st.join(' '); if(have[id])return;
@@ -3630,22 +4540,25 @@ var RC=(function(){
 
 function rcTone(p){return p>=70?'good':p>=40?'warn':'bad';}
 function fmtWhen(ts){var d=new Date(ts);try{return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}catch(e){return d.toISOString().slice(0,16).replace('T',' ');}}
-function allTopics(){var a=[];SW.MODULES.forEach(function(mm){mm.topics.forEach(function(tt){a.push(tt);});});return a;}
+function allTopics(src){var a=[];SW.MODULES.forEach(function(mm){if(src&&SW.srcOf(mm.id)!==src)return;mm.topics.forEach(function(tt){a.push(tt);});});return a;}
 var recallOn=false;
 function reader(main,t){
  var S=SW.S, m=SW.MOD[t.mod], idx=m.topics.indexOf(t);
- var flat=allTopics();
+ var bx=m.src==='beyond', srcKey=bx?'beyond':'guide';
+ var flat=allTopics(srcKey), everyTopic=allTopics();
  var fi=flat.indexOf(t), prev=flat[fi-1], next=flat[fi+1], lastInSection=idx===m.topics.length-1;
  S.last=t.key; SW.save();
  recallOn=false;               // every topic opens with Recall mode off
+ if(SW.S.learnSrc!==srcKey){SW.S.learnSrc=srcKey;}
  var revealed=false, result=null, draft='', histOpen=false, curView='guide'; // every topic opens on Guide
  var nq=SW.QS.filter(function(q){return q.m===t.mod&&q.t===t.id;}).length;
  function attempts(){if(!S.recall)S.recall={};return S.recall[t.key]||[];}
  function draw(){
   var view=curView, done=!!S.reviewed[t.key], hidden=recallOn&&!revealed, at=attempts();
-  var h='<div class="crumb"><a href="#/learn">Learn</a> › <a href="#/learn/'+m.id+'">'+esc(m.title)+'</a> · '+(idx+1)+' of '+m.topics.length+'</div>';
+  var h='<div class="crumb"><a href="#/learn/'+srcKey+'">Learn'+(bx?' · Beyond':'')+'</a> › <a href="#/learn/'+m.id+'">'+esc(m.title)+'</a> · '+(idx+1)+' of '+m.topics.length+'</div>';
   h+='<h1>'+esc(t.title)+'</h1>';
-  h+='<div class="reader-tools"><div class="seg" role="group" aria-label="Explanation style"><button data-view="guide" aria-pressed="'+(view==='guide')+'">Guide</button><button data-view="simple" aria-pressed="'+(view==='simple')+'">Simplified</button></div>';
+  if(bx) h+='<div class="title-tags"><span class="ext">Outside the guide</span>'+(t.pe?'<span class="pe">Practice exam</span>':'')+'</div>';
+  h+='<div class="reader-tools">'+(bx?'':'<div class="seg" role="group" aria-label="Explanation style"><button data-view="guide" aria-pressed="'+(view==='guide')+'">Guide</button><button data-view="simple" aria-pressed="'+(view==='simple')+'">Simplified</button></div>');
   h+='<button class="toggle" data-recall aria-pressed="'+recallOn+'">'+(recallOn?I.eyeoff:I.eye)+'Recall mode</button></div>';
   if(at.length){
    var last=at[at.length-1];
@@ -3658,19 +4571,25 @@ function reader(main,t){
    h+='<div class="bar '+rcTone(result.pct)+'"><i style="width:'+result.pct+'%"></i></div>';
    if(result.got.length)h+='<div class="rc-sub">You got</div><div class="rc-terms got">'+result.got.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>';
    if(result.missed.length)h+='<div class="rc-sub">You missed</div><div class="rc-terms miss">'+result.missed.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>';
-   h+='<p class="small muted" style="margin:0 0 12px">Scored on key terms from the guide wording. An idea you put in your own words without the term won\'t count, so check the text below.</p>';
+   h+='<p class="small muted" style="margin:0 0 12px">Scored on key terms from '+(bx?'the researched text':'the guide wording')+'. An idea you put in your own words without the term won\'t count, so check the text below.</p>';
    h+='<div class="rc-sub">What you wrote</div><p class="small" style="white-space:pre-wrap;margin:4px 0 12px">'+esc(result.text)+'</p>';
    h+='<button class="btn" data-rc-again>Try again</button></div>';
   }
   h+='<div class="recall-wrap'+(hidden?' hidden':'')+'" id="rw">';
   if(hidden){
-   h+='<div class="recall-cover"><div class="card rc-card"><b>Recall first</b><span class="small muted">Type everything you remember about <b style="display:inline">'+esc(t.title)+'</b>, then check how much you got.</span>';
+   h+='<div class="recall-cover"><div class="card rc-card"><b>Recall first</b><span class="small muted">'+(bx?'Checked against the researched text. ':'')+'Type everything you remember about <b style="display:inline">'+esc(t.title)+'</b>, then check how much you got.</span>';
    h+='<textarea class="rc-input" id="rcin" placeholder="Terms, definitions, examples, anything you can pull from memory…" aria-label="What you remember about '+esc(t.title)+'">'+esc(draft)+'</textarea>';
    h+='<div class="rc-actions"><button class="btn primary" data-rc-check>'+I.check+'Check my recall</button><button class="btn ghost" data-reveal>Just reveal</button></div></div></div>';
   }
-  h+='<div class="content"><div class="content-body"><p class="label">'+(view==='guide'?'From the study guide':'Simplified explanation')+'</p>'+(view==='guide'?t.guide:t.simple)+'</div></div></div>';
+  var body;
+  if(bx){
+   body='<p class="label">Beyond the guide · researched</p>'+t.guide;
+   if(t.tip) body+='<div class="xtip"><div class="h">Exam tip</div>'+t.tip+'</div>';
+   if(t.refs&&t.refs.length) body+='<div class="xrefs"><div class="h">Sources</div><ul>'+t.refs.map(function(r){var ext=/^https?:/.test(r[1]);return '<li><a href="'+r[1]+'"'+(ext?' target="_blank" rel="noopener"':'')+'>'+r[0]+'</a></li>';}).join('')+'</ul></div>';
+  } else body='<p class="label">'+(view==='guide'?'From the study guide':'Simplified explanation')+'</p>'+(view==='guide'?t.guide:t.simple);
+  h+='<div class="content"><div class="content-body">'+body+'</div></div></div>';
   h+='<div class="row" style="margin-top:14px"><button class="btn '+(done?'good':'primary')+'" data-done>'+(done?I.check+'Reviewed':'Mark as reviewed')+'</button>'+(nq?'<button class="btn" data-quiztopic>'+I.quiz+'Quiz this topic ('+nq+')</button>':'')+'</div>';
-  var nextLink=lastInSection?'<a class="btn ghost next" href="#/learn">Finish section →<span>Back to all sections</span></a>':(next?'<a class="btn ghost next" href="#/learn/'+next.mod+'/'+next.id+'">Next →<span>'+esc(next.title)+'</span></a>':'<span></span>');
+  var nextLink=lastInSection?'<a class="btn ghost next" href="#/learn/'+srcKey+'">Finish section →<span>Back to all sections</span></a>':(next?'<a class="btn ghost next" href="#/learn/'+next.mod+'/'+next.id+'">Next →<span>'+esc(next.title)+'</span></a>':'<span></span>');
   h+='<div class="pager">'+(prev?'<a class="btn ghost" href="#/learn/'+prev.mod+'/'+prev.id+'">← Previous<span>'+esc(prev.title)+'</span></a>':'<span></span>')+nextLink+'</div>';
   main.innerHTML=h;
   var ta=$('#rcin'); if(ta)ta.addEventListener('input',function(){draft=ta.value;});
@@ -3684,7 +4603,7 @@ function reader(main,t){
   if(e.target.closest('[data-rc-check]')){
    var txt=($('#rcin')||{}).value||draft;
    if(!txt.trim()){SW.toast('Type what you remember first');var t2=$('#rcin');if(t2)t2.focus();return;}
-   var g=RC.grade(t,flat,txt); g.text=txt.trim();
+   var g=RC.grade(t,everyTopic,txt); g.text=txt.trim();
    if(!S.recall)S.recall={}; (S.recall[t.key]=S.recall[t.key]||[]).push({d:Date.now(),p:g.pct,g:g.got.length,n:g.total});
    SW.save(); result=g; revealed=true; draft=''; draw();
    var r=$('#rcres'); if(r&&r.scrollIntoView)r.scrollIntoView({block:'start',behavior:'smooth'});
@@ -3700,16 +4619,18 @@ function reader(main,t){
 (function(){
 'use strict';
 var SW=window.__SW, I=SW.I, esc=SW.esc, $=SW.$, V=window.__VIEWS;
-var QZ={cfg:{mods:'all',type:'mixed',n:20,weak:false},session:null};
+var QZ={cfg:{src:'both',mods:'all',type:'mixed',n:20,weak:false},session:null};
 var LET=['A','B','C','D','E'];
 var TYPE_LABEL={v:'Scenario',r:'Recall'};
 
+function srcSeg(v){return '<div class="seg" role="group" aria-label="Content source">'+[['both','Both'],['guide','Study guide'],['beyond','Beyond the guide']].map(function(x){return '<button data-src="'+x[0]+'" aria-pressed="'+(v===x[0])+'">'+x[1]+'</button>';}).join('')+'</div>';}
 function buildPool(o){
  var pool;
  if(o.ids) pool=o.ids.map(function(id){return SW.QBYID[id];}).filter(Boolean);
  else if(o.weak) pool=SW.weakQs();
  else pool=SW.QS.slice();
  if(o.mods&&o.mods!=='all') pool=pool.filter(function(q){return o.mods.indexOf(q.m)>=0;});
+ else if(o.src&&o.src!=='both') pool=pool.filter(function(q){return SW.srcOf(q.m)===o.src;});
  if(o.topic) pool=pool.filter(function(q){return q.t===o.topic;});
  if(o.type&&o.type!=='mixed') pool=pool.filter(function(q){return q.type===o.type;});
  return pool;
@@ -3721,7 +4642,7 @@ window.__startQuiz=function(o){
  if(!o.weak&&!o.ids&&!o.topic){pool.sort(function(a,b){return (SW.S.q[a.id]?1:0)-(SW.S.q[b.id]?1:0);});}
  var n=Math.min(o.n||pool.length,pool.length);
  var items=pool.slice(0,n).map(function(q){return {id:q.id,order:SW.shuffle(q.opts.map(function(_,i){return i;})),sel:null,checked:false,correct:null,flag:!!(SW.S.q[q.id]&&SW.S.q[q.id].flag)};});
- QZ.session={items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?'Mixed: all sections':o.mods.map(function(m){return SW.MOD[m].title;}).join(', ')};
+ QZ.session={section:o.section||null,items:items,i:0,done:false,t0:Date.now(),label:o.weak?'Weak-spot drill':o.topic?SW.TOPIC[o.mods[0]+'/'+o.topic].title:(o.mods==='all'||!o.mods)?(o.src==='beyond'?'Mixed: beyond the guide':o.src==='guide'?'Mixed: study guide':'Mixed: all sections'):o.mods.map(function(m){return SW.mt(SW.MOD[m]);}).join(', ')};
  if(location.hash!=='#/quiz') location.hash='#/quiz'; else V.quiz($('#main'));
 };
 
@@ -3732,9 +4653,10 @@ V.quiz=function(main){
  setup(main);
 };
 function setup(main){
- var c=QZ.cfg, h='<h1>Quiz</h1><p class="sub">Exam-style scenarios plus quick recall. Every question comes from the guide, with an explanation after you answer.</p>';
- h+='<div class="card"><div class="field" style="margin-top:0"><span class="lab">Sections</span><div class="chips" id="mods"><button class="chip" data-mod="all" aria-pressed="'+(c.mods==='all')+'">All sections</button>';
- SW.QUIZ_MODS.forEach(function(m){h+='<button class="chip" data-mod="'+m.id+'" aria-pressed="'+(c.mods!=='all'&&c.mods.indexOf(m.id)>=0)+'">'+esc(m.title.replace('How to Answer Questions – ','').replace('Systems Theory & ',''))+'</button>';});
+ var c=QZ.cfg, h='<h1>Quiz</h1><p class="sub">Exam-style scenarios plus quick recall, with an explanation after you answer. Study-guide questions come from the guide; Beyond-the-guide questions come from the researched outline topics.</p>';
+ h+='<div class="card"><div class="field" style="margin-top:0"><span class="lab">Source</span>'+srcSeg(c.src)+'</div>';
+ h+='<div class="field"><span class="lab">Sections</span><div class="chips" id="mods"><button class="chip" data-mod="all" aria-pressed="'+(c.mods==='all')+'">All sections</button>';
+ SW.QUIZ_MODS.forEach(function(m){if(c.src!=='both'&&SW.srcOf(m.id)!==c.src)return;h+='<button class="chip" data-mod="'+m.id+'" aria-pressed="'+(c.mods!=='all'&&c.mods.indexOf(m.id)>=0)+'">'+esc(SW.mt(m).replace('How to Answer Questions – ','').replace('Systems Theory & ',''))+'</button>';});
  h+='</div></div>';
  h+='<div class="field"><span class="lab">Question type</span><div class="seg" role="group"><button data-type="mixed" aria-pressed="'+(c.type==='mixed')+'">Mixed</button><button data-type="v" aria-pressed="'+(c.type==='v')+'">Scenarios</button><button data-type="r" aria-pressed="'+(c.type==='r')+'">Recall</button></div></div>';
  h+='<div class="field"><span class="lab">Length</span><div class="seg" role="group">'+[10,20,40,999].map(function(n){return '<button data-n="'+n+'" aria-pressed="'+(c.n===n)+'">'+(n===999?'All':n)+'</button>';}).join('')+'</div></div>';
@@ -3746,26 +4668,27 @@ function setup(main){
  if(hist.length){h+='<h2>Recent quizzes</h2><div class="card">'+hist.map(function(x){return '<div class="acc"><span class="nm">'+esc(x.label||'Quiz')+'<div class="small muted">'+esc(x.d)+' · '+x.c+'/'+x.n+'</div></span><span class="pc">'+SW.pct(x.c,x.n)+'%</span></div>';}).join('')+'</div>';}
  main.innerHTML=h;
  main.onclick=function(e){
+  var sb=e.target.closest('[data-src]'); if(sb){c.src=sb.getAttribute('data-src');c.mods='all';return setup(main);}
   var m=e.target.closest('[data-mod]');
   if(m){var id=m.getAttribute('data-mod');if(id==='all')c.mods='all';else{if(c.mods==='all')c.mods=[];var k=c.mods.indexOf(id);if(k>=0)c.mods.splice(k,1);else c.mods.push(id);if(!c.mods.length)c.mods='all';}return setup(main);}
   var t=e.target.closest('[data-type]'); if(t){c.type=t.getAttribute('data-type');return setup(main);}
   var n=e.target.closest('[data-n]'); if(n){c.n=+n.getAttribute('data-n');return setup(main);}
   if(e.target.id==='weakonly'){c.weak=e.target.checked;return setup(main);}
-  if(e.target.closest('#go')) window.__startQuiz({mods:c.mods,type:c.type,n:c.n,weak:c.weak});
+  if(e.target.closest('#go')) window.__startQuiz({src:c.src,mods:c.mods,type:c.type,n:c.n,weak:c.weak});
  };
 }
 function runner(main){
  var s=QZ.session, it=s.items[s.i], q=SW.QBYID[it.id], m=SW.MOD[q.m], t=SW.TOPIC[q.m+'/'+q.t];
  var h='<div class="progress" aria-hidden="true"><i style="width:'+SW.pct(s.i+(it.checked?1:0),s.items.length)+'%"></i></div>';
  h+='<div class="qhead"><span>Question '+(s.i+1)+' of '+s.items.length+'</span><span class="pill">'+TYPE_LABEL[q.type]+'</span><span class="spacer"></span><button class="flag" data-flag aria-pressed="'+it.flag+'" title="Keep this in weak spots even if you get it right">'+I.flag+(it.flag?'Flagged':'Flag')+'</button></div>';
- h+='<div class="small muted">'+esc(m.title)+'</div><div class="qstem">'+q.stem+'</div><div class="opts" role="group" aria-label="Answer choices">';
+ h+='<div class="small muted">'+esc(SW.mt(m))+'</div><div class="qstem">'+q.stem+'</div><div class="opts" role="group" aria-label="Answer choices">';
  it.order.forEach(function(oi,k){
   var cls='opt'; if(it.checked){ if(oi===0) cls+=' correct'; else if(k===it.sel) cls+=' wrong'; else cls+=' dim'; }
   h+='<button class="'+cls+'" data-opt="'+k+'" aria-pressed="'+(it.sel===k)+'"'+(it.checked?' disabled':'')+'><span class="k">'+LET[k]+'</span><span>'+q.opts[oi]+'</span></button>';
  });
  h+='</div>';
  if(it.checked){
-  h+='<div class="feedback '+(it.correct?'ok':'no')+'" role="status"><div class="verdict">'+(it.correct?'Correct':'Not quite')+'</div><div>'+q.exp+'</div><div class="src">Review: <a href="#/learn/'+q.m+'/'+q.t+'">'+esc(m.title)+' › '+esc(t.title)+'</a></div></div>';
+  h+='<div class="feedback '+(it.correct?'ok':'no')+'" role="status"><div class="verdict">'+(it.correct?'Correct':'Not quite')+'</div><div>'+q.exp+'</div><div class="src">Review: <a href="#/learn/'+q.m+'/'+q.t+'">'+esc(SW.mt(m))+' › '+esc(t.title)+'</a></div></div>';
  }
  h+='<div class="qfoot"><button class="btn ghost" data-end>End</button><span class="spacer"></span>'+(it.checked?'<button class="btn primary" data-next>'+(s.i+1<s.items.length?'Next question':'See results')+'</button>':'<button class="btn primary" data-check'+(it.sel===null?' disabled':'')+'>Check answer</button>')+'</div>';
  h+='<p class="kbd">Keys: 1–4 to choose · Enter to check / next · F to flag</p>';
@@ -3803,12 +4726,22 @@ function results(main){
  var h='<h1>Results</h1><p class="sub">'+esc(s.label)+'</p><div class="card"><div class="row"><span class="score" style="color:var(--'+(p>=75?'good':p>=60?'warn':'bad')+')">'+p+'%</span><span class="muted">'+c+' of '+n+' correct<br>'+mins+' min</span></div></div>';
  var by={}; s.items.forEach(function(x){var q=SW.QBYID[x.id];by[q.m]=by[q.m]||{n:0,c:0};by[q.m].n++;if(x.correct)by[q.m].c++;});
  var keys=Object.keys(by);
- if(keys.length>1){h+='<h2>By section</h2><div class="card">'+keys.sort(function(a,b){return by[a].c/by[a].n-by[b].c/by[b].n;}).map(function(k){var pp=SW.pct(by[k].c,by[k].n);return '<div class="acc"><span class="nm">'+esc(SW.MOD[k].title)+'<div class="bar '+(pp>=75?'good':pp>=60?'warn':'bad')+'"><i style="width:'+pp+'%"></i></div></span><span class="pc">'+by[k].c+'/'+by[k].n+'</span></div>';}).join('')+'</div>';}
+ if(keys.length>1){h+='<h2>By section</h2><div class="card">'+keys.sort(function(a,b){return by[a].c/by[a].n-by[b].c/by[b].n;}).map(function(k){var pp=SW.pct(by[k].c,by[k].n);return '<div class="acc"><span class="nm">'+esc(SW.mt(SW.MOD[k]))+'<div class="bar '+(pp>=75?'good':pp>=60?'warn':'bad')+'"><i style="width:'+pp+'%"></i></div></span><span class="pc">'+by[k].c+'/'+by[k].n+'</span></div>';}).join('')+'</div>';}
  var missed=s.items.filter(function(x){return !x.correct;});
- h+='<div class="row" style="margin:16px 0">'+(missed.length?'<button class="btn primary" data-retry>Retry the '+missed.length+' missed</button>':'')+'<button class="btn" data-new>New quiz</button></div>';
+ var secNext=null, secSrc=null;
+ if(s.section&&SW.MOD[s.section]){
+  secSrc=SW.srcOf(s.section);
+  var sl=SW.QUIZ_MODS.filter(function(mm){return SW.srcOf(mm.id)===secSrc;}), si=sl.map(function(mm){return mm.id;}).indexOf(s.section);
+  secNext=si>=0?sl[si+1]||null:null;
+  h+='<div class="card sec-next" style="margin-top:16px"><div class="small muted" style="margin-bottom:8px">Section quiz: '+esc(SW.MOD[s.section].title)+'</div><div class="row">'+
+   (secNext?'<button class="btn primary" data-secnext="'+secNext.id+'">Next section: '+esc(secNext.title)+' →</button>':'<span class="small muted">That was the last section.</span>')+
+   '<a class="btn" href="#/learn/'+secSrc+'">Back to all sections</a></div></div>';
+ }
+ h+='<div class="row" style="margin:16px 0">'+(missed.length?'<button class="btn '+(s.section?'':'primary')+'" data-retry>Retry the '+missed.length+' missed</button>':'')+'<button class="btn" data-new>New quiz</button></div>';
  if(missed.length){h+='<h2>Review what you missed</h2>'+missed.map(function(x){var q=SW.QBYID[x.id];return '<details class="missed"><summary><span class="mk">✕</span><span>'+q.stem+'</span></summary><div class="body"><p><span class="muted">You chose:</span> '+q.opts[x.order[x.sel]]+'</p><p class="ans">Answer: '+q.opts[0]+'</p><p>'+q.exp+'</p><a href="#/learn/'+q.m+'/'+q.t+'">Review topic →</a></div></details>';}).join('');}
  main.innerHTML=h;
  main.onclick=function(e){
+  var sn=e.target.closest('[data-secnext]'); if(sn){var nid=sn.getAttribute('data-secnext');window.__startQuiz({mods:[nid],n:20,type:'mixed',section:nid});window.scrollTo(0,0);return;}
   if(e.target.closest('[data-retry]')) window.__startQuiz({ids:missed.map(function(x){return x.id;})});
   if(e.target.closest('[data-new]')){QZ.session=null;setup(main);window.scrollTo(0,0);}
  };
@@ -3816,10 +4749,11 @@ function results(main){
 window.__quizReset=function(){QZ.session=null;};
 
 /* ---------- FLASHCARDS ---------- */
-var FC={cfg:{mods:'all',weak:false},session:null};
+var FC={cfg:{src:'both',mods:'all',weak:false},session:null};
 window.__startCards=function(o){
  var pool=o.weak?SW.weakCards():SW.CARDS.slice();
  if(o.mods&&o.mods!=='all') pool=pool.filter(function(c){return o.mods.indexOf(c.m)>=0;});
+ else if(o.src&&o.src!=='both') pool=pool.filter(function(c){return SW.srcOf(c.m)===o.src;});
  if(!pool.length){SW.toast(o.weak?'No weak cards yet.':'No cards match.');return;}
  FC.session={deck:SW.shuffle(pool).map(function(c){return c.id;}),total:pool.length,flipped:false,got:0,again:0,done:false};
  if(location.hash!=='#/cards') location.hash='#/cards'; else V.cards($('#main'));
@@ -3832,24 +4766,26 @@ V.cards=function(main){
 };
 function cardSetup(main){
  var c=FC.cfg, h='<h1>Flashcards</h1><p class="sub">Try to answer before you flip. Tap <b>Again</b> if you weren\'t sure; the card comes back later and is saved to Weak spots.</p><div class="card">';
- h+='<div class="field" style="margin-top:0"><span class="lab">Sections</span><div class="chips"><button class="chip" data-mod="all" aria-pressed="'+(c.mods==='all')+'">All</button>';
- SW.MODULES.forEach(function(m){var n=SW.CARDS.filter(function(x){return x.m===m.id;}).length;if(!n)return;h+='<button class="chip" data-mod="'+m.id+'" aria-pressed="'+(c.mods!=='all'&&c.mods.indexOf(m.id)>=0)+'">'+esc(m.title.replace('How to Answer Questions – ','').replace('Systems Theory & ',''))+'</button>';});
+ h+='<div class="field" style="margin-top:0"><span class="lab">Source</span>'+srcSeg(c.src)+'</div>';
+ h+='<div class="field"><span class="lab">Sections</span><div class="chips"><button class="chip" data-mod="all" aria-pressed="'+(c.mods==='all')+'">All</button>';
+ SW.MODULES.forEach(function(m){if(c.src!=='both'&&SW.srcOf(m.id)!==c.src)return;var n=SW.CARDS.filter(function(x){return x.m===m.id;}).length;if(!n)return;h+='<button class="chip" data-mod="'+m.id+'" aria-pressed="'+(c.mods!=='all'&&c.mods.indexOf(m.id)>=0)+'">'+esc(SW.mt(m).replace('How to Answer Questions – ','').replace('Systems Theory & ',''))+'</button>';});
  h+='</div></div><label class="check"><input type="checkbox" id="weakonly"'+(c.weak?' checked':'')+'> Only cards I marked "Again"</label>';
- var pool=(c.weak?SW.weakCards():SW.CARDS).filter(function(x){return c.mods==='all'||c.mods.indexOf(x.m)>=0;});
+ var pool=(c.weak?SW.weakCards():SW.CARDS).filter(function(x){return c.mods==='all'?(c.src==='both'||SW.srcOf(x.m)===c.src):c.mods.indexOf(x.m)>=0;});
  h+='<button class="btn primary block" id="go" style="margin-top:12px"'+(pool.length?'':' disabled')+'>'+I.cards+'Study '+pool.length+' card'+(pool.length===1?'':'s')+'</button></div>';
  main.innerHTML=h;
  main.onclick=function(e){
+  var sb=e.target.closest('[data-src]'); if(sb){c.src=sb.getAttribute('data-src');c.mods='all';return cardSetup(main);}
   var m=e.target.closest('[data-mod]');
   if(m){var id=m.getAttribute('data-mod');if(id==='all')c.mods='all';else{if(c.mods==='all')c.mods=[];var k=c.mods.indexOf(id);if(k>=0)c.mods.splice(k,1);else c.mods.push(id);if(!c.mods.length)c.mods='all';}return cardSetup(main);}
   if(e.target.id==='weakonly'){c.weak=e.target.checked;return cardSetup(main);}
-  if(e.target.closest('#go')) window.__startCards({mods:c.mods,weak:c.weak});
+  if(e.target.closest('#go')) window.__startCards({src:c.src,mods:c.mods,weak:c.weak});
  };
 }
 function cardRunner(main){
  var s=FC.session, card=SW.CBYID[s.deck[0]], m=SW.MOD[card.m];
  var done=s.total-s.deck.length;
  var h='<div class="progress" aria-hidden="true"><i style="width:'+SW.pct(done,s.total)+'%"></i></div>';
- h+='<div class="qhead"><span>'+s.deck.length+' left</span><span class="pill">'+esc(m.title)+'</span><span class="spacer"></span><span>'+s.got+' got · '+s.again+' again</span></div>';
+ h+='<div class="qhead"><span>'+s.deck.length+' left</span><span class="pill">'+esc(SW.mt(m))+'</span><span class="spacer"></span><span>'+s.got+' got · '+s.again+' again</span></div>';
  h+='<div class="fc-wrap"><button class="fc'+(s.flipped?' flipped':'')+'" data-flip aria-label="'+(s.flipped?'Show front':'Flip card to see answer')+'"><div class="face front"><span class="hint">Recall</span><div class="t">'+esc(card.f)+'</div><span class="hint" style="margin-top:6px">Tap to flip</span></div><div class="face back"><span class="hint">Answer</span><div class="t">'+esc(card.b)+'</div></div></button></div>';
  h+=s.flipped?'<div class="grid2"><button class="btn bad" data-again>Again</button><button class="btn good" data-got>Got it</button></div>':'<button class="btn primary block" data-flip>Show answer</button>';
  h+='<div class="row" style="margin-top:14px"><button class="btn ghost" data-end>End session</button></div><p class="kbd">Keys: Space to flip · 1 = Again · 2 = Got it</p>';
