@@ -179,6 +179,8 @@ td+td,th+th{border-left:1px solid var(--border)}
 .recall-wrap.hidden .recall-cover{display:flex}
 .recall-cover .card{max-width:340px;text-align:center}
 /* Beyond the guide */
+.sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--faint);margin-right:6px;vertical-align:1px;flex:none}
+.sync-dot.on{background:var(--good)}.sync-dot.connecting{background:var(--warn)}.sync-dot.offline{background:var(--warn)}.sync-dot.denied,.sync-dot.error{background:var(--bad)}
 .src-seg{margin:2px 0 16px;display:flex}
 .src-seg a{white-space:nowrap;flex:1;text-align:center;text-decoration:none;border:0;border-radius:9px;padding:9px 12px;font-weight:650;font-size:14.5px;color:var(--muted);min-height:40px;display:flex;align-items:center;justify-content:center;gap:6px}
 .src-seg a[aria-current="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
@@ -4860,7 +4862,73 @@ var DEFAULT={examDate:'2026-09-24',examTime:'12:00',theme:'auto',view:'guide',re
 var S=load();
 function load(){var s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}var o=JSON.parse(JSON.stringify(DEFAULT));if(s&&typeof s==='object'){for(var k in s)o[k]=s[k];}return o;}
 var storageOK=true;
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){storageOK=false;}}
+function save(){S._ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){storageOK=false;}schedulePush();}
+/* ---------- CLOUD SYNC (Firebase Realtime Database) ---------- */
+var FB_CONFIG={apiKey:"AIzaSyDB__2dOB581BAOtn03835mlaHpKckAQU8",authDomain:"ap-planner-1f7df.firebaseapp.com",databaseURL:"https://ap-planner-1f7df-default-rtdb.firebaseio.com",projectId:"ap-planner-1f7df",storageBucket:"ap-planner-1f7df.firebasestorage.app",messagingSenderId:"1098701382105",appId:"1:1098701382105:web:6708be48a4e9c5e5c0f9c8"};
+var FB_BASE='https://www.gstatic.com/firebasejs/10.11.0/';
+var FB_PATH='sw_exam/state';
+var SYNC={status:'connecting',msg:'',last:0,lastPush:0,timer:null,api:null,ref:null,first:true,online:false};
+function syncSet(st,msg){SYNC.status=st;SYNC.msg=msg||'';try{if(window.__syncChanged)window.__syncChanged();}catch(e){}}
+function syncLabel(){
+ var t=SYNC.last?new Date(SYNC.last).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'';
+ return {on:'Synced across devices'+(t?' · '+t:''),connecting:'Connecting to cloud sync…',offline:'Offline: saved on this device, will sync when back online',denied:'Cloud sync blocked by database rules',error:'Cloud sync unavailable: saved on this device only'}[SYNC.status]||'';
+}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function mergeStates(a,b){
+ // a = this device, b = cloud. Newer epoch (after "Erase all progress") wins outright.
+ if((a.epoch||0)!==(b.epoch||0)) return clone((a.epoch||0)>(b.epoch||0)?a:b);
+ var newer=(b._ts||0)>(a._ts||0)?b:a, older=newer===a?b:a, o=clone(newer), k;
+ o.q=o.q||{}; for(k in older.q||{}){ if(!o.q[k]||(older.q[k].a||0)>(o.q[k].a||0)) o.q[k]=older.q[k]; }
+ o.c=o.c||{}; for(k in older.c||{}){ if(!o.c[k]||(older.c[k].n||0)>(o.c[k].n||0)) o.c[k]=older.c[k]; }
+ o.reviewed=o.reviewed||{}; for(k in older.reviewed||{}) if(older.reviewed[k]) o.reviewed[k]=true;
+ o.plan=o.plan||{}; for(k in older.plan||{}) if(older.plan[k]) o.plan[k]=true;
+ o.recall=o.recall||{}; for(k in older.recall||{}){ var seen={}, all=(o.recall[k]||[]).concat(older.recall[k]||[]).filter(function(x){if(seen[x.d])return false;seen[x.d]=1;return true;}); all.sort(function(x,y){return x.d-y.d;}); o.recall[k]=all; }
+ var ss={}, sess=(older.sessions||[]).concat(o.sessions||[]).filter(function(x){var id=JSON.stringify(x);if(ss[id])return false;ss[id]=1;return true;});
+ o.sessions=sess.slice(-50);
+ o._ts=Math.max(a._ts||0,b._ts||0);
+ return o;
+}
+function localWrite(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){storageOK=false;}}
+function pushNow(){
+ if(!SYNC.api||!SYNC.ref) return;
+ clearTimeout(SYNC.timer); SYNC.timer=null;
+ var ts=S._ts||Date.now(); SYNC.lastPush=ts;
+ SYNC.api.set(SYNC.ref,{json:JSON.stringify(S),ts:ts,epoch:S.epoch||0}).then(function(){SYNC.last=Date.now();if(SYNC.status!=='offline')syncSet('on');}).catch(syncErr);
+}
+function schedulePush(){ if(!SYNC.api) return; clearTimeout(SYNC.timer); SYNC.timer=setTimeout(pushNow,1200); }
+function syncErr(err){ var m=String(err&&(err.code||err.message)||err); if(/permission/i.test(m)) syncSet('denied',m); else syncSet('error',m); }
+function applyRemote(st){
+ var o=clone(DEFAULT); for(var k in st)o[k]=st[k]; S=o; localWrite(); applyTheme();
+ try{ if(window.__rerender) window.__rerender(); }catch(e){}
+}
+function startSync(){
+ if(!window.fetch||!('Promise' in window)){syncSet('error','unsupported');return;}
+ var imp; try{ imp=new Function('u','return import(u)'); }catch(e){syncSet('error','no dynamic import');return;}
+ Promise.all([imp(FB_BASE+'firebase-app.js'),imp(FB_BASE+'firebase-database.js')]).then(function(mods){
+  var appM=mods[0], dbM=mods[1];
+  var app=appM.initializeApp(FB_CONFIG,'swexam'); var db=dbM.getDatabase(app);
+  SYNC.api=dbM; SYNC.ref=dbM.ref(db,FB_PATH);
+  dbM.onValue(dbM.ref(db,'.info/connected'),function(snap){ SYNC.online=!!snap.val(); if(!SYNC.online&&!SYNC.first) syncSet('offline'); else if(SYNC.online&&SYNC.status==='offline') syncSet('on'); });
+  dbM.onValue(SYNC.ref,function(snap){
+   var v=snap.val(), remote=null;
+   if(v&&v.json){ try{remote=JSON.parse(v.json);}catch(e){remote=null;} }
+   SYNC.last=Date.now();
+   if(SYNC.first){
+    SYNC.first=false; syncSet('on');
+    if(!remote){ if(!S._ts)S._ts=Date.now(); pushNow(); return; }
+    var merged=mergeStates(S,remote), same=JSON.stringify(merged)===JSON.stringify(remote);
+    if(JSON.stringify(merged)!==JSON.stringify(S)) applyRemote(merged);
+    if(!same){ S._ts=Date.now(); localWrite(); pushNow(); }
+    return;
+   }
+   if(!remote) return;
+   if(v.ts===SYNC.lastPush) { syncSet('on'); return; }       // our own write echoing back
+   if((v.epoch||0)>(S.epoch||0)||(v.ts||0)>(S._ts||0)) applyRemote(remote);
+   syncSet('on');
+  },function(err){ syncErr(err); });
+ }).catch(function(){ syncSet('offline','Firebase could not be loaded'); });
+}
+
 function applyTheme(){var r=document.documentElement;if(S.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',S.theme);}
 
 /* ---------- derived ---------- */
@@ -4909,7 +4977,7 @@ function renderShell(){
  $('#themeBtn').addEventListener('click',function(){S.theme=S.theme==='auto'?'light':S.theme==='light'?'dark':'auto';save();applyTheme();updateChrome();toast('Theme: '+(S.theme==='auto'?'match device':S.theme));});
 }
 function updateChrome(){
- $('#cd').textContent=fmtLeft(timeLeft());
+ $('#cd').innerHTML='<span class="sync-dot '+SYNC.status+'" title="'+syncLabel()+'"></span>'+fmtLeft(timeLeft());
  $('#themeBtn').innerHTML=S.theme==='auto'?I.auto:S.theme==='light'?I.sun:I.moon;
  var route=(location.hash.replace(/^#\/?/,'').split('/')[0])||'home';
  var wn=weakQs().length+weakCards().length;
@@ -4919,7 +4987,7 @@ var toastT;
 function toast(msg){var el=$('.toast');if(!el){el=document.createElement('div');el.className='toast';el.setAttribute('role','status');document.body.appendChild(el);}el.textContent=msg;el.style.display='block';clearTimeout(toastT);toastT=setTimeout(function(){el.style.display='none';},1800);}
 
 window.__SW={hash:hash,$:$,esc:esc,strip:strip,shuffle:shuffle,pct:pct,fmtDate:fmtDate,parseDate:parseDate,isoDate:isoDate,today0:today0,daysBetween:daysBetween,
- MODULES:MODULES,QS:QS,CARDS:CARDS,isLearnQ:isLearnQ,srcOf:srcOf,mt:mt,srcMods:srcMods,MOD:MOD,TOPIC:TOPIC,QBYID:QBYID,CBYID:CBYID,QUIZ_MODS:QUIZ_MODS,SEARCH:SEARCH,
+ MODULES:MODULES,QS:QS,CARDS:CARDS,isLearnQ:isLearnQ,syncLabel:syncLabel,syncStatus:function(){return SYNC.status;},syncNow:function(){if(SYNC.api){S._ts=Date.now();localWrite();pushNow();}},startSync:startSync,srcOf:srcOf,mt:mt,srcMods:srcMods,MOD:MOD,TOPIC:TOPIC,QBYID:QBYID,CBYID:CBYID,QUIZ_MODS:QUIZ_MODS,SEARCH:SEARCH,
  get S(){return S;},set S(v){S=v;},DEFAULT:DEFAULT,KEY:KEY,save:save,applyTheme:applyTheme,storageOK:function(){return storageOK;},
  qWeak:qWeak,cWeak:cWeak,weakQs:weakQs,weakCards:weakCards,modStats:modStats,overall:overall,reviewedCount:reviewedCount,totalReviewed:totalReviewed,TOTAL_TOPICS:TOTAL_TOPICS,daysLeft:daysLeft,timeLeft:timeLeft,fmtTime:fmtTime,examAt:examAt,planDayIndex:planDayIndex,
  I:I,renderShell:renderShell,updateChrome:updateChrome,toast:toast};
@@ -4995,7 +5063,7 @@ V.learn=function(main,parts){
   var r=SW.reviewedCount(m.id), n=m.topics.length, st=SW.modStats(m.id);
   h+='<a class="mod'+(r===n?' done':'')+(m.src==='beyond'?' bx':'')+'" href="#/learn/'+m.id+'"><span class="num">'+m.n+'</span><span style="min-width:0"><b>'+esc(m.title)+'</b><span class="meta">'+r+'/'+n+' reviewed'+(st.acc!==null?' · '+st.acc+'% quiz accuracy':'')+'</span><div class="bar"><i style="width:'+SW.pct(r,n)+'%"></i></div></span><span class="chev">'+I.chev+'</span></a>';
  });
- h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 22 Sep 2026, 4:55 pm</p>';
+ h+='</div><p class="small muted" style="text-align:center;margin:22px 0 0">App version: 23 Sep 2026, 11:50 am</p>';
  main.innerHTML=h;
  var inp=$('#q'); inp.addEventListener('input',function(){search(inp.value);});
  var key='_lastSearch_'+src;
@@ -5584,7 +5652,8 @@ V.plan=function(main){
  h+='<h2>How to study: what the research says</h2><p class="muted small">This app is built around the techniques below. They come from study-skills research, not from the guide.</p>';
  TIPS.forEach(function(t){h+='<div class="tipc"><h3>'+t.title+'</h3><p>'+t.body+'</p><p class="how"><b>In this app:</b> '+t.how+'</p><p class="ref">'+t.ref+'</p></div>';});
  h+='<details class="missed"><summary><span>References</span></summary><div class="body"><ul class="refs">'+REFS.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul></div></details>';
- h+='<h2>Move your progress between devices</h2><div class="card stack"><p class="small" style="margin:0">Progress is saved in this browser only. To continue on another device, copy your progress code here and paste it into this page on the other device.</p><div class="row"><button class="btn" data-export>Copy progress code</button><button class="btn" data-import>Paste progress code</button></div><textarea id="code" placeholder="Your progress code appears here, or paste one from another device" aria-label="Progress code"></textarea></div>';
+ h+='<h2>Sync across devices</h2><div class="card stack"><div class="row"><b style="flex:1;min-width:0"><span class="sync-dot '+SW.syncStatus()+'"></span><span id="syncl">'+esc(SW.syncLabel())+'</span></b><button class="btn" data-syncnow>Sync now</button></div><p class="small muted" style="margin:0">Your progress (quiz answers, flashcards, reviewed topics, recall scores, plan checkmarks) saves to the cloud automatically and loads on any device that opens this page. It also keeps working offline and catches up when you reconnect.</p></div>';
+ h+='<h2>Backup code</h2><div class="card stack"><p class="small" style="margin:0">Optional backup if cloud sync ever isn\'t available. To continue on another device, copy your progress code here and paste it into this page on the other device.</p><div class="row"><button class="btn" data-export>Copy progress code</button><button class="btn" data-import>Paste progress code</button></div><textarea id="code" placeholder="Your progress code appears here, or paste one from another device" aria-label="Progress code"></textarea></div>';
  h+='<h2>Reset</h2><div class="card"><button class="btn bad" data-reset>'+(resetArm?'Tap again to erase all progress':'Erase all progress')+'</button></div>';
  main.innerHTML=h;
  $('#ed').addEventListener('change',function(e){if(e.target.value){S.examDate=e.target.value;SW.save();SW.updateChrome();V.plan(main);}});
@@ -5592,6 +5661,7 @@ V.plan=function(main){
  main.onclick=function(e){
   var ck=e.target.closest('[data-ck]'); if(ck){var id=ck.getAttribute('data-ck');if(ck.checked)S.plan[id]=true;else delete S.plan[id];SW.save();V.plan(main);return;}
   var g=e.target.closest('[data-go]'); if(g){window.__planGo(g.getAttribute('data-go'));return;}
+  if(e.target.closest('[data-syncnow]')){SW.syncNow();SW.toast('Syncing…');return;}
   if(e.target.closest('[data-export]')){
    var code=btoa(unescape(encodeURIComponent(JSON.stringify(S)))); var ta=$('#code'); ta.value=code; ta.select();
    var ok=function(){SW.toast('Progress code copied');}, fb=function(){try{document.execCommand('copy');ok();}catch(x){SW.toast('Select the code and copy it');}};
@@ -5606,7 +5676,7 @@ V.plan=function(main){
   }
   if(e.target.closest('[data-reset]')){
    if(!resetArm){resetArm=true;V.plan(main);setTimeout(function(){resetArm=false;},4000);return;}
-   resetArm=false; var keep={examDate:S.examDate,theme:S.theme}; var n2=JSON.parse(JSON.stringify(SW.DEFAULT)); n2.examDate=keep.examDate; n2.theme=keep.theme; SW.S=n2; SW.save(); window.__quizReset(); SW.updateChrome(); SW.toast('Progress erased'); V.plan(main);
+   resetArm=false; var keep={examDate:S.examDate,theme:S.theme}; var n2=JSON.parse(JSON.stringify(SW.DEFAULT)); n2.examDate=keep.examDate; n2.theme=keep.theme; n2.examTime=S.examTime; n2.epoch=Date.now(); SW.S=n2; SW.save(); window.__quizReset(); SW.updateChrome(); SW.toast('Progress erased'); V.plan(main);
   }
  };
 };
@@ -5623,7 +5693,9 @@ function route(){
 }
 window.addEventListener('hashchange',function(){route();window.scrollTo(0,0);});
 document.addEventListener('keydown',function(e){ if(!window.__keys)return; var tg=e.target.tagName; if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return; if(e.metaKey||e.ctrlKey||e.altKey)return; if(tg==='BUTTON'&&(e.key==='Enter'||e.key===' '))return; window.__keys(e); });
-SW.applyTheme(); SW.renderShell(); route();
+window.__rerender=function(){ var a=document.activeElement; if(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT')){SW.updateChrome();return;} var y=window.scrollY; route(); window.scrollTo(0,y); };
+window.__syncChanged=function(){ SW.updateChrome(); var el=document.getElementById('syncl'); if(el) el.textContent=SW.syncLabel(); var d=el&&el.parentNode.querySelector('.sync-dot'); if(d) d.className='sync-dot '+SW.syncStatus(); };
+SW.applyTheme(); SW.renderShell(); route(); SW.startSync();
 })();
 
 </script>
